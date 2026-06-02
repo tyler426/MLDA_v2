@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import SectionLabel from '@/components/shared/SectionLabel';
+import StudioLists from '@/components/admin/StudioLists';
 import { toast } from 'sonner';
 import { Settings, Key, AlertTriangle, Trash2, Archive, FileDown, Bell } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -175,6 +176,9 @@ export default function AdminSettings() {
   return (
     <div className="px-4 pt-2 pb-6 max-w-lg mx-auto">
       <h1 className="font-serif text-[28px] font-semibold mb-6 -tracking-[0.01em]">Settings</h1>
+
+      {/* Programs / Levels (editable) */}
+      <div className="mb-6"><StudioLists /></div>
 
       {/* Studio info */}
       <div className="bg-card border border-border rounded-lg p-4 mb-6">

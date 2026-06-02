@@ -12,6 +12,7 @@ import HouseholdCaregivers from '@/components/admin/HouseholdCaregivers';
 import TeacherLoginInvite from '@/components/admin/TeacherLoginInvite';
 import DancerLoginInvite from '@/components/shared/DancerLoginInvite';
 import PhotoUpload from '@/components/shared/PhotoUpload';
+import { useStudioConfig } from '@/lib/useStudioConfig';
 import { Plus, Search, UserPlus, Users, Pencil, Archive, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -185,6 +186,7 @@ export default function AdminRoster() {
 
 function RosterFormDialog({ open, onClose, type, editData, parents, queryClient }) {
   const [form, setForm] = useState({});
+  const { data: cfg } = useStudioConfig();
 
   const resetForm = () => {
     if (editData) {
@@ -236,17 +238,22 @@ function RosterFormDialog({ open, onClose, type, editData, parents, queryClient 
                 <div><Label className="text-xs text-muted-foreground">First Name</Label><Input value={form.first_name || ''} onChange={e => setForm({ ...form, first_name: e.target.value })} required className="bg-secondary border-border" /></div>
                 <div><Label className="text-xs text-muted-foreground">Last Name</Label><Input value={form.last_name || ''} onChange={e => setForm({ ...form, last_name: e.target.value })} required className="bg-secondary border-border" /></div>
               </div>
-              <div><Label className="text-xs text-muted-foreground">Program</Label>
+              <div><Label className="text-xs text-muted-foreground">Program / Group</Label>
                 <Select value={form.program || ''} onValueChange={v => setForm({ ...form, program: v })}>
                   <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="PrePro">Pre-Professional</SelectItem>
-                    <SelectItem value="Competitive">Competitive</SelectItem>
-                    <SelectItem value="Educational">Educational</SelectItem>
+                    {(cfg?.programs || []).map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label className="text-xs text-muted-foreground">Level</Label><Input value={form.level || ''} onChange={e => setForm({ ...form, level: e.target.value })} className="bg-secondary border-border" /></div>
+              <div><Label className="text-xs text-muted-foreground">Level</Label>
+                <Select value={form.level || ''} onValueChange={v => setForm({ ...form, level: v })}>
+                  <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectContent>
+                    {(cfg?.levels || []).map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <div><Label className="text-xs text-muted-foreground">Parent Household</Label>
                 <Select value={form.parent_household_id || ''} onValueChange={v => setForm({ ...form, parent_household_id: v })}>
                   <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Select" /></SelectTrigger>
