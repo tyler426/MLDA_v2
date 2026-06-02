@@ -113,8 +113,11 @@ export default function AdminConflicts() {
   );
 
   return (
-    <div className="px-4 pt-2 pb-6 max-w-4xl mx-auto">
-      <SectionLabel className="pt-4 mb-4">Conflicts & Open Rooms</SectionLabel>
+    <div className="max-w-5xl">
+      <div className="mb-5">
+        <div className="text-[10px] tracking-[0.24em] uppercase text-teal-bright font-semibold">Operations</div>
+        <h1 className="font-serif text-[30px] font-semibold mt-1.5 -tracking-[0.01em]">Conflicts &amp; open rooms</h1>
+      </div>
 
       {/* Day picker */}
       <div className="flex gap-1 mb-6 overflow-x-auto">

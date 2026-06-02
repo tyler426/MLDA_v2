@@ -18,6 +18,10 @@ const VARIANT_COLORS = {
   Teal: 'bg-teal/20 text-teal border border-teal/30',
 };
 
+// Spotlight style-color coding (derived from the class title since classes have no style field)
+const STYLE_PALETTE = ['#2c9089', '#7c6fcf', '#c8a464', '#d97a5e', '#5a9bd4', '#cf6f9c'];
+function styleColor(str = '') { let s = 0; for (const c of str) s += c.charCodeAt(0); return STYLE_PALETTE[s % STYLE_PALETTE.length]; }
+
 // Which classes to show given a selected week variant filter
 function matchesVariantFilter(c, filter) {
   if (filter === 'All') return true;
@@ -79,11 +83,14 @@ export default function AdminSchedule() {
   });
 
   return (
-    <div className="px-4 pt-2 pb-6 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between pt-4 mb-4">
-        <SectionLabel>Master Schedule</SectionLabel>
-        <Button size="sm" onClick={() => setShowCreate(true)} className="bg-primary hover:bg-primary/90 font-caps text-[10px] uppercase tracking-[0.12em]">
-          <Plus className="w-4 h-4 mr-1" /> New Class
+    <div className="max-w-6xl">
+      <div className="flex items-end justify-between mb-5">
+        <div>
+          <div className="text-[10px] tracking-[0.24em] uppercase text-teal-bright font-semibold">Schedule</div>
+          <h1 className="font-serif text-[30px] font-semibold mt-1.5 -tracking-[0.01em]">Master schedule</h1>
+        </div>
+        <Button size="sm" onClick={() => setShowCreate(true)} className="bg-primary text-[#06110f] hover:bg-primary/90 font-bold text-[13px] rounded-[10px] px-4 py-2.5">
+          <Plus className="w-4 h-4 mr-1.5" /> New class
         </Button>
       </div>
 
@@ -138,38 +145,40 @@ export default function AdminSchedule() {
             .sort((a, b) => a.start_time.localeCompare(b.start_time));
 
           return (
-            <div key={studio.id} className="bg-card border border-border rounded-lg overflow-hidden">
-              <div className="px-3 py-2 bg-secondary/50 border-b border-border">
-                <h3 className="font-caps text-[10px] uppercase tracking-[0.2em] text-warm-gray">Studio {studio.name}</h3>
+            <div key={studio.id} className="bg-card border border-border rounded-2xl overflow-hidden">
+              <div className="px-3 py-2.5 border-b border-border text-center">
+                <h3 className="text-[12px] font-semibold text-muted-foreground">Studio {studio.name}</h3>
               </div>
               <div className="p-2 space-y-1.5 min-h-[200px]">
                 {studioClasses.length === 0 && studioBookings.length === 0 ? (
-                  <p className="text-xs text-muted-foreground text-center py-8 italic">No classes</p>
+                  <p className="text-xs text-muted-2 text-center py-8 italic">No classes</p>
                 ) : (
                   <>
                     {studioClasses.map(c => {
                       const teacher = teachers.find(t => t.id === c.teacher_id);
+                      const col = styleColor(c.title);
                       return (
                         <button
                           key={c.id}
                           onClick={() => setEditClass(c)}
-                          className="w-full text-left bg-secondary/30 hover:bg-secondary/60 rounded-md p-2.5 transition-colors border border-transparent hover:border-primary/20"
+                          className="w-full text-left rounded-[10px] p-2.5 transition-all border-l-[3px] hover:brightness-125"
+                          style={{ background: col + '22', borderLeftColor: col }}
                         >
                           <div className="flex items-start justify-between gap-1">
-                            <p className="font-body text-xs font-medium text-foreground truncate flex-1">{c.title}</p>
+                            <p className="text-[11.5px] font-bold text-foreground leading-tight truncate flex-1">{c.title}</p>
                             {c.week_variant && (
                               <span className={`flex-shrink-0 text-[8px] font-caps uppercase tracking-[0.1em] px-1.5 py-0.5 rounded ${VARIANT_COLORS[c.week_variant]}`}>
                                 {c.week_variant}
                               </span>
                             )}
                           </div>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                          <p className="font-serif text-[12px] text-muted-foreground mt-1">
                             {formatTime(c.start_time)} – {formatTime(c.end_time)}
                           </p>
-                          {teacher && (
-                            <p className="text-[10px] text-warm-gray mt-0.5">{teacher.initials || `${teacher.first_name?.[0]}${teacher.last_name?.[0]}`}</p>
-                          )}
-                          {c.level && <p className="text-[10px] text-gold/70 mt-0.5">{c.level}</p>}
+                          <div className="flex items-center gap-2 mt-0.5">
+                            {teacher && <span className="text-[10px] text-muted-2">{teacher.initials || `${teacher.first_name?.[0]}${teacher.last_name?.[0]}`}</span>}
+                            {c.level && <span className="text-[10px] text-gold/80">{c.level}</span>}
+                          </div>
                         </button>
                       );
                     })}
