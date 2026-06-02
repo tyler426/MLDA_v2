@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MLDA Collective — Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Sacramento&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:hsl(0 0% 4%); --fg:hsl(33 38% 92%); --card:hsl(0 0% 9%); --secondary:hsl(0 0% 12%);
+    --muted-fg:hsl(30 5% 63%); --primary:hsl(177 58% 29%); --border:hsl(0 0% 16%);
+    --gold:#c8a464; --warm-gray:#a8a39c; --terracotta:#d97a5e;
+    --font-body:'Inter',sans-serif; --font-caps:'Montserrat',sans-serif; --font-script:'Sacramento',cursive;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#000;color:var(--fg);font-family:var(--font-body);min-height:100vh;padding:28px 16px 60px}
+  .script{font-family:var(--font-script)} .caps{font-family:var(--font-caps);text-transform:uppercase;letter-spacing:.18em}
+  .gold{color:var(--gold)} .wg{color:var(--warm-gray)} .mut{color:var(--muted-fg)}
+  /* layout */
+  .wrap{max-width:1180px;margin:0 auto}
+  h1.title{text-align:center;font-family:var(--font-script);color:var(--gold);font-size:44px;font-weight:400;line-height:1}
+  .sub{text-align:center;color:var(--warm-gray);font-size:11px;letter-spacing:.25em;text-transform:uppercase;font-family:var(--font-caps);margin-top:2px;margin-bottom:6px}
+  .note{text-align:center;color:var(--muted-fg);font-size:12px;margin-bottom:22px}
+  .phones{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;align-items:flex-start}
+  /* phone frame */
+  .phone{width:340px;background:var(--bg);border:1px solid var(--border);border-radius:26px;overflow:hidden;
+    box-shadow:0 18px 50px rgba(0,0,0,.6);position:relative;display:flex;flex-direction:column;height:680px}
+  .phone::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.03;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  .label{text-align:center;font-family:var(--font-caps);text-transform:uppercase;letter-spacing:.15em;font-size:10px;color:var(--warm-gray);margin-bottom:8px}
+  .col{display:flex;flex-direction:column;align-items:center}
+  /* header */
+  .hdr{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;
+    padding:14px 16px;border-bottom:1px solid var(--border);background:rgba(10,10,10,.8)}
+  .hdr .brand{font-family:var(--font-script);color:var(--gold);font-size:20px}
+  .hdr .coll{font-family:var(--font-caps);font-size:9px;text-transform:uppercase;letter-spacing:.2em;color:var(--warm-gray);margin-left:6px}
+  .signout{font-family:var(--font-caps);font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--warm-gray);background:none;border:0;cursor:pointer}
+  /* body scroll */
+  .scr{position:relative;z-index:1;flex:1;overflow-y:auto;padding:14px 16px 0}
+  .seclabel{font-family:var(--font-caps);text-transform:uppercase;letter-spacing:.18em;font-size:11px;color:var(--gold);margin:6px 0 4px}
+  .day{color:var(--muted-fg);font-size:13px;margin-bottom:12px}
+  /* hero */
+  .hero{background:linear-gradient(135deg,rgba(31,117,112,.25),rgba(200,164,100,.08));border:1px solid var(--border);
+    border-radius:14px;padding:18px;text-align:center;margin-bottom:14px}
+  .hero .k{font-family:var(--font-caps);text-transform:uppercase;letter-spacing:.2em;font-size:9px;color:var(--warm-gray)}
+  .hero .v{font-family:var(--font-display);font-size:38px;letter-spacing:.02em;margin-top:4px}
+  .hero .v small{font-size:18px;color:var(--warm-gray)}
+  /* card */
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
+  .card.pulled{opacity:.62;border-left:2px solid var(--gold)}
+  .ctitle{font-size:14px;font-weight:500;color:var(--fg)}
+  .meta{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:9px;font-size:12px;color:var(--muted-fg);align-items:center}
+  .meta svg{width:12px;height:12px;vertical-align:-1px;margin-right:5px;stroke:var(--muted-fg)}
+  .chip{font-family:var(--font-caps);text-transform:uppercase;letter-spacing:.12em;font-size:10px;color:var(--gold);background:rgba(200,164,100,.1);padding:2px 8px;border-radius:6px}
+  .chip.teal{color:#5fc7c0;background:rgba(31,117,112,.18)}
+  .lvl{font-family:var(--font-caps);text-transform:uppercase;letter-spacing:.15em;font-size:10px;color:var(--warm-gray);margin-top:4px;display:inline-block}
+  /* nav */
+  .nav{position:relative;z-index:1;display:flex;justify-content:space-around;padding:8px 4px;border-top:1px solid var(--border);background:rgba(10,10,10,.92)}
+  .nav a{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted-fg);text-decoration:none;font-family:var(--font-caps);text-transform:uppercase;letter-spacing:.1em;font-size:8px}
+  .nav a.active{color:#5fc7c0}
+  .nav svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2}
+  /* inputs / buttons */
+  .inp{width:100%;background:var(--secondary);border:1px solid var(--border);border-radius:8px;color:var(--fg);
+    padding:10px 12px;font-size:13px;margin-bottom:10px;font-family:var(--font-body)}
+  .btn{width:100%;background:var(--primary);color:var(--fg);border:0;border-radius:8px;padding:11px;cursor:pointer;
+    font-family:var(--font-caps);text-transform:uppercase;letter-spacing:.12em;font-size:11px}
+  .btn.sm{width:auto;padding:7px 12px;font-size:10px}
+  .btn.out{background:transparent;border:1px solid var(--border)}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .pill{font-size:10px;color:#5fc7c0;background:rgba(31,117,112,.16);padding:2px 7px;border-radius:6px;display:inline-flex;align-items:center;gap:4px}
+  .mem{display:flex;align-items:center;justify-content:space-between;background:var(--secondary);border-radius:8px;padding:8px 10px;margin-bottom:6px}
+  .tabs{display:flex;gap:6px;background:var(--secondary);border-radius:9px;padding:4px;margin-bottom:14px}
+  .tabs span{flex:1;text-align:center;font-family:var(--font-caps);text-transform:uppercase;letter-spacing:.1em;font-size:10px;padding:6px;border-radius:6px;color:var(--muted-fg)}
+  .tabs span.on{background:var(--primary);color:var(--fg)}
+  .add{font-family:var(--font-caps);text-transform:uppercase;letter-spacing:.12em;font-size:10px;background:var(--primary);color:var(--fg);border:0;border-radius:7px;padding:7px 12px}
+  .tiny{font-size:10px;color:var(--warm-gray)}
+  .divtop{border-top:1px solid var(--border);margin-top:12px;padding-top:12px}
+  .legend{max-width:760px;margin:30px auto 0;color:var(--muted-fg);font-size:12px;line-height:1.7;border:1px solid var(--border);border-radius:12px;padding:16px 20px;background:var(--card)}
+  .legend b{color:var(--fg)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="title">MLDA</h1>
+  <div class="sub">Collective</div>
+  <div class="note">Static visual preview — sample data. (The real app runs on React + Supabase once Node is installed.)</div>
+
+  <div class="phones">
+
+    <!-- ===================== LOGIN ===================== -->
+    <div class="col">
+      <div class="label">Login</div>
+      <div class="phone">
+        <div class="scr" style="display:flex;flex-direction:column;justify-content:center;padding:0 28px">
+          <div style="text-align:center;margin-bottom:26px">
+            <div class="script gold" style="font-size:42px;line-height:1">MLDA</div>
+            <div class="caps wg" style="font-size:10px;margin-top:2px">Collective</div>
+          </div>
+          <input class="inp" placeholder="Email" value="jamie@smithfamily.com">
+          <input class="inp" type="password" placeholder="Password" value="••••••••">
+          <button class="btn">Sign In</button>
+          <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--warm-gray)">Sign in with a magic link instead</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PARENT TODAY ===================== -->
+    <div class="col">
+      <div class="label">Parent · Today</div>
+      <div class="phone">
+        <div class="hdr"><div><span class="brand">MLDA</span><span class="coll">Collective</span></div><button class="signout">Sign Out</button></div>
+        <div class="scr">
+          <div class="seclabel">Today</div>
+          <div class="day">Hi Jamie · Thursday, June 4</div>
+          <div class="hero">
+            <div class="k">Pickup Time</div>
+            <div class="v">8:30 <small>PM</small></div>
+          </div>
+          <div class="seclabel" style="margin-top:6px">Ava</div>
+          <div class="card">
+            <div class="ctitle">Lyrical — Senior</div><span class="lvl">Premier</span>
+            <div class="meta"><span><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>5:00 – 6:15 PM</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Studio A</span>
+            <span>with Miss Dana</span></div>
+          </div>
+          <div class="card pulled">
+            <div class="row"><div class="ctitle">Ballet Technique</div><span class="chip">Rehearsal</span></div>
+            <div class="meta"><span>6:30 – 7:30 PM</span><span>Studio B</span></div>
+            <div class="tiny gold" style="margin-top:8px;font-style:italic">Pulled to rehearsal</div>
+          </div>
+          <div class="seclabel">Mia</div>
+          <div class="card">
+            <div class="ctitle">Jazz — Junior</div><span class="lvl">Superstar</span>
+            <div class="meta"><span>5:30 – 6:30 PM</span><span>Studio C</span><span>with Mr. Lee</span></div>
+          </div>
+        </div>
+        <div class="nav">
+          <a class="active"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Today</a>
+          <a><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>Week</a>
+          <a><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4"/></svg>Month</a>
+          <a><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Pieces</a>
+          <a><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>Alerts</a>
+          <a><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Absences</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== DANCER TODAY ===================== -->
+    <div class="col">
+      <div class="label">Dancer (student) · Today</div>
+      <div class="phone">
+        <div class="hdr"><div><span class="brand">MLDA</span><span class="coll">Collective</span></div><button class="signout">Sign Out</button></div>
+        <div class="scr">
+          <div class="seclabel">Today</div>
+          <div class="day">Hi Ava · Thursday, June 4</div>
+          <div class="tiny wg" style="margin-bottom:12px">Done at 7:30 PM</div>
+          <div class="card">
+            <div class="ctitle">Lyrical — Senior</div><span class="lvl">Premier</span>
+            <div class="meta"><span>5:00 – 6:15 PM</span><span>Studio A</span><span>with Miss Dana</span></div>
+          </div>
+          <div class="card pulled">
+            <div class="row"><div class="ctitle">Ballet Technique</div><span class="chip">Rehearsal</span></div>
+            <div class="meta"><span>6:30 – 7:30 PM</span><span>Studio B</span></div>
+            <div class="tiny gold" style="margin-top:8px;font-style:italic">Pulled to rehearsal</div>
+          </div>
+        </div>
+        <div class="nav">
+          <a class="active"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Today</a>
+          <a><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>Week</a>
+          <a><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Pieces</a>
+          <a><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== TEACHER TODAY ===================== -->
+    <div class="col">
+      <div class="label">Teacher · Today</div>
+      <div class="phone">
+        <div class="hdr"><div><span class="brand">MLDA</span><span class="coll">Collective</span></div><button class="signout">Sign Out</button></div>
+        <div class="scr">
+          <div class="seclabel">Today</div>
+          <div class="day">Miss Dana · Thursday, June 4</div>
+          <div class="card">
+            <div class="row"><div class="ctitle">Lyrical — Senior</div><span class="chip teal">12 dancers</span></div>
+            <div class="meta"><span>5:00 – 6:15 PM</span><span>Studio A</span></div>
+          </div>
+          <div class="card">
+            <div class="row"><div class="ctitle">Contemporary — Teen</div><span class="chip teal">9 dancers</span></div>
+            <div class="meta"><span>6:30 – 7:45 PM</span><span>Studio A</span></div>
+          </div>
+          <div class="seclabel" style="margin-top:8px">Quick Actions</div>
+          <button class="btn out" style="margin-bottom:8px">Take Attendance</button>
+          <button class="btn out">Book a Space</button>
+        </div>
+        <div class="nav">
+          <a class="active"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Today</a>
+          <a><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>Week</a>
+          <a><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Pieces</a>
+          <a><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/><circle cx="12" cy="4" r="2"/></svg>Comps</a>
+          <a><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg>Attend.</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== ADMIN ROSTER + CAREGIVERS ===================== -->
+    <div class="col">
+      <div class="label">Admin · Roster (multi-caregiver)</div>
+      <div class="phone">
+        <div class="hdr"><div><span class="brand">MLDA</span><span class="coll">Collective</span></div><button class="signout">Sign Out</button></div>
+        <div class="scr">
+          <div class="seclabel">Roster</div>
+          <div class="tabs"><span>Dancers</span><span class="on">Parents</span><span>Teachers</span></div>
+
+          <!-- expanded family with caregivers -->
+          <div class="card">
+            <div class="row">
+              <div>
+                <div class="ctitle">The Smith Family</div>
+                <div class="tiny mut">jamie@smithfamily.com</div>
+              </div>
+              <span class="tiny">▾</span>
+            </div>
+            <div class="divtop">
+              <div class="caps wg" style="font-size:10px;margin-bottom:8px">Caregivers</div>
+              <div class="mem"><div><div style="font-size:12px">★ Jamie Smith</div><div class="tiny mut">jamie@smithfamily.com · mother</div></div><span class="tiny">🗑</span></div>
+              <div class="mem"><div><div style="font-size:12px">Chris Smith</div><div class="tiny mut">chris@smithfamily.com · father</div></div><span class="tiny">🗑</span></div>
+              <div class="mem"><div><div style="font-size:12px">Pat Nguyen</div><div class="tiny mut">pat@email.com · grandparent</div></div><span class="tiny">🗑</span></div>
+              <div class="row" style="margin-top:8px;gap:6px">
+                <input class="inp" style="margin:0" placeholder="caregiver@email.com">
+                <button class="btn sm">Invite</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card"><div class="row"><div><div class="ctitle">The Garcia Family</div><div class="tiny mut">garcia@email.com</div></div><span class="tiny">▸</span></div></div>
+          <div class="card"><div class="row"><div><div class="ctitle">The Okafor Family</div><div class="tiny mut">okafor@email.com</div></div><span class="tiny">▸</span></div></div>
+        </div>
+        <div class="nav">
+          <a><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Sched.</a>
+          <a><svg viewBox="0 0 24 24"><path d="M10.3 3.3 1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.3a2 2 0 00-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>Conflicts</a>
+          <a class="active"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 4a3 3 0 010 6"/></svg>Roster</a>
+          <a><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/><circle cx="12" cy="4" r="2"/></svg>Comps</a>
+          <a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 00-1.7-1l-.4-2.6H10l-.4 2.6a7 7 0 00-1.7 1l-2.4-1-2 3.4 2 1.6a7 7 0 000 2l-2 1.6 2 3.4 2.4-1a7 7 0 001.7 1l.4 2.6h3.8l.4-2.6a7 7 0 001.7-1l2.4 1 2-3.4-2-1.6c.1-.3.1-.7.1-1z"/></svg>Settings</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== ADMIN DANCERS (invite login) ===================== -->
+    <div class="col">
+      <div class="label">Admin · Dancers (student logins)</div>
+      <div class="phone">
+        <div class="hdr"><div><span class="brand">MLDA</span><span class="coll">Collective</span></div><button class="signout">Sign Out</button></div>
+        <div class="scr">
+          <div class="seclabel">Roster</div>
+          <div class="tabs"><span class="on">Dancers</span><span>Parents</span><span>Teachers</span></div>
+          <div class="card"><div class="row"><div>
+            <div class="ctitle">Ava Smith</div>
+            <div class="meta" style="margin-top:4px"><span class="lvl" style="margin:0">Competitive</span><span class="gold" style="font-size:10px">Premier</span></div>
+            <div style="margin-top:8px"><span class="pill">✓ Has login</span></div>
+          </div><span class="tiny">✎</span></div></div>
+          <div class="card"><div class="row"><div>
+            <div class="ctitle">Mia Smith</div>
+            <div class="meta" style="margin-top:4px"><span class="lvl" style="margin:0">Competitive</span><span class="gold" style="font-size:10px">Superstar</span></div>
+            <div class="tiny mut" style="margin-top:6px">＋ Invite login</div>
+          </div><span class="tiny">✎</span></div></div>
+          <div class="card"><div class="row"><div>
+            <div class="ctitle">Noah Garcia</div>
+            <div class="meta" style="margin-top:4px"><span class="lvl" style="margin:0">Educational</span></div>
+            <div class="tiny mut" style="margin-top:6px">＋ Invite login</div>
+          </div><span class="tiny">✎</span></div></div>
+        </div>
+        <div class="nav">
+          <a><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Sched.</a>
+          <a><svg viewBox="0 0 24 24"><path d="M10.3 3.3 1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.3a2 2 0 00-3.4 0z"/><path d="M12 9v4"/></svg>Conflicts</a>
+          <a class="active"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 4a3 3 0 010 6"/></svg>Roster</a>
+          <a><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/><circle cx="12" cy="4" r="2"/></svg>Comps</a>
+          <a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>Settings</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="legend">
+    <b>What you're looking at.</b> A static HTML approximation using the app's real theme (colors, fonts, dark "studio" look, noise texture) and the actual screen layouts — six representative views: Login, Parent&nbsp;Today, Dancer&nbsp;Today, Teacher&nbsp;Today, Admin&nbsp;Roster with the new <b>multi-caregiver</b> panel, and Admin&nbsp;Dancers with <b>student-login invites</b>.<br><br>
+    This is for <b>look &amp; feel only</b> — buttons don't act, data is fictitious. The working app (live data, auth, the other ~25 screens) runs once Node.js is installed and the Supabase project is connected.
+  </div>
+</div>
+</body>
+</html>
