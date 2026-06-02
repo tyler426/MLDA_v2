@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import SectionLabel from '@/components/shared/SectionLabel';
 import { Clock, MapPin, Music, Users, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { fmtDate } from '@/lib/dateUtils';
 import { formatTime } from '@/lib/scheduleUtils';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -234,7 +235,7 @@ export default function TeacherBookSpace() {
                           <span className={`font-caps text-[10px] uppercase tracking-[0.12em] ${b.type === 'private' ? 'text-gold' : 'text-primary'}`}>
                             {b.type === 'private' ? 'Private' : 'Rehearsal'}
                           </span>
-                          <span className="text-xs text-muted-foreground">{format(new Date(b.date), 'MMM d')}</span>
+                          <span className="text-xs text-muted-foreground">{fmtDate(b.date, 'MMM d')}</span>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatTime(b.start_time)} – {formatTime(bEnd)}</span>

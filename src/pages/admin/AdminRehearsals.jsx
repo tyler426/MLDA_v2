@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import EmptyState from '@/components/shared/EmptyState';
 import { Plus, Music, AlertTriangle, Clock, MapPin, Pencil, X } from 'lucide-react';
 import { formatTime } from '@/lib/scheduleUtils';
-import { format } from 'date-fns';
+import { localDate, fmtDate } from '@/lib/dateUtils';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -55,7 +55,7 @@ export default function AdminRehearsals() {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="font-body font-medium text-sm text-foreground">
-                      {format(new Date(r.date), 'EEE, MMM d, yyyy')}
+                      {fmtDate(r.date, 'EEE, MMM d, yyyy')}
                     </p>
                     <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatTime(r.start_time)} – {formatTime(r.end_time)}</span>
@@ -148,7 +148,7 @@ function RehearsalCreatorDialog({ open, onClose, studios, teachers, pieces, danc
     const affectedDancers = allDancers.filter(d => affectedDancerIds.includes(d.id));
 
     // Check classes on the rehearsal day
-    const dayOfWeek = new Date(form.date).getDay();
+    const dayOfWeek = localDate(form.date).getDay();
     const allClasses = await base44.entities.DanceClass.list();
     const enrollments = await base44.entities.ClassEnrollment.filter({ active: true });
 
@@ -202,7 +202,7 @@ function RehearsalCreatorDialog({ open, onClose, studios, teachers, pieces, danc
                   recipient_type: 'parent',
                   type: 'dancer_pulled',
                   title: `${dancer.first_name} pulled to rehearsal`,
-                  message: `${dancer.first_name} has been pulled from ${conflict.class.title} on ${format(new Date(form.date), 'MMM d')} for rehearsal.`,
+                  message: `${dancer.first_name} has been pulled from ${conflict.class.title} on ${fmtDate(form.date, 'MMM d')} for rehearsal.`,
                 });
               }
             }
@@ -229,7 +229,7 @@ function RehearsalCreatorDialog({ open, onClose, studios, teachers, pieces, danc
                   recipient_type: 'teacher',
                   type: 'class_cancelled',
                   title: `${info.cls.title} — all dancers pulled`,
-                  message: `All enrolled dancers have been pulled to rehearsal on ${format(new Date(form.date), 'MMM d')}. You don't need to come in for this class.`,
+                  message: `All enrolled dancers have been pulled to rehearsal on ${fmtDate(form.date, 'MMM d')}. You don't need to come in for this class.`,
                 });
               }
             }

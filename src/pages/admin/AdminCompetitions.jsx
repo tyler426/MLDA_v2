@@ -11,6 +11,7 @@ import SectionLabel from '@/components/shared/SectionLabel';
 import EmptyState from '@/components/shared/EmptyState';
 import { Plus, Trophy, MapPin, Calendar, Clock, UserPlus, Trash2, Music2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { fmtDate } from '@/lib/dateUtils';
 import { formatTime } from '@/lib/scheduleUtils';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -95,7 +96,7 @@ export default function AdminCompetitions() {
                     <Trophy className="w-4 h-4 text-gold" />{w.name}
                   </h3>
                   <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{format(new Date(w.start_date), 'MMM d')} – {format(new Date(w.end_date), 'MMM d, yyyy')}</span>
+                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{fmtDate(w.start_date, 'MMM d')} – {fmtDate(w.end_date, 'MMM d, yyyy')}</span>
                     {w.venue && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{w.venue}</span>}
                   </div>
                 </div>
@@ -131,7 +132,7 @@ export default function AdminCompetitions() {
                       <p className="text-sm font-medium text-foreground">{entry.title}</p>
                       <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground flex-wrap">
                         {entry.category && <span className="text-gold font-caps text-[10px] uppercase tracking-[0.1em]">{entry.category}</span>}
-                        {entry.scheduled_date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{format(new Date(entry.scheduled_date), 'EEE, MMM d')}</span>}
+                        {entry.scheduled_date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{fmtDate(entry.scheduled_date, 'EEE, MMM d')}</span>}
                         {entry.scheduled_time && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatTime(entry.scheduled_time)}</span>}
                       </div>
                     </div>
@@ -214,7 +215,7 @@ export default function AdminCompetitions() {
                   return (
                     <div key={s.id} className="bg-card border border-border rounded-lg p-3 flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-foreground">{format(new Date(s.date), 'EEE, MMM d')}</p>
+                        <p className="text-sm text-foreground">{fmtDate(s.date, 'EEE, MMM d')}</p>
                         <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatTime(s.start_time)} – {formatTime(s.end_time)}</span>
                           {teacher && <span>{teacher.first_name} {teacher.last_name}</span>}

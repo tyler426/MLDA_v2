@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import EmptyState from '@/components/shared/EmptyState';
 import { format } from 'date-fns';
+import { fmtDate } from '@/lib/dateUtils';
 import { MapPin, Clock, Calendar, Music2 } from 'lucide-react';
 import { formatTime } from '@/lib/scheduleUtils';
 import { motion } from 'framer-motion';
@@ -60,7 +61,7 @@ export default function TeacherCompetitions() {
                 <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
-                    {format(new Date(w.start_date), 'MMM d')} – {format(new Date(w.end_date), 'MMM d')}
+                    {fmtDate(w.start_date, 'MMM d')} – {fmtDate(w.end_date, 'MMM d')}
                   </span>
                   {w.venue && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{w.venue}</span>}
                 </div>
@@ -85,7 +86,7 @@ export default function TeacherCompetitions() {
                           )}
                         </div>
                         <div className="text-xs text-muted-foreground flex items-center gap-2">
-                          {entry.scheduled_date && <span>{format(new Date(entry.scheduled_date), 'MMM d')}</span>}
+                          {entry.scheduled_date && <span>{fmtDate(entry.scheduled_date, 'MMM d')}</span>}
                           {entry.scheduled_time && (
                             <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{formatTime(entry.scheduled_time)}</span>
                           )}
@@ -103,7 +104,7 @@ export default function TeacherCompetitions() {
                   {w.shifts.map(s => (
                     <div key={s.id} className="flex items-center justify-between text-sm">
                       <div>
-                        <span className="text-foreground">{format(new Date(s.date), 'EEE, MMM d')}</span>
+                        <span className="text-foreground">{fmtDate(s.date, 'EEE, MMM d')}</span>
                         {s.role && <span className="ml-2 font-caps text-[10px] uppercase tracking-[0.1em] text-gold">{s.role}</span>}
                       </div>
                       <span className="text-muted-foreground flex items-center gap-1">

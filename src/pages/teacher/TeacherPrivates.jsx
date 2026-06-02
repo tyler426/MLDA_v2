@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Check, X, Plus, Trash2, Clock } from 'lucide-react';
 import { formatTime } from '@/lib/scheduleUtils';
 import { format } from 'date-fns';
+import { fmtDate } from '@/lib/dateUtils';
 import { toast } from 'sonner';
 
 export default function TeacherPrivates() {
@@ -89,7 +90,7 @@ export default function TeacherPrivates() {
             </div>
             {mySlots.length === 0 ? <Empty msg="No open slots published." /> : mySlots.map(s => (
               <div key={s.id} className="bg-card border border-border rounded-2xl p-3 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm"><Clock className="w-4 h-4 text-teal-bright" />{s.date ? format(new Date(s.date), 'EEE, MMM d') : ''} · {formatTime(s.start_time)}–{formatTime(s.end_time)}</div>
+                <div className="flex items-center gap-2 text-sm"><Clock className="w-4 h-4 text-teal-bright" />{s.date ? fmtDate(s.date, 'EEE, MMM d') : ''} · {formatTime(s.start_time)}–{formatTime(s.end_time)}</div>
                 <button onClick={() => delSlot.mutate(s.id)} className="p-1.5 text-muted-foreground hover:text-terracotta"><Trash2 className="w-3.5 h-3.5" /></button>
               </div>
             ))}
