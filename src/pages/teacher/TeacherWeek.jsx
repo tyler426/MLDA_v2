@@ -14,6 +14,17 @@ function computeEndTime(startTime, durationHours) {
   const totalMins = h * 60 + m + durationHours * 60;
   return `${String(Math.floor(totalMins / 60)).padStart(2, '0')}:${String(totalMins % 60).padStart(2, '0')}`;
 }
+function addMinutes(startTime, mins) {
+  const [h, m] = startTime.split(':').map(Number);
+  const t = h * 60 + m + Math.round(mins);
+  return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+}
+// Slot offset/length, backward-compatible with legacy hour_index slots.
+function slotBounds(s) {
+  const offset = s.offset_min ?? ((s.hour_index ?? 0) * 60);
+  const len = s.len_min ?? 60;
+  return { offset, len };
+}
 import { motion } from 'framer-motion';
 import BookSpaceDialog from '@/components/teacher/BookSpaceDialog';
 import { toast } from 'sonner';
@@ -160,21 +171,13 @@ export default function TeacherWeek() {
                           {b.notes && <p className="mt-1.5 text-[10px] text-muted-foreground italic">{b.notes}</p>}
                           {b.type === 'private' && b.hour_slots?.length > 0 && (
                             <div className="mt-2 space-y-1">
-                              {Array.from({ length: Math.ceil(b.duration_hours) }, (_, i) => {
-                                const [h, m] = b.start_time.split(':').map(Number);
-                                const from = `${String(h + i).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-                                const to = `${String(h + i + 1).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-                                const slot = b.hour_slots.find(s => s.hour_index === i);
-                                const dancer = slot ? dancers.find(d => d.id === slot.dancer_id) : null;
+                              {[...b.hour_slots].sort((a, c) => slotBounds(a).offset - slotBounds(c).offset).map((slot, i) => {
+                                const { offset, len } = slotBounds(slot);
+                                const dancer = dancers.find(d => d.id === slot.dancer_id);
                                 return (
                                   <div key={i} className="flex items-center gap-2 text-[10px]">
-                                    <span className="font-caps uppercase tracking-[0.08em] text-primary w-12">Hr {i + 1}</span>
-                                    <span className="text-muted-foreground">{from}–{to}</span>
-                                    {dancer ? (
-                                      <span className="bg-secondary text-foreground px-2 py-0.5 rounded">{dancer.first_name} {dancer.last_name}</span>
-                                    ) : (
-                                      <span className="text-muted-foreground italic">open</span>
-                                    )}
+                                    <span className="text-muted-foreground">{formatTime(addMinutes(b.start_time, offset))}–{formatTime(addMinutes(b.start_time, offset + len))}</span>
+                                    {dancer && <span className="bg-secondary text-foreground px-2 py-0.5 rounded">{dancer.first_name} {dancer.last_name}</span>}
                                   </div>
                                 );
                               })}
@@ -273,24 +276,16 @@ export default function TeacherWeek() {
 
                       {b.notes && <p className="mt-2 text-[10px] text-muted-foreground italic">{b.notes}</p>}
 
-                      {/* Per-hour slot breakdown for private lessons */}
+                      {/* Per-slot breakdown for private lessons */}
                       {b.type === 'private' && b.hour_slots?.length > 0 && (
                         <div className="mt-2 space-y-1">
-                          {Array.from({ length: Math.ceil(b.duration_hours) }, (_, i) => {
-                            const [h, m] = b.start_time.split(':').map(Number);
-                            const from = `${String(h + i).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-                            const to = `${String(h + i + 1).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-                            const slot = b.hour_slots.find(s => s.hour_index === i);
-                            const dancer = slot ? dancers.find(d => d.id === slot.dancer_id) : null;
+                          {[...b.hour_slots].sort((a, c) => slotBounds(a).offset - slotBounds(c).offset).map((slot, i) => {
+                            const { offset, len } = slotBounds(slot);
+                            const dancer = dancers.find(d => d.id === slot.dancer_id);
                             return (
                               <div key={i} className="flex items-center gap-2 text-[10px]">
-                                <span className="font-caps uppercase tracking-[0.08em] text-primary w-12">Hr {i + 1}</span>
-                                <span className="text-muted-foreground">{from}–{to}</span>
-                                {dancer ? (
-                                  <span className="bg-secondary text-foreground px-2 py-0.5 rounded">{dancer.first_name} {dancer.last_name}</span>
-                                ) : (
-                                  <span className="text-muted-foreground italic">open</span>
-                                )}
+                                <span className="text-muted-foreground">{formatTime(addMinutes(b.start_time, offset))}–{formatTime(addMinutes(b.start_time, offset + len))}</span>
+                                {dancer && <span className="bg-secondary text-foreground px-2 py-0.5 rounded">{dancer.first_name} {dancer.last_name}</span>}
                               </div>
                             );
                           })}

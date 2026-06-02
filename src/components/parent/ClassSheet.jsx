@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
+import AbsenceForm from '@/components/parent/AbsenceForm';
 import { formatTime } from '@/lib/scheduleUtils';
 import { X, Clock, MapPin, Send } from 'lucide-react';
 import { toast } from 'sonner';
@@ -14,29 +15,13 @@ export default function ClassSheet({ cls, dancer, household, date, studios = [],
   const [msgOpen, setMsgOpen] = useState(false);
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showAbsence, setShowAbsence] = useState(false);
 
   if (!cls) return null;
   const col = styleColor(cls.title);
   const studio = studios.find(s => s.id === cls.studio_id);
   const teacher = teachers.find(t => t.id === cls.teacher_id);
   const bring = cls.bring_items || [];
-
-  const reportAbsence = async () => {
-    const reason = window.prompt(`Report ${dancer?.first_name || 'your dancer'} absent from ${cls.title}. Reason (optional):`);
-    if (reason === null) return;
-    setBusy(true);
-    try {
-      await base44.entities.AbsenceReport.create({
-        dancer_id: dancer.id, household_id: household.id,
-        start_date: date, end_date: date, class_ids: [cls.id],
-        reason: reason || 'Reported from class detail', status: 'pending',
-      });
-      qc.invalidateQueries({ queryKey: ['absences'] });
-      toast.success(`${teacher ? teacher.first_name + ' notified — ' : ''}absence reported`);
-      onClose();
-    } catch (e) { toast.error(e.message || 'Could not report absence'); }
-    finally { setBusy(false); }
-  };
 
   const sendMessage = async () => {
     if (!msg.trim() || !teacher) return;
@@ -105,9 +90,26 @@ export default function ClassSheet({ cls, dancer, household, date, studios = [],
           </>
         )}
 
-        <button onClick={reportAbsence} disabled={busy} className="w-full bg-primary text-[#06110f] rounded-2xl py-3.5 text-[14px] font-bold">
-          Report an absence
-        </button>
+        {showAbsence ? (
+          <div className="mt-1 bg-secondary/40 border border-border rounded-2xl p-3.5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[13px] font-semibold">Report an absence</span>
+              <button onClick={() => setShowAbsence(false)} className="text-muted-2 text-[12px]">Cancel</button>
+            </div>
+            <AbsenceForm
+              household={household}
+              dancers={dancer ? [dancer] : []}
+              defaultDancerId={dancer?.id}
+              defaultClassIds={[cls.id]}
+              defaultDate={date}
+              onDone={onClose}
+            />
+          </div>
+        ) : (
+          <button onClick={() => setShowAbsence(true)} className="w-full bg-primary text-[#06110f] rounded-2xl py-3.5 text-[14px] font-bold">
+            Report an absence
+          </button>
+        )}
       </div>
     </div>
   );

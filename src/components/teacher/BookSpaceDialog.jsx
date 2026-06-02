@@ -20,8 +20,10 @@ function timeAddHours(timeStr, hours) {
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
-function getSlotTime(startTime, hourIndex) {
-  return timeAddHours(startTime, hourIndex);
+function timeAddMinutes(timeStr, mins) {
+  const [h, m] = timeStr.split(':').map(Number);
+  const total = h * 60 + m + Math.round(mins);
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
 export default function BookSpaceDialog({ open, onClose, studios, pieces, dancers, teacher }) {
@@ -31,6 +33,7 @@ export default function BookSpaceDialog({ open, onClose, studios, pieces, dancer
     date: '',
     start_time: '16:00',
     duration_hours: 1,
+    slot_minutes: 30,
     studio_id: '',
     notes: '',
     dancer_ids: [],
@@ -39,7 +42,9 @@ export default function BookSpaceDialog({ open, onClose, studios, pieces, dancer
   });
   const [saving, setSaving] = useState(false);
 
-  const numHours = Math.ceil(form.duration_hours);
+  // Private-lesson slots of the chosen length (e.g. 30 min) across the booking.
+  const slotMin = form.slot_minutes || 30;
+  const slotCount = Math.max(1, Math.round((form.duration_hours * 60) / slotMin));
   const endTime = form.start_time && form.duration_hours
     ? timeAddHours(form.start_time, form.duration_hours)
     : '';
@@ -51,24 +56,23 @@ export default function BookSpaceDialog({ open, onClose, studios, pieces, dancer
     }));
   };
 
-  const setSlotDancer = (hourIndex, dancerId) => {
+  const setSlotDancer = (offsetMin, dancerId) => {
     setForm(prev => {
       const slots = [...(prev.hour_slots || [])];
-      const existing = slots.findIndex(s => s.hour_index === hourIndex);
+      const existing = slots.findIndex(s => s.offset_min === offsetMin);
       if (dancerId === 'none') {
         if (existing >= 0) slots.splice(existing, 1);
       } else {
-        const entry = { hour_index: hourIndex, dancer_id: dancerId };
+        const entry = { offset_min: offsetMin, len_min: prev.slot_minutes || 30, dancer_id: dancerId };
         if (existing >= 0) slots[existing] = entry; else slots.push(entry);
       }
-      // Sync dancer_ids to all assigned dancers across slots
       const allDancerIds = [...new Set(slots.map(s => s.dancer_id).filter(Boolean))];
       return { ...prev, hour_slots: slots, dancer_ids: allDancerIds };
     });
   };
 
-  const getSlotDancer = (hourIndex) => {
-    const slot = (form.hour_slots || []).find(s => s.hour_index === hourIndex);
+  const getSlotDancer = (offsetMin) => {
+    const slot = (form.hour_slots || []).find(s => s.offset_min === offsetMin);
     return slot?.dancer_id || 'none';
   };
 
@@ -94,7 +98,7 @@ export default function BookSpaceDialog({ open, onClose, studios, pieces, dancer
       });
       queryClient.invalidateQueries({ queryKey: ['spaceBookings'] });
       toast.success(`${type === 'private' ? 'Private lesson' : 'Rehearsal'} booked`);
-      setForm({ date: '', start_time: '16:00', duration_hours: 1, studio_id: '', notes: '', dancer_ids: [], piece_ids: [], hour_slots: [] });
+      setForm({ date: '', start_time: '16:00', duration_hours: 1, slot_minutes: 30, studio_id: '', notes: '', dancer_ids: [], piece_ids: [], hour_slots: [] });
       onClose();
     } catch (e) {
       toast.error(e.message);
@@ -201,24 +205,36 @@ export default function BookSpaceDialog({ open, onClose, studios, pieces, dancer
                 </div>
               </TabsContent>
 
-              {/* Private: per-hour slot assignment */}
+              {/* Private: per-slot student assignment (any slot length) */}
               <TabsContent value="private" className="m-0 p-0">
                 <div>
-                  <Label className="text-xs text-muted-foreground mb-2 block flex items-center gap-1">
-                    <User className="w-3 h-3" /> Assign Students by Hour
-                  </Label>
-                  {form.start_time && numHours > 0 ? (
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <User className="w-3 h-3" /> Assign students by slot
+                    </Label>
+                    <Select value={String(slotMin)} onValueChange={v => setForm({ ...form, slot_minutes: Number(v), hour_slots: [] })}>
+                      <SelectTrigger className="bg-secondary border-border h-8 text-xs w-28"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 min</SelectItem>
+                        <SelectItem value="30">30 min</SelectItem>
+                        <SelectItem value="45">45 min</SelectItem>
+                        <SelectItem value="60">1 hour</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {form.start_time && slotCount > 0 ? (
                     <div className="space-y-2">
-                      {Array.from({ length: numHours }, (_, i) => {
-                        const slotStart = getSlotTime(form.start_time, i);
-                        const slotEnd = getSlotTime(form.start_time, i + 1);
+                      {Array.from({ length: slotCount }, (_, i) => {
+                        const offset = i * slotMin;
+                        const slotStart = timeAddMinutes(form.start_time, offset);
+                        const slotEnd = timeAddMinutes(form.start_time, offset + slotMin);
                         return (
-                          <div key={i} className="flex items-center gap-3 bg-secondary/30 rounded-md p-2.5">
-                            <div className="flex-shrink-0 w-20">
-                              <p className="text-[10px] font-caps uppercase tracking-[0.1em] text-primary">Hr {i + 1}</p>
+                          <div key={offset} className="flex items-center gap-3 bg-secondary/30 rounded-md p-2.5">
+                            <div className="flex-shrink-0 w-24">
+                              <p className="text-[10px] font-caps uppercase tracking-[0.1em] text-primary">Slot {i + 1}</p>
                               <p className="text-[10px] text-muted-foreground">{formatTime(slotStart)}–{formatTime(slotEnd)}</p>
                             </div>
-                            <Select value={getSlotDancer(i)} onValueChange={v => setSlotDancer(i, v)}>
+                            <Select value={getSlotDancer(offset)} onValueChange={v => setSlotDancer(offset, v)}>
                               <SelectTrigger className="bg-secondary border-border h-8 text-xs flex-1"><SelectValue placeholder="Open / no student" /></SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="none">Open / no student</SelectItem>
