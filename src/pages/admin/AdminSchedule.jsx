@@ -437,6 +437,17 @@ function ClassFormDialog({ open, onClose, classData, studios, teachers, selected
             </div>
           </div>
 
+          {/* Bring to class */}
+          <div>
+            <Label className="text-xs text-muted-foreground">Bring to class <span className="text-muted-2">(comma separated)</span></Label>
+            <Input
+              value={(form.bring_items || []).join(', ')}
+              onChange={e => setForm({ ...form, bring_items: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+              placeholder="e.g. Pointe shoes, Black leo, Water"
+              className="bg-secondary border-border"
+            />
+          </div>
+
           <DialogFooter className="flex gap-2 pt-2">
             {onDelete && (
               <Button type="button" variant="destructive" size="sm" onClick={onDelete}>

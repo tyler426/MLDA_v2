@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabaseClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import SectionLabel from '@/components/shared/SectionLabel';
 import EmptyState from '@/components/shared/EmptyState';
-import { Plus, Music, Users, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Music, Users, Pencil, Trash2, Upload, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -120,28 +120,57 @@ export default function AdminPieces() {
   );
 }
 
+const EMPTY_PIECE = { title: '', choreographer: '', season: '', level: '', duration: '', music_url: '' };
 function PieceFormDialog({ open, onClose, piece, onSave }) {
-  const [form, setForm] = useState({ title: '', choreographer: '', season: '', level: '' });
+  const [form, setForm] = useState(EMPTY_PIECE);
+  const [loadedId, setLoadedId] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
-  if (open && piece && form.title !== piece.title) {
-    setForm({ title: piece.title, choreographer: piece.choreographer || '', season: piece.season || '', level: piece.level || '' });
+  if (open && piece && loadedId !== piece.id) {
+    setForm({ title: piece.title, choreographer: piece.choreographer || '', season: piece.season || '', level: piece.level || '', duration: piece.duration || '', music_url: piece.music_url || '' });
+    setLoadedId(piece.id);
   }
-  if (open && !piece && form.title) {
-    // Reset handled below
-  }
+  if (open && !piece && loadedId !== null) { setForm(EMPTY_PIECE); setLoadedId(null); }
+
+  const uploadMusic = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const path = `music/${crypto.randomUUID()}.${file.name.split('.').pop()}`;
+      const { error } = await supabase.storage.from('music').upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from('music').getPublicUrl(path);
+      setForm(f => ({ ...f, music_url: data.publicUrl }));
+      toast.success('Music uploaded');
+    } catch (err) { toast.error(err.message || 'Upload failed'); }
+    finally { setUploading(false); }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) { onClose(); setForm({ title: '', choreographer: '', season: '', level: '' }); } }}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) { onClose(); setForm(EMPTY_PIECE); setLoadedId(null); } }}>
       <DialogContent className="bg-card border-border max-w-sm">
-        <DialogHeader><DialogTitle className="font-body text-foreground">{piece ? 'Edit Piece' : 'New Piece'}</DialogTitle></DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); onSave(form); setForm({ title: '', choreographer: '', season: '', level: '' }); }} className="space-y-3">
+        <DialogHeader><DialogTitle className="font-serif text-foreground">{piece ? 'Edit piece' : 'New piece'}</DialogTitle></DialogHeader>
+        <form onSubmit={(e) => { e.preventDefault(); onSave(form); setForm(EMPTY_PIECE); setLoadedId(null); }} className="space-y-3">
           <div><Label className="text-xs text-muted-foreground">Title</Label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required className="bg-secondary border-border" /></div>
           <div><Label className="text-xs text-muted-foreground">Choreographer</Label><Input value={form.choreographer} onChange={e => setForm({ ...form, choreographer: e.target.value })} className="bg-secondary border-border" /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div><Label className="text-xs text-muted-foreground">Season</Label><Input value={form.season} onChange={e => setForm({ ...form, season: e.target.value })} placeholder="e.g. Showcase 2026" className="bg-secondary border-border" /></div>
+            <div><Label className="text-xs text-muted-foreground">Season</Label><Input value={form.season} onChange={e => setForm({ ...form, season: e.target.value })} placeholder="2025-26" className="bg-secondary border-border" /></div>
             <div><Label className="text-xs text-muted-foreground">Level</Label><Input value={form.level} onChange={e => setForm({ ...form, level: e.target.value })} className="bg-secondary border-border" /></div>
           </div>
-          <DialogFooter><Button type="submit" className="bg-primary hover:bg-primary/90 font-caps text-[10px] uppercase tracking-[0.12em]">{piece ? 'Save' : 'Create'}</Button></DialogFooter>
+          <div><Label className="text-xs text-muted-foreground">Duration</Label><Input value={form.duration} onChange={e => setForm({ ...form, duration: e.target.value })} placeholder="e.g. 2:45" className="bg-secondary border-border" /></div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Music mix</Label>
+            <div className="flex items-center gap-2 mt-1">
+              <label className="flex items-center gap-2 bg-secondary border border-border rounded-md px-3 h-10 text-xs cursor-pointer">
+                {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                {form.music_url ? 'Replace audio' : 'Upload audio'}
+                <input type="file" accept="audio/*" onChange={uploadMusic} className="hidden" />
+              </label>
+              {form.music_url && <span className="text-[11px] text-teal-bright">✓ uploaded</span>}
+            </div>
+          </div>
+          <DialogFooter><Button type="submit" className="bg-primary text-[#06110f] font-bold text-[12px]">{piece ? 'Save' : 'Create'}</Button></DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -149,30 +178,61 @@ function PieceFormDialog({ open, onClose, piece, onSave }) {
 }
 
 function CastDialog({ open, onClose, piece, dancers, pieceCasts, queryClient }) {
+  const { data: costumes = [] } = useQuery({ queryKey: ['costumes'], queryFn: () => base44.entities.Costume.list() });
   const currentCast = pieceCasts.filter(pc => pc.piece_id === piece?.id).map(pc => pc.dancer_id);
 
   const toggleDancer = async (dancerId) => {
     const existing = pieceCasts.find(pc => pc.piece_id === piece.id && pc.dancer_id === dancerId);
-    if (existing) {
-      await base44.entities.PieceCast.delete(existing.id);
-    } else {
-      await base44.entities.PieceCast.create({ piece_id: piece.id, dancer_id: dancerId });
-    }
+    if (existing) await base44.entities.PieceCast.delete(existing.id);
+    else await base44.entities.PieceCast.create({ piece_id: piece.id, dancer_id: dancerId });
     queryClient.invalidateQueries({ queryKey: ['pieceCasts'] });
+  };
+
+  const costumeFor = (dancerId) => costumes.find(c => c.piece_id === piece?.id && c.dancer_id === dancerId);
+  const upsertCostume = async (dancerId, patch) => {
+    const existing = costumeFor(dancerId);
+    if (existing) await base44.entities.Costume.update(existing.id, patch);
+    else await base44.entities.Costume.create({ piece_id: piece.id, dancer_id: dancerId, name: `${piece.title} costume`, paid: false, fitted: false, balance_cents: 0, ...patch });
+    queryClient.invalidateQueries({ queryKey: ['costumes'] });
   };
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="bg-card border-border max-w-sm max-h-[70vh] overflow-y-auto">
-        <DialogHeader><DialogTitle className="font-body text-foreground">Cast — {piece?.title}</DialogTitle></DialogHeader>
-        <div className="space-y-2">
-          {dancers.map(d => (
-            <label key={d.id} className="flex items-center gap-2 cursor-pointer p-1.5 rounded hover:bg-secondary/50 transition-colors">
-              <Checkbox checked={currentCast.includes(d.id)} onCheckedChange={() => toggleDancer(d.id)} />
-              <span className="text-sm text-foreground">{d.first_name} {d.last_name}</span>
-              {d.level && <span className="text-[10px] text-warm-gray ml-auto">{d.level}</span>}
-            </label>
-          ))}
+      <DialogContent className="bg-card border-border max-w-md max-h-[78vh] overflow-y-auto">
+        <DialogHeader><DialogTitle className="font-serif text-foreground">Cast &amp; costumes — {piece?.title}</DialogTitle></DialogHeader>
+        <div className="space-y-1.5">
+          {dancers.map(d => {
+            const inCast = currentCast.includes(d.id);
+            const cost = costumeFor(d.id);
+            return (
+              <div key={d.id} className="rounded-lg border border-border p-2.5">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox checked={inCast} onCheckedChange={() => toggleDancer(d.id)} />
+                  <span className="text-sm text-foreground">{d.first_name} {d.last_name}</span>
+                  {d.level && <span className="text-[10px] text-warm-gray ml-auto">{d.level}</span>}
+                </label>
+                {inCast && (
+                  <div className="flex items-center gap-3 mt-2 pl-6 flex-wrap">
+                    <label className="flex items-center gap-1.5 text-[11px] cursor-pointer">
+                      <Checkbox checked={!!cost?.paid} onCheckedChange={v => upsertCostume(d.id, { paid: !!v })} /> Paid
+                    </label>
+                    <label className="flex items-center gap-1.5 text-[11px] cursor-pointer">
+                      <Checkbox checked={!!cost?.fitted} onCheckedChange={v => upsertCostume(d.id, { fitted: !!v })} /> Fitted
+                    </label>
+                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      Balance $
+                      <Input
+                        type="number" min="0"
+                        defaultValue={cost ? (cost.balance_cents / 100) : ''}
+                        onBlur={e => upsertCostume(d.id, { balance_cents: Math.round((Number(e.target.value) || 0) * 100) })}
+                        className="bg-secondary border-border h-7 w-16 text-xs"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
           {dancers.length === 0 && <p className="text-xs text-muted-foreground italic">No dancers in roster yet</p>}
         </div>
       </DialogContent>
