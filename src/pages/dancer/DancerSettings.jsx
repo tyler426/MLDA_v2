@@ -1,5 +1,6 @@
 import { useMyDancer } from '@/lib/useMyDancer';
 import SectionLabel from '@/components/shared/SectionLabel';
+import NotificationToggle from '@/components/shared/NotificationToggle';
 
 export default function DancerSettings() {
   const { data: dancer } = useMyDancer();
@@ -13,6 +14,8 @@ export default function DancerSettings() {
         <Row label="Program" value={dancer?.program || '—'} />
         <Row label="Level" value={dancer?.level || '—'} />
       </div>
+
+      <div className="mt-4"><NotificationToggle /></div>
 
       <p className="text-xs text-muted-foreground mt-4 text-center">
         Need a change? Ask a parent or the studio admin.

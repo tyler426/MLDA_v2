@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Copy, Check, Calendar } from 'lucide-react';
 import SectionLabel from '@/components/shared/SectionLabel';
+import NotificationToggle from '@/components/shared/NotificationToggle';
 import { toast } from 'sonner';
 
 export default function TeacherSettings() {
@@ -35,6 +36,8 @@ export default function TeacherSettings() {
   return (
     <div className="px-4 pt-2 pb-6 max-w-lg mx-auto space-y-4">
       <SectionLabel className="pt-4 mb-2">Settings</SectionLabel>
+
+      <NotificationToggle />
 
       {/* Profile info */}
       <div className="bg-card border border-border rounded-lg p-4">

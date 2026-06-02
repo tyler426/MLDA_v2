@@ -9,6 +9,7 @@ import SectionLabel from '@/components/shared/SectionLabel';
 import HouseholdCaregivers from '@/components/admin/HouseholdCaregivers';
 import DancerLoginInvite from '@/components/shared/DancerLoginInvite';
 import RequestPrivate from '@/components/parent/RequestPrivate';
+import NotificationToggle from '@/components/shared/NotificationToggle';
 import { toast } from 'sonner';
 
 export default function ParentSettings() {
@@ -57,6 +58,9 @@ export default function ParentSettings() {
 
       {/* Private lesson requests */}
       {household && <RequestPrivate household={household} />}
+
+      {/* Notification preference (per-user) */}
+      <NotificationToggle />
 
       {/* Household info */}
       <div className="bg-card border border-border rounded-lg p-4">
