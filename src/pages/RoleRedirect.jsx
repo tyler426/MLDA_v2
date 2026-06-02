@@ -8,7 +8,7 @@ export default function RoleRedirect() {
 
   useEffect(() => {
     if (loading) return;
-    if (role === 'admin') navigate('/admin/schedule', { replace: true });
+    if (role === 'admin') navigate('/admin/dashboard', { replace: true });
     else if (role === 'teacher') navigate('/teacher/today', { replace: true });
     else if (role === 'dancer') navigate('/dancer/today', { replace: true });
     else navigate('/today', { replace: true });

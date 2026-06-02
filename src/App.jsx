@@ -8,6 +8,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 // Layout
 import AppShell from '@/components/layout/AppShell';
+import AdminShell from '@/components/layout/AdminShell';
 
 // Pages
 import Login from '@/pages/Login';
@@ -49,6 +50,9 @@ import AdminConflicts from '@/pages/admin/AdminConflicts';
 import AdminBulkEnroll from '@/pages/admin/AdminBulkEnroll';
 import AdminDigest from '@/pages/admin/AdminDigest';
 import AdminAttendance from '@/pages/admin/AdminAttendance';
+import AdminDashboard from '@/pages/admin/AdminDashboard';
+import AdminBilling from '@/pages/admin/AdminBilling';
+import AdminComms from '@/pages/admin/AdminComms';
 import MonthlyCalendar from '@/pages/MonthlyCalendar';
 
 const AuthenticatedApp = () => {
@@ -117,8 +121,11 @@ const AuthenticatedApp = () => {
         <Route path="/teacher/settings" element={<TeacherSettings />} />
       </Route>
 
-      {/* Admin routes */}
-      <Route element={<AppShell role="admin" />}>
+      {/* Admin routes — desktop command center */}
+      <Route element={<AdminShell />}>
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/billing" element={<AdminBilling />} />
+        <Route path="/admin/comms" element={<AdminComms />} />
         <Route path="/admin/schedule" element={<AdminSchedule />} />
         <Route path="/admin/month" element={<MonthlyCalendar role="admin" />} />
         <Route path="/admin/rehearsals" element={<AdminRehearsals />} />
