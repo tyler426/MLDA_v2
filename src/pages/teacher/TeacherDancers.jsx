@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import SignedImage from '@/components/shared/SignedImage';
 import { Search, X, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -56,7 +57,8 @@ export default function TeacherDancers() {
           return (
             <button key={d.id} onClick={() => setOpen(d)} className="flex items-center gap-3 bg-card border border-border rounded-2xl p-3 text-left">
               <span className="w-10 h-10 rounded-full flex items-center justify-center font-serif text-[14px] font-semibold text-[#0a0908] overflow-hidden flex-none" style={{ background: avColor(d.first_name + d.last_name) }}>
-                {d.photo_url ? <img src={d.photo_url} alt="" className="w-full h-full object-cover" /> : initials(`${d.first_name} ${d.last_name}`)}
+                <SignedImage path={d.photo_url} className="w-full h-full object-cover" fallback={initials(`${d.first_name} ${d.last_name}`)} />
+
               </span>
               <div className="flex-1 min-w-0">
                 <div className="text-[14px] font-semibold truncate">{d.first_name} {d.last_name}</div>
@@ -77,7 +79,7 @@ export default function TeacherDancers() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="w-11 h-11 rounded-full flex items-center justify-center font-serif text-[15px] font-semibold text-[#0a0908] overflow-hidden" style={{ background: avColor(open.first_name + open.last_name) }}>
-                  {open.photo_url ? <img src={open.photo_url} alt="" className="w-full h-full object-cover" /> : initials(`${open.first_name} ${open.last_name}`)}
+                  <SignedImage path={open.photo_url} className="w-full h-full object-cover" fallback={initials(`${open.first_name} ${open.last_name}`)} />
                 </span>
                 <div>
                   <div className="font-serif text-[20px] font-semibold">{open.first_name} {open.last_name}</div>

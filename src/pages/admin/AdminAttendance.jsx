@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import SignedDocLink from '@/components/shared/SignedDocLink';
 import AbsenceThread from '@/components/absence/AbsenceThread';
 import AttendancePolicies from '@/components/absence/AttendancePolicies';
 import { format, parseISO } from 'date-fns';
@@ -149,9 +150,9 @@ export default function AdminAttendance() {
                       </div>
                     )}
                     {a.document_url && (
-                      <a href={a.document_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-primary">
+                      <SignedDocLink path={a.document_url} className="flex items-center gap-1.5 text-xs text-primary">
                         <FileText className="w-3.5 h-3.5" /> View Document
-                      </a>
+                      </SignedDocLink>
                     )}
                     {a.class_ids?.length > 0 && (
                       <div>

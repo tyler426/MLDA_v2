@@ -193,8 +193,8 @@ const integrations = {
       const path = `absence-docs/${Date.now()}-${file.name}`;
       const { error } = await supabase.storage.from('uploads').upload(path, file);
       if (error) throw error;
-      const { data } = supabase.storage.from('uploads').getPublicUrl(path);
-      return { file_url: data.publicUrl };
+      // Private bucket — store the path; opened later via a short-lived signed URL.
+      return { file_url: path };
     },
   },
 };

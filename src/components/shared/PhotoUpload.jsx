@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import SignedImage from '@/components/shared/SignedImage';
 import { Camera, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -17,8 +18,7 @@ export default function PhotoUpload({ value, onChange, label = 'Photo' }) {
       const path = `dancers/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage.from('photos').upload(path, file, { upsert: true });
       if (error) throw error;
-      const { data } = supabase.storage.from('photos').getPublicUrl(path);
-      onChange(data.publicUrl);
+      onChange(path); // store the private path; displayed via signed URLs
       toast.success('Photo uploaded');
     } catch (err) {
       toast.error(err.message || 'Upload failed');
@@ -34,7 +34,7 @@ export default function PhotoUpload({ value, onChange, label = 'Photo' }) {
         <button type="button" onClick={() => inputRef.current?.click()}
           className="w-16 h-16 rounded-xl bg-secondary border border-border overflow-hidden flex items-center justify-center text-muted-2 flex-none">
           {busy ? <Loader2 className="w-5 h-5 animate-spin" />
-            : value ? <img src={value} alt="" className="w-full h-full object-cover" />
+            : value ? <SignedImage path={value} className="w-full h-full object-cover" fallback={<Camera className="w-5 h-5" />} />
             : <Camera className="w-5 h-5" />}
         </button>
         <div className="text-[11px] text-muted-2">

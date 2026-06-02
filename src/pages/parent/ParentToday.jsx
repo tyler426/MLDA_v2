@@ -3,6 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useMyHousehold } from '@/lib/useMyHousehold';
+import { useSignedUrl } from '@/lib/useSignedUrl';
+import SignedImage from '@/components/shared/SignedImage';
 import { formatTime, getTodayDow, todayDateStr, isDancerPulled } from '@/lib/scheduleUtils';
 import { Clock, ChevronRight, Bell } from 'lucide-react';
 import { differenceInCalendarDays, parseISO } from 'date-fns';
@@ -54,6 +56,7 @@ export default function ParentToday() {
   const compDays = nextComp ? differenceInCalendarDays(parseISO(nextComp.start_date), new Date()) : null;
   const latestNote = notes[0];
   const firstName = (household?.primary_contact_name || '').split(' ')[0] || 'there';
+  const heroPhoto = useSignedUrl('photos', dancer?.photo_url);
 
   return (
     <div className="animate-[fade_.32s_ease] px-5">
@@ -76,7 +79,7 @@ export default function ParentToday() {
                 className="flex items-center gap-2 rounded-full pl-1.5 pr-3 py-1.5 border transition-colors"
                 style={{ borderColor: on ? col : 'var(--border, #2a2722)', background: on ? 'rgba(44,144,137,.16)' : 'transparent' }}>
                 <span className="w-[26px] h-[26px] rounded-full flex items-center justify-center font-serif text-[12px] font-semibold text-[#0a0908] overflow-hidden" style={{ background: col }}>
-                  {d.photo_url ? <img src={d.photo_url} alt="" className="w-full h-full object-cover" /> : d.first_name[0]}
+                  <SignedImage path={d.photo_url} className="w-full h-full object-cover" fallback={d.first_name[0]} />
                 </span>
                 <span className={`text-[13px] font-semibold ${on ? 'text-foreground' : 'text-muted-foreground'}`}>{d.first_name}</span>
               </button>
@@ -92,8 +95,8 @@ export default function ParentToday() {
           <button onClick={() => navigate('/week')} className="block w-full text-left">
             <div className="rounded-[20px] overflow-hidden border" style={{ borderColor: 'rgba(58,168,159,.35)', background: 'linear-gradient(180deg,#19211f,#121311)', boxShadow: '0 0 0 4px rgba(44,144,137,.16)' }}>
               <div className="h-[112px] flex items-end px-3 py-2.5 text-[9px] uppercase tracking-[0.1em] text-[#6f6048]"
-                style={dancer?.photo_url ? { backgroundImage: `url(${dancer.photo_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { backgroundColor: '#13211f', backgroundImage: 'repeating-linear-gradient(135deg,rgba(58,168,159,.1) 0 9px,transparent 9px 18px)' }}>
-                {!dancer?.photo_url && `${dancer?.first_name} · add a photo`}
+                style={heroPhoto ? { backgroundImage: `url(${heroPhoto})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { backgroundColor: '#13211f', backgroundImage: 'repeating-linear-gradient(135deg,rgba(58,168,159,.1) 0 9px,transparent 9px 18px)' }}>
+                {!heroPhoto && `${dancer?.first_name} · add a photo`}
               </div>
               <div className="px-4 pt-3.5 pb-4">
                 <div className="flex items-center justify-between">

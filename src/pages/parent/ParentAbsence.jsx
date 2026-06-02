@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMyHousehold } from '@/lib/useMyHousehold';
+import SignedDocLink from '@/components/shared/SignedDocLink';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -320,9 +321,9 @@ export default function ParentAbsence() {
                 <div className="border-t border-border p-4 space-y-3">
                   {a.reason && <p className="text-xs text-muted-foreground">{a.reason}</p>}
                   {a.document_url && (
-                    <a href={a.document_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary">
+                    <SignedDocLink path={a.document_url} className="flex items-center gap-1 text-xs text-primary">
                       <FileText className="w-3 h-3" /> View Document
-                    </a>
+                    </SignedDocLink>
                   )}
                   <AbsenceThread
                     messages={a.messages || []}
