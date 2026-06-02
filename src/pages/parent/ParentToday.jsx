@@ -5,8 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import { useMyHousehold } from '@/lib/useMyHousehold';
 import { useSignedUrl } from '@/lib/useSignedUrl';
 import SignedImage from '@/components/shared/SignedImage';
+import EventSheet from '@/components/shared/EventSheet';
 import { formatTime, getTodayDow, todayDateStr, isDancerPulled } from '@/lib/scheduleUtils';
-import { Clock, ChevronRight, Bell } from 'lucide-react';
+import { Clock, ChevronRight, Bell, Music } from 'lucide-react';
 import { differenceInCalendarDays, parseISO } from 'date-fns';
 
 const STYLE_PALETTE = ['#2c9089', '#7c6fcf', '#c8a464', '#d97a5e', '#5a9bd4', '#cf6f9c'];
@@ -22,6 +23,7 @@ export default function ParentToday() {
   const navigate = useNavigate();
   const { data: household } = useMyHousehold();
   const [selId, setSelId] = useState(null);
+  const [eventSheet, setEventSheet] = useState(null);
 
   const { data: dancers = [] } = useQuery({
     queryKey: ['dancers', household?.id],
@@ -34,6 +36,9 @@ export default function ParentToday() {
   const { data: teachers = [] } = useQuery({ queryKey: ['teachers'], queryFn: () => base44.entities.Teacher.list() });
   const { data: exceptions = [] } = useQuery({ queryKey: ['exToday'], queryFn: () => base44.entities.ScheduleException.filter({ date: todayDateStr() }) });
   const { data: comps = [] } = useQuery({ queryKey: ['competitions'], queryFn: () => base44.entities.CompetitionWeekend.list() });
+  const { data: rehearsals = [] } = useQuery({ queryKey: ['rehearsals'], queryFn: () => base44.entities.RehearsalBlock.list() });
+  const { data: pieceCasts = [] } = useQuery({ queryKey: ['pieceCasts'], queryFn: () => base44.entities.PieceCast.list() });
+  const { data: spaceBookings = [] } = useQuery({ queryKey: ['spaceBookings'], queryFn: () => base44.entities.SpaceBooking.list('-date', 100) });
   const { data: notes = [] } = useQuery({
     queryKey: ['notifs', household?.email],
     queryFn: () => base44.entities.ScheduleNotification.filter({ recipient_email: household.email }, '-created_date', 5),
@@ -49,6 +54,20 @@ export default function ParentToday() {
   const next = todayClasses.find(c => !isDancerPulled(dancer?.id, c.id, todayDateStr(), exceptions)) || todayClasses[0];
   const studioName = id => studios.find(s => s.id === id)?.name;
   const teacherName = id => { const t = teachers.find(x => x.id === id); return t ? `${t.first_name} ${t.last_name?.[0] || ''}.` : ''; };
+
+  // Today's rehearsals & private lessons for the selected dancer.
+  const today = todayDateStr();
+  const myCastPieceIds = new Set(pieceCasts.filter(pc => pc.dancer_id === dancer?.id).map(pc => pc.piece_id));
+  const todayRehearsals = rehearsals.filter(r => {
+    if (r.date !== today) return false;
+    if ((r.dancer_ids || []).includes(dancer?.id)) return true;
+    return (r.piece_ids || []).some(pid => myCastPieceIds.has(pid));
+  }).sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+  const todayPrivates = spaceBookings.filter(b => {
+    if (b.date !== today || b.type !== 'private') return false;
+    if ((b.dancer_ids || []).includes(dancer?.id)) return true;
+    return (b.hour_slots || []).some(s => s.dancer_id === dancer?.id);
+  }).sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
 
   const nextComp = comps
     .filter(c => c.start_date && c.start_date >= todayDateStr())
@@ -113,6 +132,33 @@ export default function ParentToday() {
         )}
       </div>
 
+      {/* today's rehearsals & private lessons */}
+      {(todayRehearsals.length > 0 || todayPrivates.length > 0) && (
+        <div className="mt-5 flex flex-col gap-2.5">
+          <div className="text-[9.5px] tracking-[0.26em] uppercase text-gold font-semibold">Also today</div>
+          {todayRehearsals.map(r => (
+            <button key={r.id} onClick={() => setEventSheet({ event: r, kind: 'rehearsal' })} className="flex gap-3.5 rounded-2xl p-3.5 border items-center text-left w-full" style={{ borderColor: 'rgba(200,164,100,.3)', background: 'rgba(200,164,100,.06)' }}>
+              <Music className="w-4 h-4 text-gold flex-none" />
+              <div className="flex-1 min-w-0">
+                <div className="text-[9.5px] tracking-[0.14em] uppercase text-gold">Rehearsal · tap for details</div>
+                <div className="text-[14px] font-semibold mt-0.5">{formatTime(r.start_time)}–{formatTime(r.end_time)} · Studio {studioName(r.studio_id)}</div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-2 self-center" />
+            </button>
+          ))}
+          {todayPrivates.map(b => (
+            <button key={b.id} onClick={() => setEventSheet({ event: b, kind: 'booking' })} className="flex gap-3.5 rounded-2xl p-3.5 border items-center text-left w-full" style={{ borderColor: 'rgba(200,164,100,.3)', background: 'rgba(200,164,100,.06)' }}>
+              <Clock className="w-4 h-4 text-gold flex-none" />
+              <div className="flex-1 min-w-0">
+                <div className="text-[9.5px] tracking-[0.14em] uppercase text-gold">Private lesson · tap for details</div>
+                <div className="text-[14px] font-semibold mt-0.5">{formatTime(b.start_time)} · Studio {studioName(b.studio_id)}</div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-2 self-center" />
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* week strip */}
       <div className="mt-5">
         <div className="flex items-center justify-between mb-2.5">
@@ -164,6 +210,8 @@ export default function ParentToday() {
           <ChevronRight className="w-4 h-4 text-muted-2" />
         </button>
       )}
+
+      {eventSheet && <EventSheet event={eventSheet.event} kind={eventSheet.kind} onClose={() => setEventSheet(null)} />}
     </div>
   );
 }

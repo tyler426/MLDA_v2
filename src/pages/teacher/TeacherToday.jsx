@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { getTodayDow, formatTime, todayDateStr, getWeekDates } from '@/lib/scheduleUtils';
 import { format } from 'date-fns';
-import { Clock, MapPin, Check, Zap } from 'lucide-react';
+import { Clock, MapPin, Check, Zap, ChevronRight } from 'lucide-react';
+import EventSheet from '@/components/shared/EventSheet';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 function computeEndTime(startTime, durationHours) {
@@ -19,6 +20,7 @@ export default function TeacherToday() {
   const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState(null);
   const [selectedDow, setSelectedDow] = useState(null);
+  const [eventSheet, setEventSheet] = useState(null);
 
   useEffect(() => { base44.auth.me().then(u => setUserEmail(u?.email)); }, []);
 
@@ -107,16 +109,21 @@ export default function TeacherToday() {
         {dayBookings.map(b => {
           const studio = studios.find(s => s.id === b.studio_id);
           return (
-            <div key={b.id} className="rounded-2xl p-4 border" style={{ borderColor: b.type === 'private' ? 'rgba(200,164,100,.3)' : 'rgba(44,144,137,.3)' }}>
-              <span className="text-[9.5px] tracking-[0.14em] uppercase font-semibold" style={{ color: b.type === 'private' ? '#c8a464' : '#3aa89f' }}>{b.type === 'private' ? 'Private lesson' : 'Rehearsal booking'}</span>
+            <button key={b.id} onClick={() => setEventSheet(b)} className="text-left rounded-2xl p-4 border w-full" style={{ borderColor: b.type === 'private' ? 'rgba(200,164,100,.3)' : 'rgba(44,144,137,.3)' }}>
+              <div className="flex items-center justify-between">
+                <span className="text-[9.5px] tracking-[0.14em] uppercase font-semibold" style={{ color: b.type === 'private' ? '#c8a464' : '#3aa89f' }}>{b.type === 'private' ? 'Private lesson' : 'Rehearsal booking'} · tap for details</span>
+                <ChevronRight className="w-4 h-4 text-muted-2" />
+              </div>
               <div className="mt-1.5 flex items-center gap-3 text-[12px] text-muted-foreground">
                 <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatTime(b.start_time)}–{formatTime(b.end_time || computeEndTime(b.start_time, b.duration_hours))}</span>
                 {studio && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />Studio {studio.name}</span>}
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
+
+      {eventSheet && <EventSheet event={eventSheet} kind="booking" onClose={() => setEventSheet(null)} />}
     </div>
   );
 }

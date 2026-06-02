@@ -6,14 +6,16 @@ import PickupTimeHero from '@/components/shared/PickupTimeHero';
 import ClassCard from '@/components/shared/ClassCard';
 import SectionLabel from '@/components/shared/SectionLabel';
 import EmptyState from '@/components/shared/EmptyState';
-import RehearsalCard from '@/components/shared/RehearsalCard';
+import EventSheet from '@/components/shared/EventSheet';
 import { getTodayDow, getLatestEndTime, formatTime, todayDateStr, isDancerPulled } from '@/lib/scheduleUtils';
 import { format } from 'date-fns';
+import { Music, ChevronRight } from 'lucide-react';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function DancerToday() {
   const [selectedDow, setSelectedDow] = useState(null); // null = today
+  const [eventSheet, setEventSheet] = useState(null);
   const { data: dancer } = useMyDancer();
 
   const { data: allClasses = [] } = useQuery({ queryKey: ['allClasses'], queryFn: () => base44.entities.DanceClass.list() });
@@ -22,8 +24,6 @@ export default function DancerToday() {
   const { data: studios = [] } = useQuery({ queryKey: ['studios'], queryFn: () => base44.entities.Studio.list() });
   const { data: teachers = [] } = useQuery({ queryKey: ['teachers'], queryFn: () => base44.entities.Teacher.list() });
   const { data: rehearsals = [] } = useQuery({ queryKey: ['rehearsals'], queryFn: () => base44.entities.RehearsalBlock.list() });
-  const { data: allDancers = [] } = useQuery({ queryKey: ['allDancers'], queryFn: () => base44.entities.Dancer.list() });
-  const { data: pieces = [] } = useQuery({ queryKey: ['pieces'], queryFn: () => base44.entities.Piece.list() });
   const { data: pieceCasts = [] } = useQuery({ queryKey: ['pieceCasts'], queryFn: () => base44.entities.PieceCast.list() });
 
   const todayDow = getTodayDow();
@@ -106,19 +106,24 @@ export default function DancerToday() {
                 pullReason={c.isPulled ? 'Pulled to rehearsal' : null}
               />
             ))}
-            {dayRehearsals.map(r => (
-              <RehearsalCard
-                key={r.id}
-                rehearsal={r}
-                pieces={pieces}
-                dancers={allDancers}
-                pieceCasts={pieceCasts}
-                studioName={studios.find(s => s.id === r.studio_id)?.name}
-              />
-            ))}
+            {dayRehearsals.map(r => {
+              const studioName = studios.find(s => s.id === r.studio_id)?.name;
+              return (
+                <button key={r.id} onClick={() => setEventSheet(r)} className="w-full text-left flex gap-3 items-center bg-primary/10 border border-primary/30 rounded-lg p-4">
+                  <Music className="w-4 h-4 text-primary flex-none" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-caps text-[10px] uppercase tracking-[0.15em] text-primary">Rehearsal · tap for details</div>
+                    <div className="text-sm font-medium mt-0.5">{formatTime(r.start_time)} – {formatTime(r.end_time)}{studioName ? ` · Studio ${studioName}` : ''}</div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </button>
+              );
+            })}
           </>
         )}
       </div>
+
+      {eventSheet && <EventSheet event={eventSheet} kind="rehearsal" onClose={() => setEventSheet(null)} />}
     </div>
   );
 }
