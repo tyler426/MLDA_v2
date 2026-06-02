@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase, IS_DEMO } from '@/lib/supabaseClient';
+import { DEMO_USERS } from '@/api/demo/seed';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -39,6 +40,21 @@ export default function Login() {
           <span className="font-script text-4xl text-gold">MLDA</span>
           <div className="font-caps text-[10px] uppercase tracking-[0.2em] text-warm-gray mt-1">Collective</div>
         </div>
+
+        {IS_DEMO && (
+          <div className="mb-6 space-y-2">
+            <p className="text-center font-caps text-[10px] uppercase tracking-[0.15em] text-gold">Demo — tap a role</p>
+            <div className="grid grid-cols-2 gap-2">
+              {DEMO_USERS.map(u => (
+                <Button key={u.id} variant="outline" className="font-caps text-[10px] uppercase tracking-[0.1em]"
+                  onClick={async () => { await supabase.auth.signInWithPassword({ email: u.email }); window.location.href = '/'; }}>
+                  {u.role}
+                </Button>
+              ))}
+            </div>
+            <p className="text-center text-[10px] text-warm-gray pt-1">or use the form below</p>
+          </div>
+        )}
 
         <form onSubmit={mode === 'password' ? signInPassword : sendMagicLink} className="space-y-3">
           <Input type="email" placeholder="Email" value={email}
