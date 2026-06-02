@@ -1,86 +1,66 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { CalendarDays, Clock, Bell, Settings, LayoutGrid, Users, Music, Trophy, FileText, AlertTriangle, Calendar, ClipboardList } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import { CalendarDays, Clock, Settings, Music, Trophy, ClipboardList, Home, Mail, User, LogOut } from 'lucide-react';
 
+// Spotlight mobile shell — phone-centered column + bottom tab bar.
+// Primary tabs match the design (5 each); secondary features (Month, Absences,
+// Calendar Sync) are reached from inside the "You"/Settings screens.
 const parentNav = [
-  { label: 'Today', path: '/today', icon: Clock },
-  { label: 'Week', path: '/week', icon: CalendarDays },
-  { label: 'Month', path: '/month', icon: Calendar },
-  { label: 'Pieces', path: '/pieces', icon: Music },
-  { label: 'Alerts', path: '/notifications', icon: Bell },
-  { label: 'Absences', path: '/absences', icon: ClipboardList },
-  { label: 'Settings', path: '/settings', icon: Settings },
+  { label: 'Home', path: '/today', icon: Home },
+  { label: 'Schedule', path: '/week', icon: CalendarDays },
+  { label: 'Compete', path: '/pieces', icon: Trophy },
+  { label: 'Inbox', path: '/notifications', icon: Mail },
+  { label: 'You', path: '/settings', icon: User },
 ];
 
 const dancerNav = [
   { label: 'Today', path: '/dancer/today', icon: Clock },
   { label: 'Week', path: '/dancer/week', icon: CalendarDays },
   { label: 'Pieces', path: '/dancer/pieces', icon: Music },
-  { label: 'Profile', path: '/dancer/settings', icon: Settings },
+  { label: 'Profile', path: '/dancer/settings', icon: User },
 ];
 
 const teacherNav = [
   { label: 'Today', path: '/teacher/today', icon: Clock },
   { label: 'Week', path: '/teacher/week', icon: CalendarDays },
-  { label: 'Month', path: '/teacher/month', icon: Calendar },
   { label: 'Pieces', path: '/teacher/pieces', icon: Music },
   { label: 'Comps', path: '/teacher/competitions', icon: Trophy },
   { label: 'Attend.', path: '/teacher/attendance', icon: ClipboardList },
   { label: 'Settings', path: '/teacher/settings', icon: Settings },
 ];
 
-const adminNav = [
-  { label: 'Schedule', path: '/admin/schedule', icon: LayoutGrid },
-  { label: 'Month', path: '/admin/month', icon: Calendar },
-  { label: 'Conflicts', path: '/admin/conflicts', icon: AlertTriangle },
-  { label: 'Rehearsals', path: '/admin/rehearsals', icon: Music },
-  { label: 'Pieces', path: '/admin/pieces', icon: FileText },
-  { label: 'Roster', path: '/admin/roster', icon: Users },
-  { label: 'Comps', path: '/admin/competitions', icon: Trophy },
-  { label: 'Attend.', path: '/admin/attendance', icon: ClipboardList },
-  { label: 'Settings', path: '/admin/settings', icon: Settings },
-];
-
 export default function AppShell({ role }) {
   const location = useLocation();
-  const nav = role === 'admin' ? adminNav : role === 'teacher' ? teacherNav : role === 'dancer' ? dancerNav : parentNav;
+  const { logout } = useAuth();
+  const nav = role === 'teacher' ? teacherNav : role === 'dancer' ? dancerNav : parentNav;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="font-script text-xl text-gold">MLDA</span>
-          <span className="font-caps text-[10px] uppercase tracking-[0.2em] text-warm-gray">Collective</span>
-        </div>
-        <button 
-          onClick={() => base44.auth.logout()}
-          className="font-caps text-[10px] uppercase tracking-[0.15em] text-warm-gray hover:text-foreground transition-colors"
-        >
-          Sign Out
+    <div className="mx-auto w-full max-w-[440px] min-h-screen flex flex-col relative shadow-[0_0_80px_-20px_rgba(0,0,0,0.8)]">
+      {/* Slim brand bar */}
+      <header className="flex-none flex items-center justify-between px-5 py-3">
+        <span className="font-serif text-[18px] font-semibold text-gold">MLDA</span>
+        <button onClick={() => logout()} className="flex items-center gap-1.5 text-muted-2 hover:text-foreground transition-colors">
+          <span className="font-caps text-[9px] uppercase tracking-[0.2em]">Sign out</span>
+          <LogOut className="w-[15px] h-[15px]" />
         </button>
       </header>
 
-      {/* Main content */}
-      <main className="flex-1 pb-20 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto pb-24">
         <Outlet />
       </main>
 
-      {/* Bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-t border-border">
-        <div className="flex items-center justify-around px-2 py-2 max-w-lg mx-auto">
+      {/* Bottom tab bar */}
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[440px] z-50 border-t border-border"
+        style={{ background: 'rgba(14,13,12,.94)', backdropFilter: 'blur(12px)' }}>
+        <div className="flex items-start justify-around px-2 pt-3 pb-2">
           {nav.map(({ label, path, icon: Icon }) => {
             const isActive = location.pathname === path;
             return (
-              <Link
-                key={path}
-                to={path}
-                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors ${
-                  isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-                }`}
+              <Link key={path} to={path}
+                className={`flex flex-col items-center gap-1.5 px-2 transition-colors ${isActive ? 'text-teal-bright' : 'text-muted-2 hover:text-muted-foreground'}`}
               >
-                <Icon className="w-5 h-5" />
-                <span className="font-caps text-[9px] uppercase tracking-[0.1em]">{label}</span>
+                <Icon className="w-[22px] h-[22px]" strokeWidth={isActive ? 2 : 1.6} />
+                <span className="text-[9.5px] tracking-[0.02em]">{label}</span>
               </Link>
             );
           })}

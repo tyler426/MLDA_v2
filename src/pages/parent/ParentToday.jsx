@@ -1,347 +1,165 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { useMyHousehold } from '@/lib/useMyHousehold';
-import PickupTimeHero from '@/components/shared/PickupTimeHero';
-import ClassCard from '@/components/shared/ClassCard';
-import SectionLabel from '@/components/shared/SectionLabel';
-import EmptyState from '@/components/shared/EmptyState';
-import { getTodayDow, getLatestEndTime, formatTime, todayDateStr, isDancerPulled } from '@/lib/scheduleUtils';
-import RehearsalCard from '@/components/shared/RehearsalCard';
-import { format } from 'date-fns';
-import RehearsalDetailCard from '@/components/shared/RehearsalDetailCard';
-import { Clock, MapPin } from 'lucide-react';
+import { formatTime, getTodayDow, todayDateStr, isDancerPulled } from '@/lib/scheduleUtils';
+import { Clock, ChevronRight, Bell, Plus } from 'lucide-react';
+import { format, differenceInCalendarDays, parseISO } from 'date-fns';
 
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const STYLE_PALETTE = ['#2c9089', '#7c6fcf', '#c8a464', '#d97a5e', '#5a9bd4', '#cf6f9c'];
+function styleColor(s = '') { let n = 0; for (const c of s) n += c.charCodeAt(0); return STYLE_PALETTE[n % STYLE_PALETTE.length]; }
+const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-function computeEndTime(startTime, durationHours) {
-  if (!startTime || !durationHours) return '';
-  const [h, m] = startTime.split(':').map(Number);
-  const totalMins = h * 60 + m + durationHours * 60;
-  return `${String(Math.floor(totalMins / 60)).padStart(2, '0')}:${String(totalMins % 60).padStart(2, '0')}`;
+function greeting() {
+  const h = new Date().getHours();
+  return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
 }
 
 export default function ParentToday() {
-  const [selectedDow, setSelectedDow] = useState(null); // null = today
+  const navigate = useNavigate();
   const { data: household } = useMyHousehold();
+  const [selId, setSelId] = useState(null);
 
   const { data: dancers = [] } = useQuery({
     queryKey: ['dancers', household?.id],
     queryFn: () => base44.entities.Dancer.filter({ parent_household_id: household.id }),
     enabled: !!household?.id,
   });
-
-  const { data: allClasses = [] } = useQuery({
-    queryKey: ['allClasses'],
-    queryFn: () => base44.entities.DanceClass.list(),
+  const { data: allClasses = [] } = useQuery({ queryKey: ['allClasses'], queryFn: () => base44.entities.DanceClass.list() });
+  const { data: enrollments = [] } = useQuery({ queryKey: ['enrollments'], queryFn: () => base44.entities.ClassEnrollment.filter({ active: true }) });
+  const { data: studios = [] } = useQuery({ queryKey: ['studios'], queryFn: () => base44.entities.Studio.list() });
+  const { data: teachers = [] } = useQuery({ queryKey: ['teachers'], queryFn: () => base44.entities.Teacher.list() });
+  const { data: exceptions = [] } = useQuery({ queryKey: ['exToday'], queryFn: () => base44.entities.ScheduleException.filter({ date: todayDateStr() }) });
+  const { data: comps = [] } = useQuery({ queryKey: ['competitions'], queryFn: () => base44.entities.CompetitionWeekend.list() });
+  const { data: notes = [] } = useQuery({
+    queryKey: ['notifs', household?.email],
+    queryFn: () => base44.entities.ScheduleNotification.filter({ recipient_email: household.email }, '-created_date', 5),
+    enabled: !!household?.email,
   });
 
-  const { data: enrollments = [] } = useQuery({
-    queryKey: ['enrollments'],
-    queryFn: () => base44.entities.ClassEnrollment.filter({ active: true }),
-  });
+  const dancer = dancers.find(d => d.id === selId) || dancers[0];
+  const dow = getTodayDow();
+  const myClassIds = dancer ? enrollments.filter(e => e.dancer_id === dancer.id).map(e => e.class_id) : [];
+  const todayClasses = allClasses
+    .filter(c => myClassIds.includes(c.id) && c.day_of_week === dow)
+    .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+  const next = todayClasses.find(c => !isDancerPulled(dancer?.id, c.id, todayDateStr(), exceptions)) || todayClasses[0];
+  const studioName = id => studios.find(s => s.id === id)?.name;
+  const teacherName = id => { const t = teachers.find(x => x.id === id); return t ? `${t.first_name} ${t.last_name?.[0] || ''}.` : ''; };
 
-  const { data: exceptions = [] } = useQuery({
-    queryKey: ['allExceptions'],
-    queryFn: () => base44.entities.ScheduleException.list(),
-  });
-
-  const { data: studios = [] } = useQuery({
-    queryKey: ['studios'],
-    queryFn: () => base44.entities.Studio.list(),
-  });
-
-  const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers'],
-    queryFn: () => base44.entities.Teacher.list(),
-  });
-
-  const { data: rehearsals = [] } = useQuery({
-    queryKey: ['rehearsals'],
-    queryFn: () => base44.entities.RehearsalBlock.list(),
-  });
-
-  const { data: allDancers = [] } = useQuery({
-    queryKey: ['allDancers'],
-    queryFn: () => base44.entities.Dancer.list(),
-  });
-
-  const { data: pieces = [] } = useQuery({
-    queryKey: ['pieces'],
-    queryFn: () => base44.entities.Piece.list(),
-  });
-
-  const { data: pieceCasts = [] } = useQuery({
-    queryKey: ['pieceCasts'],
-    queryFn: () => base44.entities.PieceCast.list(),
-  });
-
-  const { data: spaceBookings = [] } = useQuery({
-    queryKey: ['spaceBookings'],
-    queryFn: () => base44.entities.SpaceBooking.list('-date', 60),
-  });
-
-  const todayDow = getTodayDow();
-  const today = todayDateStr();
-  const activeDow = selectedDow !== null ? selectedDow : todayDow;
-  const isToday = activeDow === todayDow;
-
-  // Compute the actual calendar date for activeDow this week
-  const weekStart = new Date();
-  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-  const activeDate = new Date(weekStart);
-  activeDate.setDate(weekStart.getDate() + activeDow);
-  const activeDateStr = format(activeDate, 'yyyy-MM-dd');
-
-  // IDs of rehearsal blocks already shown via pull exceptions (to avoid duplicates)
-  const pulledRehearsalIds = new Set(
-    exceptions.filter(e => e.type === 'dancer_pulled' && e.rehearsal_block_id).map(e => e.rehearsal_block_id)
-  );
-
-  // Rehearsals on the active date that involve any of our dancers
-  const dancerIdSet = new Set(dancers.map(d => d.id));
-  const dayRehearsals = rehearsals.filter(r => {
-    // Skip if already shown via a class-pull exception
-    if (pulledRehearsalIds.has(r.id)) return false;
-    if (r.date !== activeDateStr) return false;
-    // check explicit dancer_ids first
-    if ((r.dancer_ids || []).some(id => dancerIdSet.has(id))) return true;
-    // fall back: check if any household dancer is cast in any of the rehearsal's pieces
-    const castDancerIds = new Set(
-      (r.piece_ids || []).flatMap(pid => pieceCasts.filter(pc => pc.piece_id === pid).map(pc => pc.dancer_id))
-    );
-    return [...dancerIdSet].some(id => castDancerIds.has(id));
-  }).sort((a, b) => a.start_time.localeCompare(b.start_time));
-
-  // Space bookings (private lessons + rehearsal blocks) on the active date that include any of our dancers
-  const dayPrivateLessons = spaceBookings.filter(b =>
-    b.date === activeDateStr &&
-    (b.dancer_ids || []).some(id => dancerIdSet.has(id))
-  ).sort((a, b) => a.start_time.localeCompare(b.start_time));
-
-  // Build per-dancer schedule for the selected day
-  const dancerSchedules = dancers.map(dancer => {
-    const dancerEnrollments = enrollments.filter(e => e.dancer_id === dancer.id);
-    const dancerClassIds = dancerEnrollments.map(e => e.class_id);
-    const dayClasses = allClasses
-      .filter(c => dancerClassIds.includes(c.id) && c.day_of_week === activeDow)
-      .map(c => ({
-        ...c,
-        studioName: studios.find(s => s.id === c.studio_id)?.name,
-        teacherName: (() => { const t = teachers.find(t => t.id === c.teacher_id); return t ? `${t.first_name} ${t.last_name?.[0] || ''}.` : ''; })(),
-        isPulled: isToday ? isDancerPulled(dancer.id, c.id, today, exceptions) : false,
-      }))
-      .sort((a, b) => a.start_time.localeCompare(b.start_time));
-    
-    const activeClasses = dayClasses.filter(c => !c.isPulled);
-    const classPickup = getLatestEndTime(activeClasses);
-
-    // Also consider private lesson slots for this dancer's pickup time
-    const dancerPrivates = spaceBookings.filter(b =>
-      b.date === activeDateStr &&
-      ((b.dancer_ids || []).includes(dancer.id) || (b.hour_slots || []).some(s => s.dancer_id === dancer.id))
-    );
-    const privatePickup = dancerPrivates.reduce((latest, b) => {
-      const slot = (b.hour_slots || []).find(s => s.dancer_id === dancer.id);
-      const slotStart = slot != null ? computeEndTime(b.start_time, slot.hour_index) : b.start_time;
-      const slotEnd = slot != null ? computeEndTime(slotStart, 1) : computeEndTime(b.start_time, b.duration_hours);
-      return slotEnd > latest ? slotEnd : latest;
-    }, '');
-
-    const pickupTime = classPickup && privatePickup
-      ? (classPickup > privatePickup ? classPickup : privatePickup)
-      : classPickup || privatePickup || null;
-
-    return { dancer, classes: dayClasses, pickupTime };
-  });
-
-  // Overall latest pickup
-  const overallPickup = dancerSchedules.reduce((latest, ds) => {
-    if (!ds.pickupTime) return latest;
-    if (!latest) return ds.pickupTime;
-    return ds.pickupTime > latest ? ds.pickupTime : latest;
-  }, null);
+  const nextComp = comps
+    .filter(c => c.start_date && c.start_date >= todayDateStr())
+    .sort((a, b) => a.start_date.localeCompare(b.start_date))[0];
+  const compDays = nextComp ? differenceInCalendarDays(parseISO(nextComp.start_date), new Date()) : null;
+  const latestNote = notes[0];
+  const firstName = (household?.primary_contact_name || '').split(' ')[0] || 'there';
 
   return (
-    <div className="px-4 pt-2 pb-6 max-w-lg mx-auto">
-      <div className="flex items-baseline justify-between pt-4 mb-1">
-        <SectionLabel>{isToday ? 'Today' : DAYS[activeDow]}</SectionLabel>
-      </div>
-
-      {/* Day selector */}
-      <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
-        {DAYS.map((label, dow) => (
-          <button
-            key={dow}
-            onClick={() => setSelectedDow(dow === todayDow && selectedDow === null ? null : dow === todayDow ? null : dow)}
-            className={`flex-shrink-0 px-2.5 py-1 rounded-md font-caps text-[10px] uppercase tracking-[0.12em] transition-colors ${
-              activeDow === dow
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {label}
-            {dow === todayDow && <span className="ml-1 text-[8px] opacity-60">•</span>}
-          </button>
-        ))}
-      </div>
-
-      {dancers.length === 0 ? (
-        <div className="mt-8">
-          <PickupTimeHero time="—" />
-          <EmptyState 
-            message="No dancers linked yet" 
-            sub="Ask your studio admin to add your household" 
-          />
+    <div className="animate-[fade_.32s_ease] px-5">
+      {/* greeting */}
+      <div className="flex items-center justify-between pt-1">
+        <div>
+          <div className="text-[9.5px] tracking-[0.26em] uppercase text-gold font-semibold">MLDA Collective</div>
+          <div className="font-serif text-[25px] font-semibold mt-1">{greeting()}, {firstName}</div>
         </div>
-      ) : dancerSchedules.length === 1 ? (
-        <>
-          <PickupTimeHero 
-            time={dancerSchedules[0].pickupTime} 
-            dancerName={dancerSchedules[0].dancer.first_name} 
-          />
-          <div className="space-y-3">
-            {dancerSchedules[0].classes.length === 0 && dayRehearsals.length === 0 && dayPrivateLessons.length === 0 ? (
-            <EmptyState message={`No classes ${isToday ? 'today' : 'on ' + DAYS[activeDow]}`} />
-            ) : (
-            <>
-            {dancerSchedules[0].classes.map(c => (
-              <ClassCard
-                key={c.id}
-                title={c.title}
-                startTime={formatTime(c.start_time)}
-                endTime={formatTime(c.end_time)}
-                studioName={c.studioName}
-                teacherName={c.teacherName}
-                level={c.level}
-                isPulled={c.isPulled}
-                pullReason={c.isPulled ? 'Pulled to rehearsal' : null}
-              />
-            ))}
-            {dayRehearsals.map(r => (
-              <RehearsalCard
-                key={r.id}
-                rehearsal={r}
-                pieces={pieces}
-                dancers={allDancers}
-                pieceCasts={pieceCasts}
-                studioName={studios.find(s => s.id === r.studio_id)?.name}
-              />
-            ))}
-            {dayPrivateLessons.map(b => {
-              const studio = studios.find(s => s.id === b.studio_id);
-              const t = teachers.find(t => t.id === b.teacher_id);
-              const isPrivate = b.type === 'private';
-              const singleDancer = dancerSchedules[0]?.dancer;
-              const slot = singleDancer
-                ? (b.hour_slots || []).find(s => s.dancer_id === singleDancer.id)
-                : null;
-              const slotStartTime = slot != null
-                ? computeEndTime(b.start_time, slot.hour_index)
-                : b.start_time;
-              const slotEndTime = slot != null
-                ? computeEndTime(slotStartTime, 1)
-                : computeEndTime(b.start_time, b.duration_hours);
-              return (
-                <div key={b.id} className={`bg-card border rounded-lg p-3 ${isPrivate ? 'border-gold/30' : 'border-primary/30'}`}>
-                  <span className={`font-caps text-[10px] uppercase tracking-[0.15em] px-2 py-0.5 rounded ${isPrivate ? 'bg-gold/10 text-gold' : 'bg-primary/10 text-primary'}`}>
-                    {isPrivate ? 'Private Lesson' : 'Rehearsal'}
-                  </span>
-                  <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatTime(slotStartTime)} – {formatTime(slotEndTime)}</span>
-                    {studio && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />Studio {studio.name}</span>}
-                    {t && <span>{t.first_name} {t.last_name}</span>}
-                  </div>
-                </div>
-              );
-            })}
-                    </>
-                    )}
-          </div>
-        </>
-      ) : (
-        <>
-          {/* Multi-dancer family view */}
-          <PickupTimeHero time={overallPickup} />
-          {dancerSchedules.map(({ dancer, classes, pickupTime }) => (
-            <div key={dancer.id} className="mb-8">
-              <div className="flex items-baseline gap-2 mb-3">
-                <h3 className="font-body font-semibold text-foreground">{dancer.first_name}</h3>
-                {pickupTime && (
-                  <span className="font-caps text-[10px] uppercase tracking-[0.12em] text-gold">
-                    Done at {pickupTime}
-                  </span>
-                )}
+      </div>
+
+      {/* dancer switcher */}
+      {dancers.length > 0 && (
+        <div className="flex gap-2 mt-4 flex-wrap">
+          {dancers.map(d => {
+            const on = d.id === dancer?.id;
+            const col = styleColor(d.first_name + d.last_name);
+            return (
+              <button key={d.id} onClick={() => setSelId(d.id)}
+                className="flex items-center gap-2 rounded-full pl-1.5 pr-3 py-1.5 border transition-colors"
+                style={{ borderColor: on ? col : 'var(--border, #2a2722)', background: on ? 'rgba(44,144,137,.16)' : 'transparent' }}>
+                <span className="w-[26px] h-[26px] rounded-full flex items-center justify-center font-serif text-[12px] font-semibold text-[#0a0908] overflow-hidden" style={{ background: col }}>
+                  {d.photo_url ? <img src={d.photo_url} alt="" className="w-full h-full object-cover" /> : d.first_name[0]}
+                </span>
+                <span className={`text-[13px] font-semibold ${on ? 'text-foreground' : 'text-muted-foreground'}`}>{d.first_name}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* up next hero */}
+      <div className="mt-5">
+        <div className="text-[9.5px] tracking-[0.26em] uppercase text-teal-bright font-semibold mb-2.5">Up next · Today</div>
+        {next ? (
+          <button onClick={() => navigate('/week')} className="block w-full text-left">
+            <div className="rounded-[20px] overflow-hidden border" style={{ borderColor: 'rgba(58,168,159,.35)', background: 'linear-gradient(180deg,#19211f,#121311)', boxShadow: '0 0 0 4px rgba(44,144,137,.16)' }}>
+              <div className="h-[112px] flex items-end px-3 py-2.5 text-[9px] uppercase tracking-[0.1em] text-[#6f6048]"
+                style={dancer?.photo_url ? { backgroundImage: `url(${dancer.photo_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { backgroundColor: '#13211f', backgroundImage: 'repeating-linear-gradient(135deg,rgba(58,168,159,.1) 0 9px,transparent 9px 18px)' }}>
+                {!dancer?.photo_url && `${dancer?.first_name} · add a photo`}
               </div>
-              <div className="space-y-3">
-                {(() => {
-                  const dancerRehearsals = dayRehearsals.filter(r => {
-                    if ((r.dancer_ids || []).includes(dancer.id)) return true;
-                    const castIds = new Set((r.piece_ids || []).flatMap(pid => pieceCasts.filter(pc => pc.piece_id === pid).map(pc => pc.dancer_id)));
-                    return castIds.has(dancer.id);
-                  });
-                  const dancerPrivates = dayPrivateLessons.filter(b =>
-                    (b.dancer_ids || []).includes(dancer.id) ||
-                    (b.hour_slots || []).some(s => s.dancer_id === dancer.id)
-                  );
-                  if (classes.length === 0 && dancerRehearsals.length === 0 && dancerPrivates.length === 0) {
-                    return <EmptyState message={`No classes ${isToday ? 'today' : 'on ' + DAYS[activeDow]}`} />;
-                  }
-                  return (
-                    <>
-                      {classes.map(c => (
-                        <ClassCard
-                          key={c.id}
-                          title={c.title}
-                          startTime={formatTime(c.start_time)}
-                          endTime={formatTime(c.end_time)}
-                          studioName={c.studioName}
-                          teacherName={c.teacherName}
-                          level={c.level}
-                          isPulled={c.isPulled}
-                          pullReason={c.isPulled ? 'Pulled to rehearsal' : null}
-                        />
-                      ))}
-                      {dancerRehearsals.map(r => (
-                        <RehearsalCard
-                          key={r.id}
-                          rehearsal={r}
-                          pieces={pieces}
-                          dancers={allDancers}
-                          pieceCasts={pieceCasts}
-                          studioName={studios.find(s => s.id === r.studio_id)?.name}
-                        />
-                      ))}
-                      {dancerPrivates.map(b => {
-                        const studio = studios.find(s => s.id === b.studio_id);
-                        const t = teachers.find(t => t.id === b.teacher_id);
-                        const isPrivate = b.type === 'private';
-                        // Find this dancer's specific hour slot for per-slot time display
-                        const slot = (b.hour_slots || []).find(s => s.dancer_id === dancer.id);
-                        const slotStartTime = slot != null
-                          ? computeEndTime(b.start_time, slot.hour_index)
-                          : b.start_time;
-                        const slotEndTime = computeEndTime(slotStartTime, 1);
-                        return (
-                          <div key={b.id} className={`bg-card border rounded-lg p-3 ${isPrivate ? 'border-gold/30' : 'border-primary/30'}`}>
-                            <span className={`font-caps text-[10px] uppercase tracking-[0.15em] px-2 py-0.5 rounded ${isPrivate ? 'bg-gold/10 text-gold' : 'bg-primary/10 text-primary'}`}>
-                              {isPrivate ? 'Private Lesson' : 'Rehearsal'}
-                            </span>
-                            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatTime(slotStartTime)} – {formatTime(slotEndTime)}</span>
-                              {studio && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />Studio {studio.name}</span>}
-                              {t && <span>{t.first_name} {t.last_name}</span>}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </>
-                  );
-                })()}
+              <div className="px-4 pt-3.5 pb-4">
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><Clock className="w-3.5 h-3.5 text-teal-bright" />{formatTime(next.start_time)}–{formatTime(next.end_time)}</span>
+                  <span className="text-[11px] px-2.5 py-1 rounded-full" style={{ background: 'rgba(44,144,137,.16)', color: '#3aa89f' }}>Studio {studioName(next.studio_id)}</span>
+                </div>
+                <div className="font-serif text-[27px] font-semibold mt-2.5 mb-1">{next.title}</div>
+                <div className="text-[12.5px] text-muted-foreground">with {teacherName(next.teacher_id)}</div>
               </div>
             </div>
-          ))}
-        </>
+          </button>
+        ) : (
+          <div className="bg-card border border-border rounded-[18px] p-5 text-center text-[13px] text-muted-2">No classes today — rest day for {dancer?.first_name || 'your dancer'}.</div>
+        )}
+      </div>
+
+      {/* week strip */}
+      <div className="mt-5">
+        <div className="flex items-center justify-between mb-2.5">
+          <div className="text-[9.5px] tracking-[0.26em] uppercase text-muted-2 font-semibold">This week</div>
+          <button onClick={() => navigate('/week')} className="text-[11.5px] text-teal-bright flex items-center gap-1">Full schedule <ChevronRight className="w-3 h-3" /></button>
+        </div>
+        <div className="flex gap-1.5">
+          {DAY_LETTERS.map((letter, i) => {
+            const cls = dancer ? allClasses.filter(c => myClassIds.includes(c.id) && c.day_of_week === i) : [];
+            const on = i === dow;
+            return (
+              <button key={i} onClick={() => navigate('/week')} className="flex-1 rounded-xl py-2 text-center" style={{ background: on ? '#2c9089' : 'var(--card, #16140f)', color: on ? '#06110f' : 'var(--muted-foreground)' }}>
+                <div className="text-[10px] font-bold">{letter}</div>
+                <div className="flex gap-0.5 justify-center mt-1.5 min-h-[6px]">
+                  {cls.slice(0, 3).map((c, j) => <span key={j} className="w-[5px] h-[5px] rounded-full" style={{ background: on ? '#06110f' : styleColor(c.title) }} />)}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* competition countdown */}
+      {nextComp && (
+        <button onClick={() => navigate('/pieces')} className="block w-full text-left mt-5">
+          <div className="rounded-[18px] border p-4 flex items-center gap-4" style={{ borderColor: 'rgba(200,164,100,.3)', background: 'linear-gradient(180deg,#1c1813,#141210)' }}>
+            <div className="text-center">
+              <div className="font-serif text-[44px] leading-[0.85] text-gold">{compDays}</div>
+              <div className="text-[8.5px] tracking-[0.18em] text-muted-2 mt-0.5">DAYS</div>
+            </div>
+            <div className="flex-1 border-l border-border pl-4">
+              <div className="text-[9.5px] tracking-[0.26em] uppercase text-gold font-semibold">Next competition</div>
+              <div className="font-serif text-[19px] font-semibold mt-1 mb-0.5">{nextComp.name}</div>
+              <div className="text-[11.5px] text-muted-foreground">{nextComp.venue || nextComp.start_date}</div>
+            </div>
+            <ChevronRight className="w-[18px] h-[18px] text-muted-2" />
+          </div>
+        </button>
+      )}
+
+      {/* announcement preview */}
+      {latestNote && (
+        <button onClick={() => navigate('/notifications')} className="flex w-full items-center gap-3 mt-4 mb-2 text-left">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-none" style={{ background: 'rgba(200,164,100,.14)', color: '#c8a464' }}><Bell className="w-[19px] h-[19px]" /></div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[13px] font-semibold truncate">{latestNote.title || latestNote.message}</div>
+            <div className="text-[11.5px] text-muted-2">From the studio</div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-2" />
+        </button>
       )}
     </div>
   );

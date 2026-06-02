@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useMyHousehold } from '@/lib/useMyHousehold';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Copy, Check, Calendar } from 'lucide-react';
+import { Copy, Check, Calendar, ClipboardList, CalendarDays, ChevronRight } from 'lucide-react';
 import SectionLabel from '@/components/shared/SectionLabel';
 import HouseholdCaregivers from '@/components/admin/HouseholdCaregivers';
 import DancerLoginInvite from '@/components/shared/DancerLoginInvite';
@@ -33,8 +34,25 @@ export default function ParentSettings() {
   };
 
   return (
-    <div className="px-4 pt-2 pb-6 max-w-lg mx-auto space-y-4">
-      <SectionLabel className="pt-4 mb-2">Settings</SectionLabel>
+    <div className="px-5 pt-1 pb-6 space-y-4">
+      <div>
+        <div className="text-[9.5px] tracking-[0.26em] uppercase text-gold font-semibold">Family</div>
+        <h1 className="font-serif text-[25px] font-semibold mt-1">{household?.primary_contact_name || 'Your account'}</h1>
+      </div>
+
+      {/* Quick links to features kept off the bottom nav */}
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        {[
+          { to: '/absences', icon: ClipboardList, label: 'Absences' },
+          { to: '/month', icon: CalendarDays, label: 'Month calendar' },
+        ].map(({ to, icon: Icon, label }) => (
+          <Link key={to} to={to} className="flex items-center gap-3 px-4 py-3.5 border-b border-border last:border-0 hover:bg-secondary/40">
+            <Icon className="w-[18px] h-[18px] text-teal-bright" />
+            <span className="flex-1 text-[14px]">{label}</span>
+            <ChevronRight className="w-4 h-4 text-muted-2" />
+          </Link>
+        ))}
+      </div>
 
       {/* Household info */}
       <div className="bg-card border border-border rounded-lg p-4">
