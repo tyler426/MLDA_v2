@@ -1,65 +1,124 @@
+import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useMyDancer } from '@/lib/useMyDancer';
+import PickupTimeHero from '@/components/shared/PickupTimeHero';
 import ClassCard from '@/components/shared/ClassCard';
 import SectionLabel from '@/components/shared/SectionLabel';
 import EmptyState from '@/components/shared/EmptyState';
+import RehearsalCard from '@/components/shared/RehearsalCard';
 import { getTodayDow, getLatestEndTime, formatTime, todayDateStr, isDancerPulled } from '@/lib/scheduleUtils';
 import { format } from 'date-fns';
 
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 export default function DancerToday() {
+  const [selectedDow, setSelectedDow] = useState(null); // null = today
   const { data: dancer } = useMyDancer();
 
   const { data: allClasses = [] } = useQuery({ queryKey: ['allClasses'], queryFn: () => base44.entities.DanceClass.list() });
   const { data: enrollments = [] } = useQuery({ queryKey: ['enrollments'], queryFn: () => base44.entities.ClassEnrollment.filter({ active: true }) });
+  const { data: exceptions = [] } = useQuery({ queryKey: ['allExceptions'], queryFn: () => base44.entities.ScheduleException.list() });
   const { data: studios = [] } = useQuery({ queryKey: ['studios'], queryFn: () => base44.entities.Studio.list() });
   const { data: teachers = [] } = useQuery({ queryKey: ['teachers'], queryFn: () => base44.entities.Teacher.list() });
-  const { data: exceptions = [] } = useQuery({
-    queryKey: ['exceptionsToday'],
-    queryFn: () => base44.entities.ScheduleException.filter({ date: todayDateStr() }),
-  });
+  const { data: rehearsals = [] } = useQuery({ queryKey: ['rehearsals'], queryFn: () => base44.entities.RehearsalBlock.list() });
+  const { data: allDancers = [] } = useQuery({ queryKey: ['allDancers'], queryFn: () => base44.entities.Dancer.list() });
+  const { data: pieces = [] } = useQuery({ queryKey: ['pieces'], queryFn: () => base44.entities.Piece.list() });
+  const { data: pieceCasts = [] } = useQuery({ queryKey: ['pieceCasts'], queryFn: () => base44.entities.PieceCast.list() });
 
-  const dow = getTodayDow();
+  const todayDow = getTodayDow();
+  const today = todayDateStr();
+  const activeDow = selectedDow !== null ? selectedDow : todayDow;
+  const isToday = activeDow === todayDow;
+
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const activeDate = new Date(weekStart);
+  activeDate.setDate(weekStart.getDate() + activeDow);
+  const activeDateStr = format(activeDate, 'yyyy-MM-dd');
+
+  // Classes for this dancer on the active day.
   const myClassIds = enrollments.filter(e => e.dancer_id === dancer?.id).map(e => e.class_id);
-  const todayClasses = allClasses
-    .filter(c => myClassIds.includes(c.id) && c.day_of_week === dow)
+  const dayClasses = allClasses
+    .filter(c => myClassIds.includes(c.id) && c.day_of_week === activeDow)
+    .map(c => ({
+      ...c,
+      studioName: studios.find(s => s.id === c.studio_id)?.name,
+      teacherName: (() => { const t = teachers.find(t => t.id === c.teacher_id); return t ? `${t.first_name} ${t.last_name?.[0] || ''}.` : ''; })(),
+      isPulled: isToday ? isDancerPulled(dancer?.id, c.id, today, exceptions) : false,
+    }))
     .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
 
-  const studioName = id => studios.find(s => s.id === id)?.name;
-  const teacherName = id => { const t = teachers.find(x => x.id === id); return t ? `${t.first_name} ${t.last_name?.[0] || ''}` : ''; };
+  const pickupTime = getLatestEndTime(dayClasses.filter(c => !c.isPulled));
+
+  // Rehearsals on the active date involving this dancer (skip those shown as pulls).
+  const pulledRehearsalIds = new Set(
+    exceptions.filter(e => e.type === 'dancer_pulled' && e.rehearsal_block_id).map(e => e.rehearsal_block_id)
+  );
+  const dayRehearsals = rehearsals.filter(r => {
+    if (pulledRehearsalIds.has(r.id)) return false;
+    if (r.date !== activeDateStr) return false;
+    if ((r.dancer_ids || []).includes(dancer?.id)) return true;
+    const castIds = new Set((r.piece_ids || []).flatMap(pid => pieceCasts.filter(pc => pc.piece_id === pid).map(pc => pc.dancer_id)));
+    return castIds.has(dancer?.id);
+  }).sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
 
   return (
     <div className="px-4 pt-2 pb-6 max-w-lg mx-auto">
-      <div className="pt-4 mb-1">
-        <SectionLabel>Today</SectionLabel>
+      <div className="flex items-baseline justify-between pt-4 mb-1">
+        <SectionLabel>{isToday ? 'Today' : DAYS[activeDow]}</SectionLabel>
+        {dancer && <span className="text-xs text-muted-foreground">{dancer.first_name}</span>}
       </div>
-      <p className="text-sm text-muted-foreground mb-4">
-        {dancer ? `Hi ${dancer.first_name} · ` : ''}{format(new Date(), 'EEEE, MMMM d')}
-      </p>
 
-      {todayClasses.length > 0 && (
-        <p className="text-xs text-warm-gray mb-3">Done at {getLatestEndTime(todayClasses)}</p>
-      )}
+      {/* Day selector */}
+      <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
+        {DAYS.map((label, dow) => (
+          <button
+            key={dow}
+            onClick={() => setSelectedDow(dow === todayDow ? null : dow)}
+            className={`flex-shrink-0 px-2.5 py-1 rounded-md font-caps text-[10px] uppercase tracking-[0.12em] transition-colors ${
+              activeDow === dow ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {label}
+            {dow === todayDow && <span className="ml-1 text-[8px] opacity-60">•</span>}
+          </button>
+        ))}
+      </div>
 
-      {todayClasses.length === 0 ? (
-        <EmptyState message="No classes today. Enjoy the day off!" />
-      ) : (
-        <div className="space-y-2">
-          {todayClasses.map(c => (
-            <ClassCard
-              key={c.id}
-              title={c.title}
-              startTime={formatTime(c.start_time)}
-              endTime={formatTime(c.end_time)}
-              studioName={studioName(c.studio_id)}
-              teacherName={teacherName(c.teacher_id)}
-              level={c.level}
-              isPulled={isDancerPulled(dancer?.id, c.id, todayDateStr(), exceptions)}
-              pullReason="Pulled to rehearsal"
-            />
-          ))}
-        </div>
-      )}
+      <PickupTimeHero time={pickupTime} dancerName={dancer?.first_name} />
+
+      <div className="space-y-3">
+        {dayClasses.length === 0 && dayRehearsals.length === 0 ? (
+          <EmptyState message={`No classes ${isToday ? 'today' : 'on ' + DAYS[activeDow]}`} />
+        ) : (
+          <>
+            {dayClasses.map(c => (
+              <ClassCard
+                key={c.id}
+                title={c.title}
+                startTime={formatTime(c.start_time)}
+                endTime={formatTime(c.end_time)}
+                studioName={c.studioName}
+                teacherName={c.teacherName}
+                level={c.level}
+                isPulled={c.isPulled}
+                pullReason={c.isPulled ? 'Pulled to rehearsal' : null}
+              />
+            ))}
+            {dayRehearsals.map(r => (
+              <RehearsalCard
+                key={r.id}
+                rehearsal={r}
+                pieces={pieces}
+                dancers={allDancers}
+                pieceCasts={pieceCasts}
+                studioName={studios.find(s => s.id === r.studio_id)?.name}
+              />
+            ))}
+          </>
+        )}
+      </div>
     </div>
   );
 }
