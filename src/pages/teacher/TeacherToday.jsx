@@ -1,199 +1,122 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import ClassCard from '@/components/shared/ClassCard';
-import SectionLabel from '@/components/shared/SectionLabel';
-import EmptyState from '@/components/shared/EmptyState';
+import { useNavigate } from 'react-router-dom';
 import { getTodayDow, formatTime, todayDateStr, getWeekDates } from '@/lib/scheduleUtils';
 import { format } from 'date-fns';
-import { Clock, MapPin, User, Music } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Clock, MapPin, Check, Zap } from 'lucide-react';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
 function computeEndTime(startTime, durationHours) {
   if (!startTime || !durationHours) return '';
   const [h, m] = startTime.split(':').map(Number);
-  const totalMins = h * 60 + m + durationHours * 60;
-  return `${String(Math.floor(totalMins / 60)).padStart(2, '0')}:${String(totalMins % 60).padStart(2, '0')}`;
+  const total = h * 60 + m + durationHours * 60;
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
+function greeting() { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; }
 
 export default function TeacherToday() {
+  const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState(null);
-  const [selectedDow, setSelectedDow] = useState(null); // null = today
+  const [selectedDow, setSelectedDow] = useState(null);
 
   useEffect(() => { base44.auth.me().then(u => setUserEmail(u?.email)); }, []);
 
   const { data: teacher } = useQuery({
-    queryKey: ['teacherRecord', userEmail],
-    queryFn: () => base44.entities.Teacher.filter({ email: userEmail }),
-    enabled: !!userEmail,
-    select: d => d[0],
+    queryKey: ['teacherRecord', userEmail], enabled: !!userEmail,
+    queryFn: () => base44.entities.Teacher.filter({ email: userEmail }), select: d => d[0],
   });
-
   const { data: allClasses = [] } = useQuery({ queryKey: ['allClasses'], queryFn: () => base44.entities.DanceClass.list() });
   const { data: studios = [] } = useQuery({ queryKey: ['studios'], queryFn: () => base44.entities.Studio.list() });
-  const { data: dancers = [] } = useQuery({ queryKey: ['allDancers'], queryFn: () => base44.entities.Dancer.filter({ archived: false }) });
-  const { data: pieces = [] } = useQuery({ queryKey: ['pieces'], queryFn: () => base44.entities.Piece.list() });
-  const { data: exceptions = [] } = useQuery({
-    queryKey: ['exceptions', todayDateStr()],
-    queryFn: () => base44.entities.ScheduleException.filter({ date: todayDateStr() }),
-  });
+  const { data: exceptions = [] } = useQuery({ queryKey: ['exceptions', todayDateStr()], queryFn: () => base44.entities.ScheduleException.filter({ date: todayDateStr() }) });
   const { data: enrollments = [] } = useQuery({ queryKey: ['enrollments'], queryFn: () => base44.entities.ClassEnrollment.filter({ active: true }) });
   const { data: spaceBookings = [] } = useQuery({ queryKey: ['spaceBookings'], queryFn: () => base44.entities.SpaceBooking.list('-date', 100) });
+  const { data: attendance = [] } = useQuery({ queryKey: ['attendanceToday', todayDateStr()], queryFn: () => base44.entities.AttendanceRecord.filter({ date: todayDateStr() }) });
 
   const todayDow = getTodayDow();
-  const today = todayDateStr();
-  const activeDow = selectedDow !== null ? selectedDow : todayDow;
-  const isViewingToday = activeDow === todayDow;
-
-  // Resolve actual date string for the selected day of week (within current week)
-  const weekDates = getWeekDates();
-  const activeDateStr = format(weekDates[activeDow], 'yyyy-MM-dd');
-
-  // Space bookings for this teacher on the active date
-  const dayBookings = spaceBookings
-    .filter(b => b.date === activeDateStr && b.teacher_id === teacher?.id)
-    .sort((a, b) => a.start_time.localeCompare(b.start_time));
+  const activeDow = selectedDow ?? todayDow;
+  const isToday = activeDow === todayDow;
+  const activeDateStr = format(getWeekDates()[activeDow], 'yyyy-MM-dd');
 
   const myClasses = allClasses
     .filter(c => c.teacher_id === teacher?.id && c.day_of_week === activeDow)
-    .map(c => {
-      const classEnrollments = enrollments.filter(e => e.class_id === c.id);
-      const totalDancers = classEnrollments.length;
-      const pulledDancers = isViewingToday ? classEnrollments.filter(e =>
-        exceptions.some(ex => ex.type === 'dancer_pulled' && ex.dancer_id === e.dancer_id && ex.class_id === c.id && ex.date === today)
-      ).length : 0;
-      const effectivelyCancelled = totalDancers > 0 && pulledDancers >= totalDancers;
+    .map(c => ({ ...c, studioName: studios.find(s => s.id === c.studio_id)?.name, count: enrollments.filter(e => e.class_id === c.id).length, taken: attendance.some(a => a.class_id === c.id) }))
+    .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+  const dayBookings = spaceBookings.filter(b => b.date === activeDateStr && b.teacher_id === teacher?.id).sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
 
-      return {
-        ...c,
-        studioName: studios.find(s => s.id === c.studio_id)?.name,
-        totalDancers,
-        pulledDancers,
-        effectivelyCancelled,
-      };
-    })
-    .sort((a, b) => a.start_time.localeCompare(b.start_time));
+  const totalDancers = myClasses.reduce((a, c) => a + c.count, 0);
+  const takenCount = myClasses.filter(c => c.taken).length;
+  const nextIdx = myClasses.findIndex(c => !c.taken);
 
   return (
-    <div className="px-4 pt-2 pb-6 max-w-lg mx-auto">
-      <div className="flex items-baseline justify-between pt-4 mb-1">
-        <SectionLabel>{isViewingToday ? 'Today' : DAYS[activeDow]}</SectionLabel>
+    <div className="animate-[fade_.32s_ease] px-5">
+      <div className="pt-1">
+        <div className="text-[9.5px] tracking-[0.26em] uppercase text-gold font-semibold">{format(new Date(), 'EEEE · MMMM d')}</div>
+        <h1 className="font-serif text-[25px] font-semibold mt-1">{greeting()}, {teacher?.first_name || 'Teacher'}</h1>
       </div>
 
-      {/* Day selector */}
-      <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
+      {/* stat row */}
+      <div className="flex gap-2.5 mt-4">
+        {[['Classes', myClasses.length, '#3aa89f'], ['Dancers', totalDancers, '#c8a464'], ['Attendance', `${takenCount}/${myClasses.length}`, '#3aa89f']].map(([l, v, c]) => (
+          <div key={l} className="flex-1 bg-card border border-border rounded-2xl p-3.5">
+            <div className="font-serif text-[26px] font-semibold" style={{ color: c }}>{v}</div>
+            <div className="text-[10.5px] text-muted-2 mt-0.5">{l}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* day pills */}
+      <div className="flex gap-1.5 mt-4 overflow-x-auto pb-1">
         {DAYS.map((label, dow) => (
-          <button
-            key={dow}
-            onClick={() => setSelectedDow(dow === todayDow && selectedDow === null ? null : dow === todayDow ? null : dow)}
-            className={`flex-shrink-0 px-2.5 py-1 rounded-md font-caps text-[10px] uppercase tracking-[0.12em] transition-colors ${
-              activeDow === dow
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {label}
-            {dow === todayDow && <span className="ml-1 text-[8px] opacity-60">•</span>}
+          <button key={dow} onClick={() => setSelectedDow(dow === todayDow ? null : dow)}
+            className="flex-none px-3 py-1.5 rounded-full text-[10px] font-caps uppercase tracking-[0.12em]"
+            style={{ background: activeDow === dow ? '#2c9089' : 'var(--card)', color: activeDow === dow ? '#06110f' : 'var(--muted-foreground)' }}>
+            {label}{dow === todayDow && <span className="ml-1 opacity-60">•</span>}
           </button>
         ))}
       </div>
 
-      {teacher && (
-        <p className="font-body text-sm text-muted-foreground mb-4">
-          Hi, {teacher.first_name}
-        </p>
-      )}
+      <div className="text-[9.5px] tracking-[0.26em] uppercase text-teal-bright font-semibold mt-5 mb-3">{isToday ? "Today's classes" : DAYS[activeDow]} · tap to take attendance</div>
 
-      {myClasses.length === 0 && dayBookings.length === 0 ? (
-        <EmptyState message={`No classes ${isViewingToday ? 'today' : 'on ' + DAYS[activeDow]}`} sub={isViewingToday ? 'Enjoy your day off' : ''} />
-      ) : (
-        <div className="space-y-3">
-          {myClasses.map((c, i) => (
-            <motion.div
-              key={c.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06 }}
-            >
-              <div className={`bg-card border border-border rounded-lg p-4 ${c.effectivelyCancelled ? 'opacity-50 border-l-2 border-l-terracotta' : ''}`}>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-body font-medium text-sm text-foreground">{c.title}</h3>
-                    {c.level && <span className="font-caps text-[10px] uppercase tracking-[0.12em] text-warm-gray">{c.level}</span>}
-                  </div>
-                  {c.effectivelyCancelled && (
-                    <span className="font-caps text-[10px] uppercase tracking-[0.12em] text-terracotta bg-terracotta/10 px-2 py-0.5 rounded">
-                      All Pulled
-                    </span>
-                  )}
+      <div className="pb-2 flex flex-col gap-2.5">
+        {myClasses.length === 0 && dayBookings.length === 0 && (
+          <div className="bg-card border border-border rounded-2xl p-7 text-center text-[13px] text-muted-2">No classes {isToday ? 'today' : 'this day'}.</div>
+        )}
+        {myClasses.map((c, i) => {
+          const glow = isToday && i === nextIdx && !c.taken;
+          return (
+            <button key={c.id} onClick={() => navigate('/teacher/attendance')}
+              className="text-left rounded-2xl p-4 border bg-card"
+              style={{ borderColor: glow ? 'rgba(58,168,159,.35)' : 'var(--border)', boxShadow: glow ? '0 0 0 4px rgba(44,144,137,.16)' : 'none' }}>
+              <div className="flex items-center gap-3.5">
+                <div className="text-center pr-3.5 border-r border-border min-w-[54px]">
+                  <div className="font-serif text-[17px] font-semibold">{formatTime(c.start_time).replace(/ ?[AP]M/, '')}</div>
+                  <div className="text-[10px] text-muted-2">{formatTime(c.end_time)}</div>
                 </div>
-                <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                  <span>{formatTime(c.start_time)} – {formatTime(c.end_time)}</span>
-                  {c.studioName && <span>Studio {c.studioName}</span>}
+                <div className="flex-1 min-w-0">
+                  <div className="text-[15.5px] font-semibold truncate">{c.title}</div>
+                  <div className="text-[11.5px] text-muted-foreground mt-0.5">Studio {c.studioName} · {c.level || '—'} · {c.count} dancers</div>
                 </div>
-                {isViewingToday && c.pulledDancers > 0 && !c.effectivelyCancelled && (
-                  <p className="mt-2 text-xs text-gold">
-                    {c.pulledDancers} of {c.totalDancers} dancer{c.totalDancers > 1 ? 's' : ''} pulled to rehearsal
-                  </p>
-                )}
-                {!isViewingToday && c.totalDancers > 0 && (
-                  <p className="mt-2 text-xs text-muted-foreground">{c.totalDancers} enrolled</p>
-                )}
+                {c.taken
+                  ? <span className="flex items-center gap-1 text-[11.5px] text-teal-bright font-semibold"><Check className="w-4 h-4" />Taken</span>
+                  : <span className="flex items-center gap-1 text-[11.5px] font-bold text-[#06110f] bg-primary px-3 py-1.5 rounded-full"><Zap className="w-3.5 h-3.5" />Take</span>}
               </div>
-            </motion.div>
-          ))}
-
-          {dayBookings.map((b, i) => {
-            const studio = studios.find(s => s.id === b.studio_id);
-            const bDancers = (b.dancer_ids || []).map(did => dancers.find(d => d.id === did)).filter(Boolean);
-            const bPieces = (b.piece_ids || []).map(pid => pieces.find(p => p.id === pid)).filter(Boolean);
-            return (
-              <motion.div
-                key={b.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: (myClasses.length + i) * 0.06 }}
-                className={`bg-card border rounded-lg p-4 ${b.type === 'private' ? 'border-gold/30' : 'border-primary/30'}`}
-              >
-                <span className={`font-caps text-[10px] uppercase tracking-[0.15em] px-2 py-0.5 rounded ${b.type === 'private' ? 'bg-gold/10 text-gold' : 'bg-primary/10 text-primary'}`}>
-                  {b.type === 'private' ? 'Private Lesson' : 'Rehearsal Booking'}
-                </span>
-                <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatTime(b.start_time)} – {formatTime(computeEndTime(b.start_time, b.duration_hours))}</span>
-                  {studio && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />Studio {studio.name}</span>}
-                </div>
-                {bDancers.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-[10px] font-caps uppercase tracking-[0.1em] text-warm-gray mb-1 flex items-center gap-1">
-                      <User className="w-2.5 h-2.5" /> {b.type === 'private' ? 'Student(s)' : 'Dancers Called'}
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {bDancers.map(d => (
-                        <span key={d.id} className="bg-secondary text-foreground text-[10px] px-2 py-0.5 rounded">{d.first_name} {d.last_name}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {bPieces.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-[10px] font-caps uppercase tracking-[0.1em] text-warm-gray mb-1 flex items-center gap-1">
-                      <Music className="w-2.5 h-2.5" /> Pieces
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {bPieces.map(p => (
-                        <span key={p.id} className="bg-gold/10 text-gold text-[10px] font-caps uppercase tracking-[0.08em] px-2 py-0.5 rounded">{p.title}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {b.notes && <p className="mt-2 text-[10px] text-muted-foreground italic">{b.notes}</p>}
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
+            </button>
+          );
+        })}
+        {dayBookings.map(b => {
+          const studio = studios.find(s => s.id === b.studio_id);
+          return (
+            <div key={b.id} className="rounded-2xl p-4 border" style={{ borderColor: b.type === 'private' ? 'rgba(200,164,100,.3)' : 'rgba(44,144,137,.3)' }}>
+              <span className="text-[9.5px] tracking-[0.14em] uppercase font-semibold" style={{ color: b.type === 'private' ? '#c8a464' : '#3aa89f' }}>{b.type === 'private' ? 'Private lesson' : 'Rehearsal booking'}</span>
+              <div className="mt-1.5 flex items-center gap-3 text-[12px] text-muted-foreground">
+                <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatTime(b.start_time)}–{formatTime(b.end_time || computeEndTime(b.start_time, b.duration_hours))}</span>
+                {studio && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />Studio {studio.name}</span>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
