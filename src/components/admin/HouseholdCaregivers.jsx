@@ -19,8 +19,8 @@ export default function HouseholdCaregivers({ household }) {
 
   const invite = useMutation({
     mutationFn: async (payload) => {
-      const { data, error } = await supabase.functions.invoke('invite-caregiver', {
-        body: { ...payload, household_id: household.id, is_primary: members.length === 0 },
+      const { data, error } = await supabase.functions.invoke('invite-member', {
+        body: { ...payload, role: 'parent', household_id: household.id, is_primary: members.length === 0 },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);

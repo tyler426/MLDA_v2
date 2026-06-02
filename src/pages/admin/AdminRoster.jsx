@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SectionLabel from '@/components/shared/SectionLabel';
 import HouseholdCaregivers from '@/components/admin/HouseholdCaregivers';
+import TeacherLoginInvite from '@/components/admin/TeacherLoginInvite';
+import DancerLoginInvite from '@/components/shared/DancerLoginInvite';
 import { Plus, Search, UserPlus, Users, Pencil, Archive, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -78,6 +80,7 @@ export default function AdminRoster() {
                       {d.jackrabbit_student_id && <span className="text-[10px] text-primary bg-primary/10 px-1.5 rounded">JR Synced</span>}
                     </div>
                     {parent && <p className="text-[10px] text-muted-foreground mt-0.5">Parent: {parent.primary_contact_name}</p>}
+                    <div className="mt-1.5"><DancerLoginInvite dancer={d} hasLogin={!!d.profile_id} /></div>
                   </div>
                   <button onClick={() => setEditItem({ type: 'dancer', data: d })} className="p-1.5 text-muted-foreground hover:text-foreground"><Pencil className="w-3.5 h-3.5" /></button>
                 </motion.div>
@@ -121,7 +124,10 @@ export default function AdminRoster() {
                 <div>
                   <p className="font-body text-sm font-medium text-foreground">{t.first_name} {t.last_name}</p>
                   <p className="text-xs text-muted-foreground">{t.email}</p>
-                  {t.initials && <span className="font-caps text-[10px] uppercase tracking-[0.1em] text-gold">{t.initials}</span>}
+                  <div className="flex items-center gap-2 mt-1">
+                    {t.initials && <span className="font-caps text-[10px] uppercase tracking-[0.1em] text-gold">{t.initials}</span>}
+                    <TeacherLoginInvite teacher={t} />
+                  </div>
                 </div>
                 <button onClick={() => setEditItem({ type: 'teacher', data: t })} className="p-1.5 text-muted-foreground hover:text-foreground"><Pencil className="w-3.5 h-3.5" /></button>
               </motion.div>

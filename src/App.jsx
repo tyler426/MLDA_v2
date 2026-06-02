@@ -22,6 +22,12 @@ import ParentSettings from '@/pages/parent/ParentSettings';
 import ParentPieces from '@/pages/parent/ParentPieces';
 import ParentAbsence from '@/pages/parent/ParentAbsence';
 
+// Dancer (student) pages
+import DancerToday from '@/pages/dancer/DancerToday';
+import DancerWeek from '@/pages/dancer/DancerWeek';
+import DancerPieces from '@/pages/dancer/DancerPieces';
+import DancerSettings from '@/pages/dancer/DancerSettings';
+
 // Teacher pages
 import TeacherToday from '@/pages/teacher/TeacherToday.jsx';
 import TeacherWeek from '@/pages/teacher/TeacherWeek.jsx';
@@ -89,6 +95,14 @@ const AuthenticatedApp = () => {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/absences" element={<ParentAbsence />} />
         <Route path="/settings" element={<ParentSettings />} />
+      </Route>
+
+      {/* Dancer (student) routes */}
+      <Route element={<AppShell role="dancer" />}>
+        <Route path="/dancer/today" element={<DancerToday />} />
+        <Route path="/dancer/week" element={<DancerWeek />} />
+        <Route path="/dancer/pieces" element={<DancerPieces />} />
+        <Route path="/dancer/settings" element={<DancerSettings />} />
       </Route>
 
       {/* Teacher routes */}

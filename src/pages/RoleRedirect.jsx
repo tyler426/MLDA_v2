@@ -10,6 +10,7 @@ export default function RoleRedirect() {
     if (loading) return;
     if (role === 'admin') navigate('/admin/schedule', { replace: true });
     else if (role === 'teacher') navigate('/teacher/today', { replace: true });
+    else if (role === 'dancer') navigate('/dancer/today', { replace: true });
     else navigate('/today', { replace: true });
   }, [role, loading, navigate]);
 

@@ -12,6 +12,13 @@ const parentNav = [
   { label: 'Settings', path: '/settings', icon: Settings },
 ];
 
+const dancerNav = [
+  { label: 'Today', path: '/dancer/today', icon: Clock },
+  { label: 'Week', path: '/dancer/week', icon: CalendarDays },
+  { label: 'Pieces', path: '/dancer/pieces', icon: Music },
+  { label: 'Profile', path: '/dancer/settings', icon: Settings },
+];
+
 const teacherNav = [
   { label: 'Today', path: '/teacher/today', icon: Clock },
   { label: 'Week', path: '/teacher/week', icon: CalendarDays },
@@ -36,7 +43,7 @@ const adminNav = [
 
 export default function AppShell({ role }) {
   const location = useLocation();
-  const nav = role === 'admin' ? adminNav : role === 'teacher' ? teacherNav : parentNav;
+  const nav = role === 'admin' ? adminNav : role === 'teacher' ? teacherNav : role === 'dancer' ? dancerNav : parentNav;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

@@ -43,6 +43,17 @@ function withCreatedDate(row) {
   return row;
 }
 
+// Strip virtual / server-managed fields before write so spreading a fetched
+// record back into create()/update() (common in edit forms) doesn't try to
+// write columns that don't exist or shouldn't change.
+const NON_WRITABLE = ['created_date', 'created_at', 'created_by', 'updated_date', 'updated_at', 'updated_by'];
+function sanitize(values, { dropId = false } = {}) {
+  const out = { ...values };
+  for (const k of NON_WRITABLE) delete out[k];
+  if (dropId) delete out.id;
+  return out;
+}
+
 function applyOrder(query, order) {
   if (!order) return query;
   const desc = order.startsWith('-');
@@ -78,12 +89,12 @@ function makeEntity(name) {
       return withCreatedDate(data);
     },
     async create(values) {
-      const { data, error } = await supabase.from(table).insert(values).select().single();
+      const { data, error } = await supabase.from(table).insert(sanitize(values)).select().single();
       if (error) throw error;
       return withCreatedDate(data);
     },
     async update(id, values) {
-      const { data, error } = await supabase.from(table).update(values).eq('id', id).select().single();
+      const { data, error } = await supabase.from(table).update(sanitize(values, { dropId: true })).eq('id', id).select().single();
       if (error) throw error;
       return withCreatedDate(data);
     },

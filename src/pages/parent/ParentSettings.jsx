@@ -5,6 +5,8 @@ import { useMyHousehold } from '@/lib/useMyHousehold';
 import { Button } from '@/components/ui/button';
 import { Copy, Check, Calendar } from 'lucide-react';
 import SectionLabel from '@/components/shared/SectionLabel';
+import HouseholdCaregivers from '@/components/admin/HouseholdCaregivers';
+import DancerLoginInvite from '@/components/shared/DancerLoginInvite';
 import { toast } from 'sonner';
 
 export default function ParentSettings() {
@@ -38,17 +40,32 @@ export default function ParentSettings() {
       <div className="bg-card border border-border rounded-lg p-4">
         <h3 className="font-body font-semibold text-sm text-foreground mb-3">Household</h3>
         <p className="text-sm text-muted-foreground">{household?.primary_contact_name || 'Not set'}</p>
-        <p className="text-xs text-warm-gray mt-1">{userEmail}</p>
+        {household?.email && <p className="text-xs text-warm-gray mt-1">{household.email}</p>}
 
         {dancers.length > 0 && (
           <div className="mt-4 pt-3 border-t border-border">
             <p className="font-caps text-[10px] uppercase tracking-[0.15em] text-warm-gray mb-2">Dancers</p>
-            {dancers.map(d => (
-              <p key={d.id} className="text-sm text-foreground">{d.first_name} {d.last_name}</p>
-            ))}
+            <div className="space-y-1.5">
+              {dancers.map(d => (
+                <div key={d.id} className="flex items-center justify-between gap-2">
+                  <p className="text-sm text-foreground">{d.first_name} {d.last_name}</p>
+                  <DancerLoginInvite dancer={d} hasLogin={!!d.profile_id} />
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-warm-gray mt-2">Dancers 10+ can have their own login to see their schedule.</p>
           </div>
         )}
       </div>
+
+      {/* Caregivers — invite another parent/guardian to this household */}
+      {household && (
+        <div className="bg-card border border-border rounded-lg p-4">
+          <h3 className="font-body font-semibold text-sm text-foreground">Caregivers</h3>
+          <p className="text-xs text-muted-foreground mt-0.5 mb-1">Invite another parent or guardian to share this household.</p>
+          <HouseholdCaregivers household={household} />
+        </div>
+      )}
 
       {/* Calendar Sync */}
       <div className="bg-card border border-border rounded-lg p-6 text-center">
