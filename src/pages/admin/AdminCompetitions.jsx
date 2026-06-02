@@ -20,6 +20,8 @@ export default function AdminCompetitions() {
   const [selectedWeekend, setSelectedWeekend] = useState(null);
   const [showShiftCreate, setShowShiftCreate] = useState(false);
   const [showEntryCreate, setShowEntryCreate] = useState(false);
+  const [entryPiece, setEntryPiece] = useState('');
+  const [entryTime, setEntryTime] = useState('');
   const queryClient = useQueryClient();
 
   const { data: weekends = [], refetch: refetchWeekends } = useQuery({ queryKey: ['compWeekends'], queryFn: () => base44.entities.CompetitionWeekend.list('-start_date') });
@@ -47,7 +49,19 @@ export default function AdminCompetitions() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['compShifts'] }); toast.success('Shift removed'); },
   });
 
+  const { data: compEntries = [] } = useQuery({ queryKey: ['compEntries'], queryFn: () => base44.entities.CompetitionEntry.list() });
+  const createEntry = useMutation({
+    mutationFn: (d) => base44.entities.CompetitionEntry.create(d),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['compEntries'] }); setEntryPiece(''); setEntryTime(''); toast.success('Call time added'); },
+    onError: (e) => toast.error(e.message),
+  });
+  const deleteEntry = useMutation({
+    mutationFn: (id) => base44.entities.CompetitionEntry.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['compEntries'] }),
+  });
+
   const weekendShifts = selectedWeekend ? shifts.filter(s => s.competition_weekend_id === selectedWeekend.id).sort((a, b) => `${a.date}${a.start_time}`.localeCompare(`${b.date}${b.start_time}`)) : [];
+  const weekendEntries = selectedWeekend ? compEntries.filter(e => e.competition_weekend_id === selectedWeekend.id) : [];
 
   return (
     <div className="px-4 pt-2 pb-6 max-w-4xl mx-auto">
@@ -129,6 +143,46 @@ export default function AdminCompetitions() {
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Routine call times (feeds the parent Compete tab) */}
+          <div>
+            <SectionLabel className="mb-3">Routine call times</SectionLabel>
+            <div className="bg-card border border-border rounded-lg p-3 mb-2 flex items-end gap-2 flex-wrap">
+              <div className="flex-1 min-w-[140px]">
+                <Label className="text-xs text-muted-foreground">Routine</Label>
+                <Select value={entryPiece} onValueChange={setEntryPiece}>
+                  <SelectTrigger className="bg-secondary border-border h-9 text-xs"><SelectValue placeholder="Select piece" /></SelectTrigger>
+                  <SelectContent>{pieces.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Call time</Label>
+                <Input type="time" value={entryTime} onChange={e => setEntryTime(e.target.value)} className="bg-secondary border-border h-9 text-xs w-32" />
+              </div>
+              <Button size="sm" disabled={!entryPiece || !entryTime || createEntry.isPending}
+                onClick={() => createEntry.mutate({ competition_weekend_id: selectedWeekend.id, piece_id: entryPiece, call_time: entryTime })}
+                className="bg-primary text-[#06110f] font-bold text-[11px] h-9">Add</Button>
+            </div>
+            {weekendEntries.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic">No call times set</p>
+            ) : (
+              <div className="space-y-2">
+                {weekendEntries.map(en => {
+                  const piece = pieces.find(p => p.id === en.piece_id);
+                  return (
+                    <div key={en.id} className="bg-card border border-border rounded-lg p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Music2 className="w-3.5 h-3.5 text-gold" />
+                        <span className="text-sm text-foreground">{piece?.title || 'Routine'}</span>
+                        <span className="text-xs text-gold flex items-center gap-1"><Clock className="w-3 h-3" />Call {formatTime(en.call_time)}</span>
+                      </div>
+                      <button onClick={() => deleteEntry.mutate(en.id)} className="p-1.5 text-muted-foreground hover:text-terracotta"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
