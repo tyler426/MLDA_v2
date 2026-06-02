@@ -29,6 +29,14 @@ const TABLE = {
   AttendanceRecord: 'attendance_records',
   AbsenceReport: 'absence_reports',
   ScheduleNotification: 'schedule_notifications',
+  // Design-handoff feature tables
+  Costume: 'costumes',
+  CompetitionEntry: 'competition_entries',
+  DancerNote: 'dancer_notes',
+  PrivateRequest: 'private_requests',
+  AvailabilitySlot: 'availability_slots',
+  MessageThread: 'message_threads',
+  Message: 'messages',
 };
 
 // Base44 used `created_date`; our columns use `created_at`. Translate sort keys
