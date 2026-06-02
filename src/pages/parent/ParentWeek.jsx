@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useMyHousehold } from '@/lib/useMyHousehold';
 import ClassSheet from '@/components/parent/ClassSheet';
+import EventSheet from '@/components/shared/EventSheet';
 import { formatTime, getTodayDow, isDancerPulled } from '@/lib/scheduleUtils';
 import { ChevronRight, Music } from 'lucide-react';
 import { format, startOfWeek, addDays } from 'date-fns';
@@ -16,6 +17,7 @@ export default function ParentWeek() {
   const [selId, setSelId] = useState(null);
   const [dow, setDow] = useState(getTodayDow());
   const [sheet, setSheet] = useState(null);
+  const [eventSheet, setEventSheet] = useState(null);
 
   const { data: dancers = [] } = useQuery({
     queryKey: ['dancers', household?.id],
@@ -114,18 +116,20 @@ export default function ParentWeek() {
           );
         })}
         {dayRehearsals.map(r => (
-          <div key={r.id} className="flex gap-3.5 rounded-2xl p-3.5 border items-center" style={{ borderColor: 'rgba(200,164,100,.3)', background: 'rgba(200,164,100,.06)' }}>
-            <Music className="w-4 h-4 text-gold" />
+          <button key={r.id} onClick={() => setEventSheet(r)} className="flex gap-3.5 rounded-2xl p-3.5 border items-center text-left w-full" style={{ borderColor: 'rgba(200,164,100,.3)', background: 'rgba(200,164,100,.06)' }}>
+            <Music className="w-4 h-4 text-gold flex-none" />
             <div className="flex-1 min-w-0">
-              <div className="text-[9.5px] tracking-[0.14em] uppercase text-gold">Rehearsal</div>
+              <div className="text-[9.5px] tracking-[0.14em] uppercase text-gold">Rehearsal · tap for details</div>
               <div className="text-[14px] font-semibold mt-0.5">{formatTime(r.start_time)}–{formatTime(r.end_time)} · Studio {studioName(r.studio_id)}</div>
               {r.notes && <div className="text-[11.5px] text-muted-2 truncate">{r.notes}</div>}
             </div>
-          </div>
+            <ChevronRight className="w-4 h-4 text-muted-2 self-center" />
+          </button>
         ))}
       </div>
 
       {sheet && <ClassSheet cls={sheet} dancer={dancer} household={household} date={activeDate} studios={studios} teachers={teachers} onClose={() => setSheet(null)} />}
+      {eventSheet && <EventSheet event={eventSheet} kind="rehearsal" onClose={() => setEventSheet(null)} />}
     </div>
   );
 }

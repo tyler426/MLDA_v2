@@ -25,15 +25,16 @@ const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
-const DialogContent = React.forwardRef(({ className, children, onPointerDownOutside, onInteractOutside, ...props }, ref) => (
+const DialogContent = React.forwardRef(({ className, children, onPointerDownOutside, onInteractOutside, onEscapeKeyDown, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
-      // Default: don't close on outside-click so a stray click never wipes a form in progress.
-      // Close via the X or Escape. Individual dialogs can still override these handlers.
+      // Forms here close ONLY via their X/Cancel/Save buttons — never on a stray outside
+      // click or an Escape (native date/time pickers can emit Escape), so work is never lost.
       onPointerDownOutside={onPointerDownOutside ?? ((e) => e.preventDefault())}
       onInteractOutside={onInteractOutside ?? ((e) => e.preventDefault())}
+      onEscapeKeyDown={onEscapeKeyDown ?? ((e) => e.preventDefault())}
       className={cn(
         "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
         className
