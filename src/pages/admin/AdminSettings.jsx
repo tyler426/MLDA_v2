@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import SectionLabel from '@/components/shared/SectionLabel';
 import StudioLists from '@/components/admin/StudioLists';
+import SeasonManager from '@/components/admin/SeasonManager';
 import { toast } from 'sonner';
 import { Settings, Key, AlertTriangle, Trash2, Archive, FileDown, Bell } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -179,6 +180,9 @@ export default function AdminSettings() {
 
       {/* Programs / Levels (editable) */}
       <div className="mb-6"><StudioLists /></div>
+
+      {/* Season archive / reload */}
+      <div className="mb-6"><SeasonManager /></div>
 
       {/* Studio info */}
       <div className="bg-card border border-border rounded-lg p-4 mb-6">
