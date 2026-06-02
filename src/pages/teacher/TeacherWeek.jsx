@@ -54,7 +54,7 @@ export default function TeacherWeek() {
 
   return (
     <div className="px-4 pt-2 pb-6 max-w-lg mx-auto">
-      <SectionLabel className="pt-4 mb-4">This Week</SectionLabel>
+      <h1 className="font-serif text-[25px] font-semibold mb-4 -tracking-[0.01em]">Teaching this week</h1>
 
       <Tabs defaultValue="schedule">
         <TabsList className="w-full mb-4">

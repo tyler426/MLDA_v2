@@ -41,7 +41,7 @@ export default function TeacherCompetitions() {
 
   return (
     <div className="px-4 pt-2 pb-6 max-w-lg mx-auto">
-      <SectionLabel className="pt-4 mb-4">Competition Weekends</SectionLabel>
+      <h1 className="font-serif text-[25px] font-semibold mb-4 -tracking-[0.01em]">Competitions</h1>
 
       {groupedWeekends.length === 0 ? (
         <EmptyState message="No upcoming competitions" sub="Shifts and numbers will appear here when added" />

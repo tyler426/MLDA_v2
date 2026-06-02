@@ -111,7 +111,7 @@ export default function TeacherAttendance() {
 
   return (
     <div className="px-4 pt-2 pb-6 max-w-lg mx-auto">
-      <SectionLabel className="pt-4 mb-4">Attendance</SectionLabel>
+      <h1 className="font-serif text-[25px] font-semibold mb-4 -tracking-[0.01em]">Attendance</h1>
 
       {/* Day selector */}
       <div className="flex gap-1 mb-4 overflow-x-auto pb-1">

@@ -85,7 +85,7 @@ export default function TeacherPieces() {
 
   return (
     <div className="px-4 pt-2 pb-6 max-w-lg mx-auto">
-      <SectionLabel className="pt-4 mb-4">My Pieces</SectionLabel>
+      <h1 className="font-serif text-[25px] font-semibold mb-4 -tracking-[0.01em]">My pieces</h1>
 
       {myPieces.length === 0 ? (
         <EmptyState
