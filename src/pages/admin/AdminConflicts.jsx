@@ -181,7 +181,13 @@ export default function AdminConflicts() {
 
         <TabsContent value="open">
           <p className="text-xs text-muted-foreground mb-4">Click any slot to book a private lesson.</p>
-          {usableSlots.length === 0 ? (
+          {studios.length === 0 ? (
+            <div className="text-center py-12">
+              <MapPin className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+              <p className="font-serif italic text-muted-foreground">No rooms set up yet.</p>
+              <p className="text-xs text-muted-foreground mt-1">Add studios in <span className="text-foreground">Roster → Rooms</span> to see open availability.</p>
+            </div>
+          ) : usableSlots.length === 0 ? (
             <div className="text-center py-12">
               <Lock className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
               <p className="font-serif italic text-muted-foreground">All studios are fully booked on {DAY_NAMES[selectedDay]}</p>
