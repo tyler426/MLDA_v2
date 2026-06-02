@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SectionLabel from '@/components/shared/SectionLabel';
-import { Plus, Search, UserPlus, Users, Pencil, Archive } from 'lucide-react';
+import HouseholdCaregivers from '@/components/admin/HouseholdCaregivers';
+import { Plus, Search, UserPlus, Users, Pencil, Archive, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -17,6 +18,7 @@ export default function AdminRoster() {
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(null); // 'dancer' | 'parent' | 'teacher'
   const [editItem, setEditItem] = useState(null);
+  const [expandedParent, setExpandedParent] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: dancers = [] } = useQuery({ queryKey: ['allDancers'], queryFn: () => base44.entities.Dancer.list() });
@@ -88,14 +90,23 @@ export default function AdminRoster() {
           <div className="space-y-2">
             {filteredParents.map((p, i) => (
               <motion.div key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
-                className="bg-card border border-border rounded-lg p-3 flex items-center justify-between"
+                className="bg-card border border-border rounded-lg p-3"
               >
-                <div>
-                  <p className="font-body text-sm font-medium text-foreground">{p.primary_contact_name}</p>
-                  <p className="text-xs text-muted-foreground">{p.email}</p>
-                  {p.phone && <p className="text-[10px] text-warm-gray">{p.phone}</p>}
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => setExpandedParent(expandedParent === p.id ? null : p.id)}
+                    className="flex items-center gap-2 text-left flex-1 min-w-0"
+                  >
+                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expandedParent === p.id ? 'rotate-180' : ''}`} />
+                    <div className="min-w-0">
+                      <p className="font-body text-sm font-medium text-foreground truncate">{p.primary_contact_name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{p.email}</p>
+                      {p.phone && <p className="text-[10px] text-warm-gray">{p.phone}</p>}
+                    </div>
+                  </button>
+                  <button onClick={() => setEditItem({ type: 'parent', data: p })} className="p-1.5 text-muted-foreground hover:text-foreground shrink-0"><Pencil className="w-3.5 h-3.5" /></button>
                 </div>
-                <button onClick={() => setEditItem({ type: 'parent', data: p })} className="p-1.5 text-muted-foreground hover:text-foreground"><Pencil className="w-3.5 h-3.5" /></button>
+                {expandedParent === p.id && <HouseholdCaregivers household={p} />}
               </motion.div>
             ))}
           </div>

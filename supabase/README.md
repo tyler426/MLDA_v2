@@ -21,9 +21,13 @@ for now; tighten with signed URLs later).
 supabase functions deploy send-email
 supabase functions deploy daily-digest
 supabase functions deploy ics-feed
+supabase functions deploy invite-caregiver
 
-supabase secrets set RESEND_API_KEY=...  FROM_EMAIL="MLDA Collective <noreply@yourdomain>"
+supabase secrets set RESEND_API_KEY=...  FROM_EMAIL="MLDA Collective <noreply@yourdomain>" \
+  SITE_URL="https://your-app.vercel.app"
 ```
+`invite-caregiver` is admin-only (verifies the caller's role) and creates a login +
+`household_members` link. `SITE_URL` sets where invite emails redirect.
 `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` are injected automatically.
 
 ## 5. Schedule the daily digest (cron)
