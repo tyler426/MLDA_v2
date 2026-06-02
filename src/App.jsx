@@ -37,6 +37,8 @@ import TeacherPieces from '@/pages/teacher/TeacherPieces';
 import TeacherCalendarSync from '@/pages/teacher/TeacherCalendarSync';
 import TeacherSettings from '@/pages/teacher/TeacherSettings';
 import TeacherAttendance from '@/pages/teacher/TeacherAttendance';
+import TeacherDancers from '@/pages/teacher/TeacherDancers';
+import TeacherPrivates from '@/pages/teacher/TeacherPrivates';
 
 // Admin pages
 import AdminSchedule from '@/pages/admin/AdminSchedule';
@@ -118,6 +120,8 @@ const AuthenticatedApp = () => {
         <Route path="/teacher/competitions" element={<TeacherCompetitions />} />
         <Route path="/teacher/calendar-sync" element={<TeacherCalendarSync />} />
         <Route path="/teacher/attendance" element={<TeacherAttendance />} />
+        <Route path="/teacher/dancers" element={<TeacherDancers />} />
+        <Route path="/teacher/privates" element={<TeacherPrivates />} />
         <Route path="/teacher/settings" element={<TeacherSettings />} />
       </Route>
 

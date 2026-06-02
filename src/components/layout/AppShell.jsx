@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import { CalendarDays, Clock, Settings, Music, Trophy, ClipboardList, Home, Mail, User, LogOut } from 'lucide-react';
+import { CalendarDays, Clock, Settings, Music, Trophy, Home, Mail, User, LogOut, Users, Sparkles } from 'lucide-react';
 
 // Spotlight mobile shell — phone-centered column + bottom tab bar.
 // Primary tabs match the design (5 each); secondary features (Month, Absences,
@@ -22,10 +22,9 @@ const dancerNav = [
 
 const teacherNav = [
   { label: 'Today', path: '/teacher/today', icon: Clock },
-  { label: 'Week', path: '/teacher/week', icon: CalendarDays },
-  { label: 'Pieces', path: '/teacher/pieces', icon: Music },
-  { label: 'Comps', path: '/teacher/competitions', icon: Trophy },
-  { label: 'Attend.', path: '/teacher/attendance', icon: ClipboardList },
+  { label: 'Schedule', path: '/teacher/week', icon: CalendarDays },
+  { label: 'Dancers', path: '/teacher/dancers', icon: Users },
+  { label: 'Privates', path: '/teacher/privates', icon: Sparkles },
   { label: 'Settings', path: '/teacher/settings', icon: Settings },
 ];
 

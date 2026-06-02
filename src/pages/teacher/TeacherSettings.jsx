@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Copy, Check, Calendar } from 'lucide-react';
+import { Copy, Check, Calendar, Music, Trophy, ClipboardList, ChevronRight } from 'lucide-react';
 import SectionLabel from '@/components/shared/SectionLabel';
 import NotificationToggle from '@/components/shared/NotificationToggle';
 import { toast } from 'sonner';
@@ -38,6 +39,21 @@ export default function TeacherSettings() {
       <SectionLabel className="pt-4 mb-2">Settings</SectionLabel>
 
       <NotificationToggle />
+
+      {/* Quick links to features kept off the bottom nav */}
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        {[
+          { to: '/teacher/pieces', icon: Music, label: 'My pieces' },
+          { to: '/teacher/competitions', icon: Trophy, label: 'Competitions' },
+          { to: '/teacher/attendance', icon: ClipboardList, label: 'Attendance' },
+        ].map(({ to, icon: Icon, label }) => (
+          <Link key={to} to={to} className="flex items-center gap-3 px-4 py-3.5 border-b border-border last:border-0 hover:bg-secondary/40">
+            <Icon className="w-[18px] h-[18px] text-teal-bright" />
+            <span className="flex-1 text-[14px]">{label}</span>
+            <ChevronRight className="w-4 h-4 text-muted-2" />
+          </Link>
+        ))}
+      </div>
 
       {/* Profile info */}
       <div className="bg-card border border-border rounded-lg p-4">
