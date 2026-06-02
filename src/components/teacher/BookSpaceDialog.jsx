@@ -85,7 +85,7 @@ export default function BookSpaceDialog({ open, onClose, studios, pieces, dancer
         start_time: form.start_time,
         end_time: endTime,
         studio_id: form.studio_id,
-        teacher_id: teacher?.id || '',
+        teacher_id: teacher?.id || null,
         dancer_ids: form.dancer_ids,
         piece_ids: type === 'rehearsal' ? form.piece_ids : [],
         hour_slots: type === 'private' ? form.hour_slots : [],
@@ -121,14 +121,14 @@ export default function BookSpaceDialog({ open, onClose, studios, pieces, dancer
             <div className="space-y-4">
               {/* Date + Studio */}
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs text-muted-foreground">Date</Label>
-                  <Input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className="bg-secondary border-border" />
+                <div className="min-w-0">
+                  <Label className="text-[11px] text-muted-foreground mb-1 block">Date</Label>
+                  <Input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className="bg-secondary border-border h-10 text-sm w-full" />
                 </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">Studio</Label>
+                <div className="min-w-0">
+                  <Label className="text-[11px] text-muted-foreground mb-1 block">Studio</Label>
                   <Select value={form.studio_id} onValueChange={v => setForm({ ...form, studio_id: v })}>
-                    <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectTrigger className="bg-secondary border-border h-10 text-sm w-full"><SelectValue placeholder="Select" /></SelectTrigger>
                     <SelectContent>{studios.map(s => <SelectItem key={s.id} value={s.id}>Studio {s.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
@@ -136,14 +136,14 @@ export default function BookSpaceDialog({ open, onClose, studios, pieces, dancer
 
               {/* Start time + Duration */}
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs text-muted-foreground">Start Time</Label>
-                  <Input type="time" value={form.start_time} onChange={e => setForm({ ...form, start_time: e.target.value })} className="bg-secondary border-border" />
+                <div className="min-w-0">
+                  <Label className="text-[11px] text-muted-foreground mb-1 block">Start time</Label>
+                  <Input type="time" value={form.start_time} onChange={e => setForm({ ...form, start_time: e.target.value })} className="bg-secondary border-border h-10 text-sm w-full" />
                 </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">Duration</Label>
+                <div className="min-w-0">
+                  <Label className="text-[11px] text-muted-foreground mb-1 block">Duration</Label>
                   <Select value={String(form.duration_hours)} onValueChange={v => setForm({ ...form, duration_hours: Number(v), hour_slots: [] })}>
-                    <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="bg-secondary border-border h-10 text-sm w-full"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {[0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4].map(h => (
                         <SelectItem key={h} value={String(h)}>{h === 0.5 ? '30 min' : `${h} hr${h !== 1 ? 's' : ''}`}</SelectItem>

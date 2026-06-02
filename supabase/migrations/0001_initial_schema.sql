@@ -196,6 +196,7 @@ create table if not exists space_bookings (
   type           text,
   date           date,
   start_time     time,
+  end_time       time,
   duration_hours numeric,
   studio_id      uuid references studios(id) on delete set null,
   teacher_id     uuid references teachers(id) on delete set null,
