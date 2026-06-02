@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useMyHousehold } from '@/lib/useMyHousehold';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Copy, Check, Calendar, ClipboardList, CalendarDays, ChevronRight } from 'lucide-react';
-import SectionLabel from '@/components/shared/SectionLabel';
 import HouseholdCaregivers from '@/components/admin/HouseholdCaregivers';
 import DancerLoginInvite from '@/components/shared/DancerLoginInvite';
 import RequestPrivate from '@/components/parent/RequestPrivate';

@@ -2,14 +2,11 @@ import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import SectionLabel from '@/components/shared/SectionLabel';
-import { Send, Clock, Bell, CheckCircle2, Loader2 } from 'lucide-react';
+import { Send, Clock, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { formatTime, DAY_NAMES } from '@/lib/scheduleUtils';
+import { formatTime } from '@/lib/scheduleUtils';
 import { format } from 'date-fns';
 
 export default function AdminDigest() {

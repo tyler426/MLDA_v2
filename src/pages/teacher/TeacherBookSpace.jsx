@@ -8,8 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import SectionLabel from '@/components/shared/SectionLabel';
-import EmptyState from '@/components/shared/EmptyState';
-import { Clock, MapPin, Music, Users, Trash2, Plus } from 'lucide-react';
+import { Clock, MapPin, Music, Users, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatTime } from '@/lib/scheduleUtils';
 import { toast } from 'sonner';

@@ -1,6 +1,5 @@
 import { Music, User, Clock, MapPin } from 'lucide-react';
 import { formatTime } from '@/lib/scheduleUtils';
-import { format } from 'date-fns';
 
 /**
  * Displays rehearsal block detail for parents/teachers:

@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import SectionLabel from '@/components/shared/SectionLabel';
 import { Plus, Trash2, X } from 'lucide-react';
 import { formatTime, DAY_NAMES, DAY_NAMES_SHORT } from '@/lib/scheduleUtils';
 import { toast } from 'sonner';

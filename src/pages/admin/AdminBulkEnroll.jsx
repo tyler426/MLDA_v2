@@ -4,13 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import SectionLabel from '@/components/shared/SectionLabel';
-import { Users, CheckSquare, Send, Clock } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { toast } from 'sonner';
-import { motion } from 'framer-motion';
 
 export default function AdminBulkEnroll() {
   const [selectedClass, setSelectedClass] = useState('');

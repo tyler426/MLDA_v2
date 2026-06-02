@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useMyHousehold } from '@/lib/useMyHousehold';
 import { todayDateStr } from '@/lib/scheduleUtils';
-import { Shirt, Music, Play, Pause, ChevronRight } from 'lucide-react';
+import { Shirt, Play, Pause, ChevronRight } from 'lucide-react';
 import { differenceInCalendarDays, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 

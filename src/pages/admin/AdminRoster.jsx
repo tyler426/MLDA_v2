@@ -7,13 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import SectionLabel from '@/components/shared/SectionLabel';
 import HouseholdCaregivers from '@/components/admin/HouseholdCaregivers';
 import TeacherLoginInvite from '@/components/admin/TeacherLoginInvite';
 import DancerLoginInvite from '@/components/shared/DancerLoginInvite';
 import PhotoUpload from '@/components/shared/PhotoUpload';
 import { useStudioConfig } from '@/lib/useStudioConfig';
-import { Plus, Search, UserPlus, Users, Pencil, Archive, ChevronDown } from 'lucide-react';
+import { Plus, Search, Pencil, Archive, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 

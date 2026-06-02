@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { AlertTriangle, TrendingDown, Calendar } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths, parseISO, isWithinInterval } from 'date-fns';
+import { format, endOfMonth, eachMonthOfInterval, subMonths, parseISO, isWithinInterval } from 'date-fns';
 
 const UNEXCUSED_PROBATION_THRESHOLD = 2;
 

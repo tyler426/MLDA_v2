@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import SectionLabel from '@/components/shared/SectionLabel';
 import AbsenceThread from '@/components/absence/AbsenceThread';
 import AttendancePolicies from '@/components/absence/AttendancePolicies';
 import { format, parseISO } from 'date-fns';

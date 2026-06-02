@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import SectionLabel from '@/components/shared/SectionLabel';
 import StudioLists from '@/components/admin/StudioLists';
 import SeasonManager from '@/components/admin/SeasonManager';
 import { toast } from 'sonner';

@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import SectionLabel from '@/components/shared/SectionLabel';
 import EmptyState from '@/components/shared/EmptyState';
-import { getTodayDow, formatTime, getWeekDates, todayDateStr } from '@/lib/scheduleUtils';
+import { getTodayDow, formatTime, getWeekDates } from '@/lib/scheduleUtils';
 import { format } from 'date-fns';
-import { Check, X, Clock as ClockIcon, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 

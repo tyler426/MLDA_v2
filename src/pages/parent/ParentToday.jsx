@@ -4,8 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useMyHousehold } from '@/lib/useMyHousehold';
 import { formatTime, getTodayDow, todayDateStr, isDancerPulled } from '@/lib/scheduleUtils';
-import { Clock, ChevronRight, Bell, Plus } from 'lucide-react';
-import { format, differenceInCalendarDays, parseISO } from 'date-fns';
+import { Clock, ChevronRight, Bell } from 'lucide-react';
+import { differenceInCalendarDays, parseISO } from 'date-fns';
 
 const STYLE_PALETTE = ['#2c9089', '#7c6fcf', '#c8a464', '#d97a5e', '#5a9bd4', '#cf6f9c'];
 function styleColor(s = '') { let n = 0; for (const c of s) n += c.charCodeAt(0); return STYLE_PALETTE[n % STYLE_PALETTE.length]; }
