@@ -47,9 +47,20 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = async () => {
-    await supabase.auth.signOut();
     setUser(null);
     setIsAuthenticated(false);
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch {
+      // ignore — we clear local state + storage below regardless
+    }
+    // Belt-and-suspenders: wipe any lingering Supabase auth tokens, then hard reset.
+    try {
+      Object.keys(localStorage)
+        .filter(k => k.startsWith('sb-') || k.includes('supabase'))
+        .forEach(k => localStorage.removeItem(k));
+    } catch { /* noop */ }
+    window.location.href = '/';
   };
 
   const navigateToLogin = () => {
