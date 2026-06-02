@@ -8,6 +8,7 @@ import { Copy, Check, Calendar, ClipboardList, CalendarDays, ChevronRight } from
 import SectionLabel from '@/components/shared/SectionLabel';
 import HouseholdCaregivers from '@/components/admin/HouseholdCaregivers';
 import DancerLoginInvite from '@/components/shared/DancerLoginInvite';
+import RequestPrivate from '@/components/parent/RequestPrivate';
 import { toast } from 'sonner';
 
 export default function ParentSettings() {
@@ -53,6 +54,9 @@ export default function ParentSettings() {
           </Link>
         ))}
       </div>
+
+      {/* Private lesson requests */}
+      {household && <RequestPrivate household={household} />}
 
       {/* Household info */}
       <div className="bg-card border border-border rounded-lg p-4">
