@@ -1,0 +1,61 @@
+{
+  "name": "DanceClass",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "day_of_week": {
+      "type": "number",
+      "description": "0=Sunday, 1=Monday, ..., 6=Saturday. Ignored if one_time_date is set."
+    },
+    "one_time_date": {
+      "type": "string",
+      "format": "date",
+      "description": "If set, this is a one-time class on this specific date (guest artist, special session, etc.)"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "HH:MM format"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "HH:MM format"
+    },
+    "studio_id": {
+      "type": "string"
+    },
+    "teacher_id": {
+      "type": "string"
+    },
+    "guest_artist": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this class taught by a guest artist?"
+    },
+    "guest_artist_name": {
+      "type": "string",
+      "description": "Name of the guest artist if applicable"
+    },
+    "level": {
+      "type": "string"
+    },
+    "age_range": {
+      "type": "string"
+    },
+    "week_variant": {
+      "type": "string",
+      "enum": [
+        "Black",
+        "Teal",
+        ""
+      ],
+      "description": "For alternating-week schedules"
+    }
+  },
+  "required": [
+    "title",
+    "start_time",
+    "end_time"
+  ]
+}

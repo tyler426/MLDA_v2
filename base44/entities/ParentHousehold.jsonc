@@ -1,0 +1,37 @@
+{
+  "name": "ParentHousehold",
+  "type": "object",
+  "properties": {
+    "primary_contact_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "description": "Primary email for sign-in and notifications"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "ics_token": {
+      "type": "string",
+      "description": "Unique token for ICS calendar feed"
+    },
+    "notification_prefs": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "boolean",
+          "default": true
+        },
+        "push": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  },
+  "required": [
+    "primary_contact_name",
+    "email"
+  ]
+}

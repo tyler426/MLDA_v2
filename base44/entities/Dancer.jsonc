@@ -1,0 +1,48 @@
+{
+  "name": "Dancer",
+  "type": "object",
+  "properties": {
+    "first_name": {
+      "type": "string",
+      "description": "Dancer's first name"
+    },
+    "last_name": {
+      "type": "string",
+      "description": "Dancer's last name"
+    },
+    "dob": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of birth"
+    },
+    "program": {
+      "type": "string",
+      "enum": [
+        "PrePro",
+        "Competitive",
+        "Educational"
+      ],
+      "description": "Dance program"
+    },
+    "level": {
+      "type": "string",
+      "description": "Level (e.g. Starburst, Superstar, Prostar, Premier, Junior, Intern, Teen, Senior, Pre-Pro)"
+    },
+    "parent_household_id": {
+      "type": "string",
+      "description": "Reference to ParentHousehold"
+    },
+    "jackrabbit_student_id": {
+      "type": "string",
+      "description": "Optional Jackrabbit student ID"
+    },
+    "archived": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "first_name",
+    "last_name"
+  ]
+}

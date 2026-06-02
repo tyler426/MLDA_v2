@@ -1,0 +1,57 @@
+{
+  "name": "CompetitionWeekend",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "venue": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "competing_entries": {
+      "type": "array",
+      "description": "Numbers/pieces competing at this event",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Piece or number title"
+          },
+          "category": {
+            "type": "string",
+            "description": "e.g. Junior Solo, Teen Group, Senior Duo"
+          },
+          "scheduled_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "scheduled_time": {
+            "type": "string",
+            "description": "HH:MM estimated performance time"
+          },
+          "piece_id": {
+            "type": "string",
+            "description": "Optional link to Piece entity"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "name",
+    "start_date",
+    "end_date"
+  ]
+}

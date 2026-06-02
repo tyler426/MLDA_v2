@@ -1,0 +1,47 @@
+{
+  "name": "Teacher",
+  "type": "object",
+  "properties": {
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "initials": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "ics_token": {
+      "type": "string",
+      "description": "Unique token for ICS calendar feed"
+    },
+    "notification_prefs": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "boolean",
+          "default": true
+        },
+        "push": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "archived": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "first_name",
+    "last_name",
+    "email"
+  ]
+}

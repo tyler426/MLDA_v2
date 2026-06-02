@@ -1,0 +1,40 @@
+{
+  "name": "ScheduleNotification",
+  "type": "object",
+  "properties": {
+    "recipient_email": {
+      "type": "string"
+    },
+    "recipient_type": {
+      "type": "string",
+      "enum": [
+        "parent",
+        "teacher",
+        "admin"
+      ]
+    },
+    "type": {
+      "type": "string",
+      "description": "e.g. dancer_pulled, class_cancelled, class_moved, rehearsal_created"
+    },
+    "title": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "payload": {
+      "type": "object"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "recipient_email",
+    "type",
+    "title",
+    "message"
+  ]
+}

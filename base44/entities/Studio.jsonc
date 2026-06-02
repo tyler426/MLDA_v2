@@ -1,0 +1,13 @@
+{
+  "name": "Studio",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Studio name (A, B, C, D)"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

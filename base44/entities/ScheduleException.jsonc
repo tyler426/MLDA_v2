@@ -1,0 +1,47 @@
+{
+  "name": "ScheduleException",
+  "type": "object",
+  "properties": {
+    "class_id": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "cancelled",
+        "moved",
+        "substituted",
+        "dancer_pulled"
+      ]
+    },
+    "dancer_id": {
+      "type": "string",
+      "description": "Only for dancer_pulled type"
+    },
+    "rehearsal_block_id": {
+      "type": "string",
+      "description": "Reference to the rehearsal block that caused this"
+    },
+    "new_time": {
+      "type": "string"
+    },
+    "new_studio_id": {
+      "type": "string"
+    },
+    "new_teacher_id": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "class_id",
+    "date",
+    "type"
+  ]
+}

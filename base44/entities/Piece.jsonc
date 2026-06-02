@@ -1,0 +1,22 @@
+{
+  "name": "Piece",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "choreographer": {
+      "type": "string"
+    },
+    "season": {
+      "type": "string",
+      "description": "e.g. Showcase 2026"
+    },
+    "level": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

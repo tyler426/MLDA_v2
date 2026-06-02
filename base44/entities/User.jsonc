@@ -1,0 +1,18 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user"
+      ],
+      "default": "user"
+    },
+    "jackrabbit_api_key": {
+      "type": "string",
+      "description": "Jackrabbit Class API key for sync"
+    }
+  }
+}

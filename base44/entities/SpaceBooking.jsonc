@@ -1,0 +1,76 @@
+{
+  "name": "SpaceBooking",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "rehearsal",
+        "private"
+      ],
+      "description": "Type of booking"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "HH:MM format"
+    },
+    "duration_hours": {
+      "type": "number",
+      "description": "Duration in hours (can be fractional, e.g. 1.5)"
+    },
+    "studio_id": {
+      "type": "string"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Teacher who booked"
+    },
+    "piece_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Pieces being rehearsed (for rehearsal type)"
+    },
+    "dancer_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "All dancers involved across the block"
+    },
+    "hour_slots": {
+      "type": "array",
+      "description": "Per-hour slot assignments for private lesson blocks",
+      "items": {
+        "type": "object",
+        "properties": {
+          "hour_index": {
+            "type": "number",
+            "description": "0-based index (0 = first hour of block)"
+          },
+          "dancer_id": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "date",
+    "start_time",
+    "duration_hours",
+    "studio_id"
+  ]
+}

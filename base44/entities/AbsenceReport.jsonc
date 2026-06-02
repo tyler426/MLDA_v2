@@ -1,0 +1,83 @@
+{
+  "name": "AbsenceReport",
+  "type": "object",
+  "properties": {
+    "dancer_id": {
+      "type": "string",
+      "description": "Dancer this absence is for"
+    },
+    "household_id": {
+      "type": "string"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Same as start_date for single-day"
+    },
+    "class_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Specific classes affected (empty = all)"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "excused": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the absence is excused (admin can override)"
+    },
+    "document_url": {
+      "type": "string",
+      "description": "Uploaded supporting document"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "denied"
+      ],
+      "default": "pending"
+    },
+    "admin_notes": {
+      "type": "string"
+    },
+    "messages": {
+      "type": "array",
+      "description": "Back-and-forth thread between studio and family",
+      "items": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "enum": [
+              "studio",
+              "family"
+            ]
+          },
+          "sender_name": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "dancer_id",
+    "start_date",
+    "end_date"
+  ]
+}
