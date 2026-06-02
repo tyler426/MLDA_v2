@@ -1,85 +1,90 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Sacramento&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,600;6..96,700;6..96,800;6..96,900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ===========================================================================
+   "Spotlight" design system (from Claude Designs handoff)
+   warm near-black · teal = live/now/primary · gold = money & competition
+   Bodoni Moda (headlines/numbers) + Archivo (body)
+   =========================================================================== */
 @layer base {
   :root {
-    --font-display: 'Bebas Neue', sans-serif;
-    --font-body: 'Inter', sans-serif;
-    --font-caps: 'Montserrat', sans-serif;
-    --font-serif: 'Playfair Display', serif;
-    --font-script: 'Sacramento', cursive;
+    --font-display: 'Bodoni Moda', serif;
+    --font-body: 'Archivo', system-ui, sans-serif;
+    --font-caps: 'Archivo', sans-serif;
+    --font-serif: 'Bodoni Moda', serif;
+    --font-script: 'Bodoni Moda', serif;
 
-    --background: 0 0% 4%;
-    --foreground: 33 38% 92%;
-    --card: 0 0% 9%;
-    --card-foreground: 33 38% 92%;
-    --popover: 0 0% 9%;
-    --popover-foreground: 33 38% 92%;
-    --primary: 177 58% 29%;
-    --primary-foreground: 33 38% 92%;
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 33 38% 92%;
-    --muted: 0 0% 14%;
-    --muted-foreground: 30 5% 63%;
-    --accent: 38 46% 59%;
-    --accent-foreground: 0 0% 4%;
-    --destructive: 16 58% 60%;
-    --destructive-foreground: 33 38% 92%;
-    --border: 0 0% 16%;
-    --input: 0 0% 16%;
-    --ring: 177 58% 29%;
-    --chart-1: 177 58% 29%;
-    --chart-2: 38 46% 59%;
-    --chart-3: 16 58% 60%;
-    --chart-4: 30 5% 63%;
-    --chart-5: 33 38% 92%;
-    --radius: 0.75rem;
-    --sidebar-background: 0 0% 6%;
-    --sidebar-foreground: 33 38% 92%;
-    --sidebar-primary: 177 58% 29%;
-    --sidebar-primary-foreground: 33 38% 92%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 33 38% 92%;
-    --sidebar-border: 0 0% 16%;
-    --sidebar-ring: 177 58% 29%;
+    --background: 30 9% 4%;          /* #0a0908 warm near-black */
+    --foreground: 37 33% 91%;        /* #efe9df bone */
+    --card: 30 6% 7%;                /* #121110 panel */
+    --card-foreground: 37 33% 91%;
+    --popover: 30 6% 7%;
+    --popover-foreground: 37 33% 91%;
+    --primary: 176 53% 37%;          /* #2c9089 teal */
+    --primary-foreground: 160 50% 5%;
+    --secondary: 36 16% 7%;          /* #16140f panel-2 */
+    --secondary-foreground: 37 33% 91%;
+    --muted: 38 16% 10%;             /* #1d1a15 panel-3 */
+    --muted-foreground: 33 12% 61%;  /* #a89e90 muted */
+    --accent: 38 48% 59%;            /* #c8a464 gold */
+    --accent-foreground: 30 9% 4%;
+    --destructive: 16 62% 61%;       /* #d97a5e coral */
+    --destructive-foreground: 37 33% 91%;
+    --border: 34 8% 15%;
+    --input: 34 8% 15%;
+    --ring: 175 49% 44%;             /* #3aa89f teal-bright */
+    --chart-1: 176 53% 37%;
+    --chart-2: 38 48% 59%;
+    --chart-3: 16 62% 61%;
+    --chart-4: 33 12% 61%;
+    --chart-5: 37 33% 91%;
+    --radius: 0.85rem;
+    --sidebar-background: 30 10% 4%;
+    --sidebar-foreground: 37 33% 91%;
+    --sidebar-primary: 176 53% 37%;
+    --sidebar-primary-foreground: 37 33% 91%;
+    --sidebar-accent: 36 16% 7%;
+    --sidebar-accent-foreground: 37 33% 91%;
+    --sidebar-border: 34 8% 15%;
+    --sidebar-ring: 175 49% 44%;
   }
 
   .dark {
-    --background: 0 0% 4%;
-    --foreground: 33 38% 92%;
-    --card: 0 0% 9%;
-    --card-foreground: 33 38% 92%;
-    --popover: 0 0% 9%;
-    --popover-foreground: 33 38% 92%;
-    --primary: 177 58% 29%;
-    --primary-foreground: 33 38% 92%;
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 33 38% 92%;
-    --muted: 0 0% 14%;
-    --muted-foreground: 30 5% 63%;
-    --accent: 38 46% 59%;
-    --accent-foreground: 0 0% 4%;
-    --destructive: 16 58% 60%;
-    --destructive-foreground: 33 38% 92%;
-    --border: 0 0% 16%;
-    --input: 0 0% 16%;
-    --ring: 177 58% 29%;
-    --chart-1: 177 58% 29%;
-    --chart-2: 38 46% 59%;
-    --chart-3: 16 58% 60%;
-    --chart-4: 30 5% 63%;
-    --chart-5: 33 38% 92%;
-    --sidebar-background: 0 0% 6%;
-    --sidebar-foreground: 33 38% 92%;
-    --sidebar-primary: 177 58% 29%;
-    --sidebar-primary-foreground: 33 38% 92%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 33 38% 92%;
-    --sidebar-border: 0 0% 16%;
-    --sidebar-ring: 177 58% 29%;
+    --background: 30 9% 4%;
+    --foreground: 37 33% 91%;
+    --card: 30 6% 7%;
+    --card-foreground: 37 33% 91%;
+    --popover: 30 6% 7%;
+    --popover-foreground: 37 33% 91%;
+    --primary: 176 53% 37%;
+    --primary-foreground: 160 50% 5%;
+    --secondary: 36 16% 7%;
+    --secondary-foreground: 37 33% 91%;
+    --muted: 38 16% 10%;
+    --muted-foreground: 33 12% 61%;
+    --accent: 38 48% 59%;
+    --accent-foreground: 30 9% 4%;
+    --destructive: 16 62% 61%;
+    --destructive-foreground: 37 33% 91%;
+    --border: 34 8% 15%;
+    --input: 34 8% 15%;
+    --ring: 175 49% 44%;
+    --chart-1: 176 53% 37%;
+    --chart-2: 38 48% 59%;
+    --chart-3: 16 62% 61%;
+    --chart-4: 33 12% 61%;
+    --chart-5: 37 33% 91%;
+    --sidebar-background: 30 10% 4%;
+    --sidebar-foreground: 37 33% 91%;
+    --sidebar-primary: 176 53% 37%;
+    --sidebar-primary-foreground: 37 33% 91%;
+    --sidebar-accent: 36 16% 7%;
+    --sidebar-accent-foreground: 37 33% 91%;
+    --sidebar-border: 34 8% 15%;
+    --sidebar-ring: 175 49% 44%;
   }
 }
 
@@ -90,7 +95,11 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
+    background-image: radial-gradient(circle at 50% 0%, hsl(34 14% 9%), hsl(30 9% 4%) 60%);
+    background-attachment: fixed;
   }
+  /* Headlines & big numbers default to the serif unless overridden */
+  .font-script, .font-serif, .font-display { letter-spacing: -0.01em; }
 }
 
 /* Noise texture overlay */
@@ -100,7 +109,7 @@ body::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.03;
+  opacity: 0.025;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 256px 256px;

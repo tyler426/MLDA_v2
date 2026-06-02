@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MLDA Collective — Teacher App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,600;6..96,700;6..96,800;6..96,900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0e0d0c; --bg-2:#16140f; --bg-3:#1d1a15;
+    --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.14);
+    --gold:#c8a464; --gold-soft:rgba(200,164,100,.14);
+    --teal:#2c9089; --teal-bright:#3aa89f; --teal-deep:#1f7570;
+    --teal-soft:rgba(44,144,137,.16); --teal-line:rgba(58,168,159,.35);
+    --coral:#d97a5e; --coral-soft:rgba(217,122,94,.16);
+    --bone:#efe9df; --muted:#a89e90; --muted-2:#7d756a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{ background:#0a0908; background-image:radial-gradient(circle at 50% 0%, #1a1712, #0a0908 60%);
+    min-height:100vh; font-family:'Archivo',system-ui,sans-serif; color:var(--bone);
+    display:flex; flex-direction:column; align-items:center; padding:34px 16px 60px; }
+  .stage-label{ text-align:center; margin-bottom:24px; }
+  .stage-label .eb{ font-size:10px; letter-spacing:.32em; text-transform:uppercase; color:var(--gold); }
+  .stage-label h1{ font-family:'Bodoni Moda',serif; font-weight:500; font-size:22px; margin-top:6px; }
+  .stage-label p{ font-size:12.5px; color:var(--muted-2); margin-top:4px; }
+
+  .phone{ width:392px; height:812px; border-radius:52px; padding:13px;
+    background:linear-gradient(160deg,#2b2824,#0f0e0c);
+    box-shadow:0 50px 90px -40px rgba(0,0,0,.8), 0 6px 14px rgba(0,0,0,.4), inset 0 0 0 2px rgba(255,255,255,.05);
+    position:relative; flex:0 0 auto; }
+  .notch{ position:absolute; top:13px; left:50%; transform:translateX(-50%); width:118px; height:30px; background:#000; border-radius:0 0 18px 18px; z-index:60; }
+  .screen{ width:100%; height:100%; border-radius:40px; overflow:hidden; background:var(--bg); position:relative; display:flex; flex-direction:column; }
+  .statusbar{ height:48px; flex:0 0 48px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 26px 6px; font-size:13px; font-weight:600; position:relative; z-index:20; }
+  .statusbar .r{ display:flex; gap:6px; align-items:center; }
+  .bar{ width:17px; height:11px; border-radius:2px; background:var(--bone); display:inline-block; }
+  .dot{ width:11px; height:11px; border-radius:50%; border:2px solid var(--bone); display:inline-block; }
+
+  .view{ flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; }
+  .view::-webkit-scrollbar{ display:none; }
+  .pad{ padding:0 20px; }
+
+  .tabbar{ flex:0 0 84px; display:flex; align-items:flex-start; justify-content:space-around; padding:12px 6px 0;
+    background:rgba(14,13,12,.92); backdrop-filter:blur(12px); border-top:1px solid var(--line); position:relative; z-index:30; }
+  .tab{ display:flex; flex-direction:column; align-items:center; gap:5px; font-size:9.5px; color:var(--muted-2);
+    background:none; border:0; cursor:pointer; font-family:inherit; padding:4px 8px; transition:color .18s; }
+  .tab svg{ width:23px; height:23px; }
+  .tab.active{ color:var(--teal-bright); }
+
+  .eyebrow{ font-size:9.5px; letter-spacing:.26em; text-transform:uppercase; color:var(--gold); font-weight:600; }
+  .eyebrow.teal{ color:var(--teal-bright); }
+  .eyebrow.mut{ color:var(--muted-2); }
+  .serif{ font-family:'Bodoni Moda',serif; }
+  .card{ background:var(--bg-2); border:1px solid var(--line); border-radius:18px; }
+  .chip{ font-size:11px; padding:4px 11px; border-radius:30px; background:rgba(255,255,255,.07); color:var(--muted); }
+
+  .fade{ animation:fade .32s ease both; }
+  @keyframes fade{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  .sheet-bg{ position:absolute; inset:0; background:rgba(0,0,0,.55); z-index:70; display:flex; align-items:flex-end; animation:fade .2s ease both; }
+  .sheet{ width:100%; background:var(--bg-2); border-radius:28px 28px 40px 40px; border:1px solid var(--line); border-bottom:0;
+    padding:10px 0 22px; max-height:90%; display:flex; flex-direction:column; animation:up .3s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes up{ from{transform:translateY(40px); opacity:.4;} to{transform:translateY(0); opacity:1;} }
+  .grab{ width:38px; height:4px; border-radius:4px; background:var(--line-2); margin:6px auto 14px; }
+
+  .seg{ display:flex; gap:6px; background:var(--bg-3); border:1px solid var(--line); border-radius:30px; padding:4px; }
+  .seg button{ flex:1; border:0; background:none; color:var(--muted); font-family:inherit; font-size:11.5px; font-weight:600; padding:7px 0; border-radius:24px; cursor:pointer; transition:.18s; }
+  .seg button.on{ background:var(--teal); color:#06110f; }
+
+  .search{ display:flex; align-items:center; gap:9px; background:var(--bg-2); border:1px solid var(--line); border-radius:30px; padding:10px 15px; }
+  .search input{ flex:1; background:none; border:0; color:var(--bone); font-family:inherit; font-size:14px; outline:none; }
+  .search input::placeholder{ color:var(--muted-2); }
+
+  .toast{ position:absolute; left:20px; right:20px; bottom:100px; z-index:90; background:var(--teal); color:#06110f;
+    border-radius:14px; padding:13px 16px; font-size:13px; font-weight:600; display:flex; align-items:center; gap:9px;
+    box-shadow:0 16px 34px -14px rgba(44,144,137,.8); animation:up .3s ease both; }
+</style>
+</head>
+<body>
+  <div class="stage-label">
+    <div class="eb">MLDA Collective · Teacher App</div>
+    <h1>Spotlight</h1>
+    <p>Interactive — take attendance, open a roster, leave a note, manage privates.</p>
+  </div>
+  <div class="phone">
+    <div class="notch"></div>
+    <div id="root" class="screen"></div>
+  </div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo } = React;
+
+const TI = {
+  bolt:   <g><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></g>,
+  cal:    <g><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></g>,
+  users:  <g><circle cx="9" cy="8" r="3.4"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M16 5.5a3.4 3.4 0 0 1 0 6.5M17 15c2.4.4 4 1.9 4 5"/></g>,
+  star:   <path d="M12 3l2.5 5.6L20 9l-4 4 1 6-5-2.8L7 19l1-6-4-4 5.5-.4z"/>,
+  user:   <g><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></g>,
+  clock:  <g><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></g>,
+  chev:   <path d="M9 6l6 6-6 6"/>,
+  check:  <path d="M5 12l5 5L20 6"/>,
+  checkC: <g><circle cx="12" cy="12" r="9"/><path d="M8.5 12l2.5 2.5L16 9.5"/></g>,
+  xC:     <g><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></g>,
+  lateC:  <g><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 1.5"/></g>,
+  search: <g><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></g>,
+  edit:   <g><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></g>,
+  plus:   <path d="M12 5v14M5 12h14"/>,
+  pin:    <g><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></g>,
+  bell:   <g><path d="M6 9a6 6 0 0 1 12 0c0 7 3 7 3 7H3s3 0 3-7"/><path d="M10 20a2 2 0 0 0 4 0"/></g>,
+};
+const Icon = ({n,w=22,sw=1.6,fill="none",style}) =>
+  <svg viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" style={{width:w,height:w,...style}}>{TI[n]}</svg>;
+
+/* ---------------- data ---------------- */
+const ROSTER_SENIOR = ['Ava Whitman','Sofia Reyes','Harper Lin','Zoe Bennett','Olivia Carr','Layla Brooks','Chloe Tran','Ruby Nash','Grace Park','Maya Cohen','Nora Webb','Isla Ford'];
+const ROSTER_PETITE = ['Mia Whitman','Ella Diaz','Ivy Marsh','June Kim','Poppy Sloan','Wren Avery','Lila Gold','Faye Russo'];
+
+const CLASSES = [
+  { id:'c1', t:'4:30', e:'5:30', n:'Ballet Technique', st:'Studio B', lvl:'Senior Elite', sty:'Ballet', roster:ROSTER_SENIOR, day:'Mon', done:false },
+  { id:'c2', t:'5:45', e:'6:30', n:'Pre-Ballet', st:'Studio C', lvl:'Petite', sty:'Ballet', roster:ROSTER_PETITE, day:'Mon', done:false },
+  { id:'c3', t:'7:00', e:'8:00', n:'Variations', st:'Studio B', lvl:'Company', sty:'Ballet', roster:ROSTER_SENIOR.slice(0,6), day:'Mon', done:false },
+];
+const WEEK = {
+  Mon:[CLASSES[0],CLASSES[1],CLASSES[2]],
+  Tue:[{t:'4:00',e:'5:00',n:'Ballet I',st:'Studio C',lvl:'Junior',sty:'Ballet'}],
+  Wed:[{t:'4:30',e:'5:30',n:'Pointe',st:'Studio B',lvl:'Senior Elite',sty:'Ballet'},{t:'6:00',e:'7:00',n:'Variations',st:'Studio B',lvl:'Company',sty:'Ballet'}],
+  Thu:[],
+  Fri:[{t:'4:00',e:'5:30',n:'Company Conditioning',st:'Main Stage',lvl:'Company',sty:'Ballet'}],
+  Sat:[{t:'10:00',e:'11:30',n:'Ballet II',st:'Studio B',lvl:'Teen',sty:'Ballet'},{t:'12:00',e:'1:00',n:'Private — Ava W.',st:'Studio B',lvl:'Solo',sty:'Private'}],
+  Sun:[],
+};
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const todayIdx=0;
+
+const NOTES = {
+  'Ava Whitman':[
+    {d:'May 28', tag:'Progress', t:'Extension through développé is finally unlocking — keep cueing rotation from the hip.', accent:'#2c9089'},
+    {d:'May 14', tag:'Solo', t:'Cleaned the fouetté section. Ready to add the final pose for Nationals.', accent:'#c8a464'},
+  ],
+  'Sofia Reyes':[{d:'May 26', tag:'Conditioning', t:'Needs ankle strengthening before pointe — sent home theraband routine.', accent:'#d97a5e'}],
+  'Harper Lin':[{d:'May 20', tag:'Progress', t:'Gorgeous port de bras. Push for sharper spotting in turns.', accent:'#2c9089'}],
+};
+const NOTE_TAGS=[['Progress','#2c9089'],['Conditioning','#d97a5e'],['Solo','#c8a464'],['Behavior','#7c6fcf'],['Absence','#a89e90']];
+
+const PRIV_REQ = [
+  { id:'p1', dancer:'Ava Whitman', parent:'Dana Whitman', when:'Thu · 5:00 PM', focus:'Nationals solo cleaning', lvl:'Senior Elite' },
+  { id:'p2', dancer:'Sofia Reyes', parent:'Marisol Reyes', when:'Sat · 1:30 PM', focus:'Pointe readiness', lvl:'Senior Elite' },
+];
+const PRIV_OPEN = ['Thu · 4:00 PM','Thu · 6:00 PM','Sun · 11:00 AM'];
+const PRIV_BOOKED = [{dancer:'Ava Whitman', when:'Sat · 12:00 PM', focus:'Solo — “Tides”'}];
+
+const STYLE_COLOR={Ballet:'#2c9089',Private:'#c8a464'};
+function initials(n){ const p=n.split(' '); return (p[0][0]+(p[1]?p[1][0]:'')).toUpperCase(); }
+function avColor(n){ const c=['#2c9089','#c8a464','#d97a5e','#7c6fcf','#5a9bd4','#cf6f9c']; let s=0; for(const ch of n)s+=ch.charCodeAt(0); return c[s%c.length]; }
+function Av({n,size=38}){ return <div style={{width:size,height:size,borderRadius:'50%',flex:`0 0 ${size}px`,background:avColor(n),color:'#0a0908',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Bodoni Moda,serif',fontWeight:600,fontSize:size*0.38}}>{initials(n)}</div>; }
+
+/* ---------------- Today ---------------- */
+function Today({openAtt, attDone}){
+  const classes = WEEK.Mon;
+  const totalDancers = classes.reduce((a,c)=>a+(c.roster?c.roster.length:0),0);
+  const taken = classes.filter(c=>c.roster && attDone[c.id]).length;
+  return (
+    <div className="view fade">
+      <div className="pad" style={{paddingTop:4,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div>
+          <div className="eyebrow">Monday · June 16</div>
+          <div className="serif" style={{fontSize:25,fontWeight:600,marginTop:3}}>Good afternoon, Elena</div>
+        </div>
+        <div style={{position:'relative'}}><Icon n="bell" w={22} style={{color:'var(--muted)'}}/><span style={{position:'absolute',top:-2,right:-2,width:8,height:8,borderRadius:'50%',background:'var(--coral)'}}/></div>
+      </div>
+
+      {/* stat row */}
+      <div className="pad" style={{display:'flex',gap:10,marginTop:18}}>
+        {[['Classes',classes.length,'teal'],['Dancers',totalDancers,'gold'],['Attendance',taken+'/'+classes.filter(c=>c.roster).length,'teal']].map(([l,v,c],i)=>(
+          <div key={i} className="card" style={{flex:1,padding:'13px 14px'}}>
+            <div className="serif" style={{fontSize:26,fontWeight:600,color:c==='gold'?'var(--gold)':'var(--teal-bright)'}}>{v}</div>
+            <div style={{fontSize:10.5,color:'var(--muted-2)',marginTop:1}}>{l}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="pad" style={{marginTop:22,display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+        <div className="eyebrow teal">Today’s classes</div>
+        <span style={{fontSize:11.5,color:'var(--muted-2)'}}>Tap to take attendance</span>
+      </div>
+
+      <div className="pad" style={{display:'flex',flexDirection:'column',gap:11,marginBottom:18}}>
+        {classes.map((c,i)=>{
+          const isDone = attDone[c.id];
+          return (
+          <button key={c.id} onClick={()=>c.roster&&openAtt(c)} style={{display:'block',textAlign:'left',width:'100%',cursor:c.roster?'pointer':'default',fontFamily:'inherit',
+            background:'var(--bg-2)',border:`1px solid ${i===0&&!isDone?'var(--teal-line)':'var(--line)'}`,borderRadius:16,padding:'15px 16px',
+            boxShadow:i===0&&!isDone?'0 0 0 4px var(--teal-soft)':'none'}}>
+            <div style={{display:'flex',alignItems:'center',gap:13}}>
+              <div style={{textAlign:'center',paddingRight:13,borderRight:'1px solid var(--line)',minWidth:54}}>
+                <div className="serif" style={{fontSize:17,fontWeight:600}}>{c.t}</div>
+                <div style={{fontSize:10,color:'var(--muted-2)'}}>{c.e} PM</div>
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:15.5,fontWeight:600}}>{c.n}</div>
+                <div style={{fontSize:11.5,color:'var(--muted)',marginTop:2}}>{c.st} · {c.lvl} · {c.roster.length} dancers</div>
+              </div>
+              {isDone
+                ? <span style={{display:'flex',alignItems:'center',gap:5,fontSize:11.5,color:'var(--teal-bright)',fontWeight:600}}><Icon n="checkC" w={16}/>Taken</span>
+                : <span style={{display:'flex',alignItems:'center',gap:4,fontSize:11.5,fontWeight:700,color:'#06110f',background:'var(--teal)',padding:'7px 12px',borderRadius:20}}><Icon n="bolt" w={13} fill="#06110f"/>Take</span>}
+            </div>
+          </button>);
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Schedule ---------------- */
+function Schedule(){
+  const [day,setDay]=useState('Mon');
+  const list=WEEK[day]||[];
+  return (
+    <div className="view fade">
+      <div className="pad" style={{paddingTop:4}}>
+        <div className="eyebrow teal">My schedule</div>
+        <div className="serif" style={{fontSize:25,fontWeight:600,marginTop:3}}>Teaching this week</div>
+      </div>
+      <div className="pad" style={{display:'flex',gap:6,marginTop:16,overflowX:'auto'}}>
+        {DAYS.map((d,i)=>{ const on=d===day; const has=(WEEK[d]||[]).length;
+          return <button key={d} onClick={()=>setDay(d)} style={{flex:'0 0 auto',minWidth:44,border:0,cursor:'pointer',fontFamily:'inherit',
+            background:on?'var(--teal)':'var(--bg-2)',color:on?'#06110f':has?'var(--bone)':'var(--muted-2)',borderRadius:14,padding:'10px 0',textAlign:'center'}}>
+            <div style={{fontSize:10,fontWeight:700,opacity:.7}}>{d.toUpperCase()}</div>
+            <div className="serif" style={{fontSize:18,fontWeight:600,marginTop:2}}>{16+i}</div>
+            {i===todayIdx&&<div style={{fontSize:8,marginTop:2,letterSpacing:'.1em',color:on?'#06110f':'var(--teal-bright)'}}>TODAY</div>}
+          </button>;
+        })}
+      </div>
+      <div className="pad" style={{marginTop:18,marginBottom:18,display:'flex',flexDirection:'column',gap:11}}>
+        {list.length===0 && <div className="card" style={{padding:'30px 18px',textAlign:'center',color:'var(--muted-2)',fontSize:13}}>No classes — open for privates.</div>}
+        {list.map((c,i)=>(
+          <div key={i} className="card" style={{padding:'14px 15px',display:'flex',gap:14,alignItems:'center',borderColor:c.sty==='Private'?'rgba(200,164,100,.3)':'var(--line)'}}>
+            <div style={{textAlign:'center',paddingRight:14,borderRight:'1px solid var(--line)',minWidth:52}}>
+              <div className="serif" style={{fontSize:17,fontWeight:600}}>{c.t}</div>
+              <div style={{fontSize:10,color:'var(--muted-2)'}}>{c.e}</div>
+            </div>
+            <div style={{flex:1}}>
+              <div style={{display:'flex',alignItems:'center',gap:7}}><span style={{width:7,height:7,borderRadius:'50%',background:STYLE_COLOR[c.sty]||'#888'}}/><span style={{fontSize:9.5,letterSpacing:'.14em',textTransform:'uppercase',color:STYLE_COLOR[c.sty]||'#888'}}>{c.sty==='Private'?'Private':c.lvl}</span></div>
+              <div style={{fontSize:15,fontWeight:600,margin:'5px 0 3px'}}>{c.n}</div>
+              <div style={{fontSize:11.5,color:'var(--muted)'}}>{c.st}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Dancers ---------------- */
+function Dancers({openDancer}){
+  const [q,setQ]=useState('');
+  const all = useMemo(()=>[...new Set([...ROSTER_SENIOR,...ROSTER_PETITE])].sort(),[]);
+  const list = all.filter(n=>n.toLowerCase().includes(q.toLowerCase()));
+  return (
+    <div className="view fade">
+      <div className="pad" style={{paddingTop:4}}>
+        <div className="eyebrow teal">My dancers</div>
+        <div className="serif" style={{fontSize:25,fontWeight:600,marginTop:3}}>Roster &amp; notes</div>
+      </div>
+      <div className="pad" style={{marginTop:16}}>
+        <div className="search"><Icon n="search" w={17} style={{color:'var(--muted-2)'}}/><input placeholder="Search dancers" value={q} onChange={e=>setQ(e.target.value)}/></div>
+      </div>
+      <div className="pad" style={{marginTop:14,marginBottom:18,display:'flex',flexDirection:'column',gap:8}}>
+        {list.map(n=>{ const notes=NOTES[n]||[];
+          return <button key={n} onClick={()=>openDancer(n)} style={{display:'flex',alignItems:'center',gap:12,background:'var(--bg-2)',border:'1px solid var(--line)',borderRadius:14,padding:'11px 13px',cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>
+            <Av n={n} size={40}/>
+            <div style={{flex:1}}>
+              <div style={{fontSize:14,fontWeight:600,color:'var(--bone)'}}>{n}</div>
+              <div style={{fontSize:11,color:'var(--muted-2)',marginTop:1}}>{ROSTER_SENIOR.includes(n)?'Senior Elite':'Petite'}</div>
+            </div>
+            {notes.length>0 && <span style={{display:'flex',alignItems:'center',gap:4,fontSize:11,color:'var(--gold)'}}><Icon n="edit" w={13}/>{notes.length}</span>}
+            <Icon n="chev" w={15} style={{color:'var(--muted-2)'}}/>
+          </button>;
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Privates ---------------- */
+function Privates({setToast}){
+  const [tab,setTab]=useState('requests');
+  const [reqs,setReqs]=useState(PRIV_REQ);
+  const [booked,setBooked]=useState(PRIV_BOOKED);
+  const [open,setOpen]=useState(PRIV_OPEN);
+  function approve(r){ setReqs(reqs.filter(x=>x.id!==r.id)); setBooked([{dancer:r.dancer,when:r.when,focus:r.focus},...booked]); setToast('Private booked with '+r.dancer.split(' ')[0]); }
+  function decline(r){ setReqs(reqs.filter(x=>x.id!==r.id)); setToast('Request declined'); }
+  return (
+    <div className="view fade">
+      <div className="pad" style={{paddingTop:4}}>
+        <div className="eyebrow">Private lessons</div>
+        <div className="serif" style={{fontSize:25,fontWeight:600,marginTop:3}}>Manage privates</div>
+      </div>
+      <div className="pad" style={{marginTop:16}}>
+        <div className="seg">
+          {[['requests',`Requests${reqs.length?' · '+reqs.length:''}`],['open','Availability'],['booked','Booked']].map(([k,l])=>
+            <button key={k} className={tab===k?'on':''} onClick={()=>setTab(k)}>{l}</button>)}
+        </div>
+      </div>
+      <div className="pad" style={{marginTop:16,marginBottom:18,display:'flex',flexDirection:'column',gap:11}}>
+        {tab==='requests' && (reqs.length===0
+          ? <div className="card" style={{padding:'28px 18px',textAlign:'center',color:'var(--muted-2)',fontSize:13}}>All caught up — no pending requests.</div>
+          : reqs.map(r=>(
+          <div key={r.id} className="card" style={{padding:'15px 16px',borderColor:'rgba(200,164,100,.28)'}}>
+            <div style={{display:'flex',alignItems:'center',gap:12}}>
+              <Av n={r.dancer} size={42}/>
+              <div style={{flex:1}}>
+                <div style={{fontSize:14.5,fontWeight:600}}>{r.dancer}</div>
+                <div style={{fontSize:11.5,color:'var(--muted-2)'}}>Requested by {r.parent}</div>
+              </div>
+              <span className="chip" style={{background:'var(--gold-soft)',color:'var(--gold)'}}>{r.when}</span>
+            </div>
+            <div style={{fontSize:12.5,color:'var(--muted)',margin:'12px 0',paddingLeft:2}}>Focus: {r.focus}</div>
+            <div style={{display:'flex',gap:9}}>
+              <button onClick={()=>approve(r)} style={{flex:1,background:'var(--teal)',color:'#06110f',border:0,borderRadius:12,padding:'11px',fontSize:13,fontWeight:700,fontFamily:'inherit',cursor:'pointer'}}>Approve &amp; book</button>
+              <button onClick={()=>decline(r)} style={{background:'var(--bg-3)',border:'1px solid var(--line-2)',color:'var(--muted)',borderRadius:12,padding:'11px 16px',fontSize:13,fontFamily:'inherit',cursor:'pointer'}}>Decline</button>
+            </div>
+          </div>)))}
+
+        {tab==='open' && <React.Fragment>
+          <div style={{fontSize:12.5,color:'var(--muted)',marginBottom:2}}>Slots parents can request from this week.</div>
+          {open.map((s,i)=>(
+            <div key={i} className="card" style={{padding:'13px 16px',display:'flex',alignItems:'center',gap:12}}>
+              <div style={{width:38,height:38,borderRadius:11,background:'var(--teal-soft)',color:'var(--teal-bright)',display:'flex',alignItems:'center',justifyContent:'center',flex:'0 0 38px'}}><Icon n="clock" w={18}/></div>
+              <div style={{flex:1,fontSize:14,fontWeight:600}}>{s}</div>
+              <span style={{fontSize:11,color:'var(--teal-bright)'}}>Open</span>
+            </div>
+          ))}
+          <button onClick={()=>{setOpen([...open,'Sun · 1:00 PM']); setToast('Availability added');}} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:7,background:'none',border:'1px dashed var(--line-2)',color:'var(--teal-bright)',borderRadius:14,padding:'13px',fontSize:13,fontWeight:600,fontFamily:'inherit',cursor:'pointer',marginTop:2}}><Icon n="plus" w={16}/>Add availability</button>
+        </React.Fragment>}
+
+        {tab==='booked' && booked.map((b,i)=>(
+          <div key={i} className="card" style={{padding:'14px 16px',display:'flex',alignItems:'center',gap:12}}>
+            <Av n={b.dancer} size={42}/>
+            <div style={{flex:1}}>
+              <div style={{fontSize:14.5,fontWeight:600}}>{b.dancer}</div>
+              <div style={{fontSize:11.5,color:'var(--muted)',marginTop:2}}>{b.focus}</div>
+            </div>
+            <span className="chip" style={{background:'var(--teal-soft)',color:'var(--teal-bright)'}}>{b.when}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- You ---------------- */
+function You({setToast}){
+  return (
+    <div className="view fade">
+      <div className="pad" style={{paddingTop:18,textAlign:'center'}}>
+        <div style={{margin:'0 auto'}}><Av n="Elena Vasquez" size={72}/></div>
+        <div className="serif" style={{fontSize:24,fontWeight:600,marginTop:12}}>Ms. Elena Vasquez</div>
+        <div style={{fontSize:12.5,color:'var(--muted)',marginTop:2}}>Ballet · Pointe · Variations</div>
+      </div>
+      <div className="pad" style={{marginTop:20,display:'flex',gap:10}}>
+        {[['Classes','7'],['Dancers','42'],['Privates','3']].map(([l,v],i)=>(
+          <div key={i} className="card" style={{flex:1,padding:'14px',textAlign:'center'}}>
+            <div className="serif" style={{fontSize:24,fontWeight:600,color:'var(--teal-bright)'}}>{v}</div>
+            <div style={{fontSize:10.5,color:'var(--muted-2)',marginTop:2}}>{l}</div>
+          </div>
+        ))}
+      </div>
+      <div className="pad" style={{marginTop:20,marginBottom:20}}>
+        {['My availability','Message families','Notifications','Help & support'].map((t,i)=>(
+          <button key={i} onClick={()=>setToast(t)} style={{display:'flex',width:'100%',alignItems:'center',gap:12,background:'none',border:0,borderBottom:'1px solid var(--line)',padding:'15px 2px',cursor:'pointer',color:'var(--bone)',fontFamily:'inherit',fontSize:14}}>
+            <Icon n={['clock','bell','bell','user'][i]} w={18} style={{color:'var(--teal-bright)'}}/>
+            <span style={{flex:1,textAlign:'left'}}>{t}</span>
+            <Icon n="chev" w={15} style={{color:'var(--muted-2)'}}/>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Attendance sheet ---------------- */
+const CYCLE=['present','late','absent'];
+const ST_META={ present:['checkC','var(--teal-bright)','var(--teal-soft)','Present'], late:['lateC','var(--gold)','var(--gold-soft)','Late'], absent:['xC','var(--coral)','var(--coral-soft)','Absent'] };
+function Attendance({cls, close, onSave}){
+  const [marks,setMarks]=useState(()=>Object.fromEntries(cls.roster.map(n=>[n,'present'])));
+  const counts=cls.roster.reduce((a,n)=>{a[marks[n]]++;return a;},{present:0,late:0,absent:0});
+  function cycle(n){ const i=CYCLE.indexOf(marks[n]); setMarks({...marks,[n]:CYCLE[(i+1)%3]}); }
+  return (
+    <div className="sheet-bg" onClick={close}>
+      <div className="sheet" onClick={e=>e.stopPropagation()}>
+        <div className="grab"/>
+        <div className="pad">
+          <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between'}}>
+            <div>
+              <div className="eyebrow teal">Attendance · {cls.t} PM</div>
+              <div className="serif" style={{fontSize:24,fontWeight:600,marginTop:4}}>{cls.n}</div>
+              <div style={{fontSize:12,color:'var(--muted)',marginTop:2}}>{cls.st} · {cls.lvl}</div>
+            </div>
+            <button onClick={close} style={{background:'var(--bg-3)',border:0,color:'var(--muted)',borderRadius:'50%',width:32,height:32,cursor:'pointer',fontSize:16}}>✕</button>
+          </div>
+          <div style={{display:'flex',gap:8,margin:'14px 0 4px'}}>
+            {[['present',counts.present],['late',counts.late],['absent',counts.absent]].map(([k,v])=>{
+              const m=ST_META[k]; return <div key={k} style={{flex:1,padding:'8px',borderRadius:11,background:m[2],textAlign:'center'}}>
+                <div className="serif" style={{fontSize:20,fontWeight:600,color:m[1]}}>{v}</div>
+                <div style={{fontSize:9.5,color:'var(--muted-2)',letterSpacing:'.08em',textTransform:'uppercase'}}>{m[3]}</div>
+              </div>;
+            })}
+          </div>
+        </div>
+        <div style={{flex:1,overflowY:'auto',padding:'8px 20px 4px'}}>
+          {cls.roster.map(n=>{ const m=ST_META[marks[n]];
+            return <button key={n} onClick={()=>cycle(n)} style={{display:'flex',alignItems:'center',gap:12,width:'100%',background:'none',border:0,borderBottom:'1px solid var(--line)',padding:'11px 2px',cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>
+              <Av n={n} size={36}/>
+              <span style={{flex:1,fontSize:14.5,color:'var(--bone)'}}>{n}</span>
+              <span style={{display:'flex',alignItems:'center',gap:6,fontSize:12,fontWeight:600,color:m[1]}}><Icon n={m[0]} w={20} style={{color:m[1]}}/>{m[3]}</span>
+            </button>;
+          })}
+        </div>
+        <div className="pad" style={{paddingTop:12}}>
+          <button onClick={()=>{onSave(cls.id); close();}} style={{width:'100%',background:'var(--teal)',color:'#06110f',border:0,borderRadius:14,padding:'15px',fontSize:14.5,fontWeight:700,fontFamily:'inherit',cursor:'pointer'}}>Save attendance · {cls.roster.length} dancers</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Dancer sheet ---------------- */
+function DancerSheet({name, close, setToast}){
+  const [notes,setNotes]=useState(NOTES[name]||[]);
+  const [draft,setDraft]=useState('');
+  const [tag,setTag]=useState(NOTE_TAGS[0]);
+  function add(){ if(!draft.trim())return; setNotes([{d:'Today',tag:tag[0],t:draft.trim(),accent:tag[1]},...notes]); setDraft(''); setToast('Note saved to '+name.split(' ')[0]); }
+  const senior=ROSTER_SENIOR.includes(name);
+  return (
+    <div className="sheet-bg" onClick={close}>
+      <div className="sheet" onClick={e=>e.stopPropagation()}>
+        <div className="grab"/>
+        <div className="pad">
+          <div style={{display:'flex',alignItems:'center',gap:13}}>
+            <Av n={name} size={50}/>
+            <div style={{flex:1}}>
+              <div className="serif" style={{fontSize:23,fontWeight:600}}>{name}</div>
+              <div style={{fontSize:12,color:'var(--muted)'}}>{senior?'Senior Elite · Company':'Petite'}</div>
+            </div>
+            <button onClick={close} style={{background:'var(--bg-3)',border:0,color:'var(--muted)',borderRadius:'50%',width:32,height:32,cursor:'pointer',fontSize:16}}>✕</button>
+          </div>
+          <div style={{display:'flex',gap:7,marginTop:14,flexWrap:'wrap'}}>
+            {(senior?['Ballet Technique','Pointe','Variations']:['Pre-Ballet']).map(c=><span key={c} className="chip" style={{background:'var(--bg-3)'}}>{c}</span>)}
+          </div>
+        </div>
+
+        {/* add note */}
+        <div className="pad" style={{marginTop:16}}>
+          <div className="card" style={{padding:'13px 14px',background:'var(--bg-3)'}}>
+            <textarea value={draft} onChange={e=>setDraft(e.target.value)} placeholder={'Add a note about '+name.split(' ')[0]+'…'} rows={2}
+              style={{width:'100%',background:'none',border:0,color:'var(--bone)',fontFamily:'inherit',fontSize:13.5,resize:'none',outline:'none'}}/>
+            <div style={{display:'flex',gap:6,margin:'8px 0 10px',flexWrap:'wrap'}}>
+              {NOTE_TAGS.map(t=><button key={t[0]} onClick={()=>setTag(t)} style={{fontSize:10.5,padding:'4px 10px',borderRadius:20,cursor:'pointer',fontFamily:'inherit',border:`1px solid ${tag[0]===t[0]?t[1]:'var(--line)'}`,background:tag[0]===t[0]?t[1]+'28':'transparent',color:tag[0]===t[0]?t[1]:'var(--muted-2)'}}>{t[0]}</button>)}
+            </div>
+            <button onClick={add} style={{width:'100%',background:'var(--teal)',color:'#06110f',border:0,borderRadius:11,padding:'11px',fontSize:13,fontWeight:700,fontFamily:'inherit',cursor:'pointer'}}>Save note</button>
+          </div>
+        </div>
+
+        <div className="pad" style={{marginTop:16,paddingBottom:8,overflowY:'auto'}}>
+          <div className="eyebrow mut" style={{marginBottom:10}}>Notes &amp; history</div>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {notes.length===0 && <div style={{fontSize:13,color:'var(--muted-2)',padding:'10px 0'}}>No notes yet.</div>}
+            {notes.map((nt,i)=>(
+              <div key={i} style={{borderLeft:`2px solid ${nt.accent}`,paddingLeft:13}}>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                  <span style={{fontSize:9.5,letterSpacing:'.1em',textTransform:'uppercase',color:nt.accent,fontWeight:600}}>{nt.tag}</span>
+                  <span style={{fontSize:10.5,color:'var(--muted-2)'}}>{nt.d}</span>
+                </div>
+                <div style={{fontSize:13,color:'var(--muted)',lineHeight:1.5}}>{nt.t}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- App ---------------- */
+function App(){
+  const [tab,setTab]=useState(()=>localStorage.getItem('mlda_t_tab')||'today');
+  const [att,setAtt]=useState(null);
+  const [dancer,setDancer]=useState(null);
+  const [attDone,setAttDone]=useState({});
+  const [toast,setToast]=useState(null);
+  useEffect(()=>{ localStorage.setItem('mlda_t_tab',tab); },[tab]);
+  useEffect(()=>{ if(toast){ const t=setTimeout(()=>setToast(null),2400); return ()=>clearTimeout(t);} },[toast]);
+  function saveAtt(id){ setAttDone({...attDone,[id]:true}); setToast('Attendance saved'); }
+
+  const TABS=[['today','Today','bolt'],['sched','Schedule','cal'],['dancers','Dancers','users'],['priv','Privates','star'],['you','You','user']];
+  return (
+    <React.Fragment>
+      <div className="statusbar"><span>3:58</span><span className="r"><span className="bar"/><span className="dot"/></span></div>
+      {tab==='today' && <Today openAtt={setAtt} attDone={attDone}/>}
+      {tab==='sched' && <Schedule/>}
+      {tab==='dancers' && <Dancers openDancer={setDancer}/>}
+      {tab==='priv' && <Privates setToast={setToast}/>}
+      {tab==='you' && <You setToast={setToast}/>}
+
+      {att && <Attendance cls={att} close={()=>setAtt(null)} onSave={saveAtt}/>}
+      {dancer && <DancerSheet name={dancer} close={()=>setDancer(null)} setToast={setToast}/>}
+      {toast && <div className="toast"><Icon n="check" w={17} style={{color:'#06110f'}}/>{toast}</div>}
+
+      <div className="tabbar">
+        {TABS.map(([k,l,ic])=>(
+          <button key={k} className={'tab'+(tab===k?' active':'')} onClick={()=>setTab(k)}>
+            <Icon n={ic} w={23} sw={tab===k?2:1.6}/><span>{l}</span>
+          </button>
+        ))}
+      </div>
+    </React.Fragment>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

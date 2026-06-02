@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MLDA Collective — Design Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,600;6..96,700;6..96,800;6..96,900&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --gallery:#e7e4df;
+    --gallery-2:#dedad3;
+    --panel:#ffffff;
+    --ink:#1a1815;
+    --ink-soft:#6b655d;
+    --line:#d8d3ca;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    background:var(--gallery);
+    color:var(--ink);
+    font-family:'Hanken Grotesk',system-ui,sans-serif;
+    line-height:1.5;
+    padding:48px 40px 100px;
+    background-image:radial-gradient(circle at 1px 1px, rgba(0,0,0,.045) 1px, transparent 0);
+    background-size:26px 26px;
+  }
+  .wrap{max-width:1320px;margin:0 auto;}
+
+  /* ---------- Intro panel ---------- */
+  .intro{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:38px 42px;
+    margin-bottom:52px;
+    box-shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 14px 40px -28px rgba(0,0,0,.4);
+  }
+  .eyebrow{
+    font-family:'Archivo',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.32em;
+    font-size:11px;
+    font-weight:600;
+    color:var(--ink-soft);
+  }
+  .intro h1{
+    font-family:'Bodoni Moda',serif;
+    font-weight:600;
+    font-size:42px;
+    line-height:1.05;
+    margin:14px 0 4px;
+    letter-spacing:-.01em;
+  }
+  .intro h1 em{ font-style:italic; }
+  .intro .sub{ color:var(--ink-soft); font-size:16px; max-width:760px; margin-top:10px; }
+  .intro-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:26px;
+    margin-top:32px;
+    padding-top:28px;
+    border-top:1px solid var(--line);
+  }
+  .intro-grid h4{
+    font-family:'Archivo',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.16em;
+    font-size:11px;
+    color:var(--ink);
+    margin-bottom:10px;
+  }
+  .intro-grid p{ font-size:14px; color:var(--ink-soft); }
+  .intro-grid li{ font-size:14px; color:var(--ink-soft); list-style:none; margin-bottom:6px; padding-left:16px; position:relative; }
+  .intro-grid li::before{ content:""; position:absolute; left:0; top:9px; width:5px; height:5px; border-radius:50%; background:#c8a464; }
+
+  /* ---------- Section / columns ---------- */
+  .board{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:34px;
+    align-items:start;
+  }
+  @media (max-width:1140px){ .board{grid-template-columns:1fr;max-width:440px;margin:0 auto;} .intro-grid{grid-template-columns:1fr;} }
+  .col{ display:flex; flex-direction:column; }
+  .col-head{ margin-bottom:20px; }
+  .col-num{
+    font-family:'Archivo',sans-serif; font-weight:700; font-size:12px; letter-spacing:.2em;
+    color:var(--ink-soft);
+  }
+  .col-title{
+    font-family:'Bodoni Moda',serif; font-size:27px; font-weight:600; margin:4px 0 2px; letter-spacing:-.01em;
+  }
+  .col-desc{ font-size:13.5px; color:var(--ink-soft); max-width:340px; }
+
+  /* phone shell */
+  .phone{
+    width:100%;
+    max-width:372px;
+    margin:0 auto;
+    aspect-ratio:372/760;
+    border-radius:46px;
+    padding:13px;
+    background:linear-gradient(160deg,#2b2824,#100f0d);
+    box-shadow:0 40px 70px -34px rgba(0,0,0,.6), 0 4px 10px rgba(0,0,0,.25), inset 0 0 0 2px rgba(255,255,255,.04);
+    position:relative;
+  }
+  .screen{
+    width:100%; height:100%;
+    border-radius:34px;
+    overflow:hidden;
+    position:relative;
+    display:flex; flex-direction:column;
+  }
+  .statusbar{
+    height:30px; flex:0 0 30px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 22px 0 26px;
+    font-size:12px; font-weight:600;
+    position:relative; z-index:5;
+  }
+  .statusbar .dots{ display:flex; gap:5px; align-items:center; }
+  .statusbar .dots span{ width:15px; height:9px; border-radius:2px; display:inline-block; opacity:.85; }
+  .notch{
+    position:absolute; top:11px; left:50%; transform:translateX(-50%);
+    width:104px; height:26px; background:#000; border-radius:0 0 16px 16px; z-index:10;
+  }
+  .scr-body{ flex:1; overflow:hidden; display:flex; flex-direction:column; }
+
+  /* shared mock atoms */
+  .ph-img{
+    background-image:repeating-linear-gradient(135deg, rgba(0,0,0,.05) 0 8px, rgba(0,0,0,.02) 8px 16px);
+    display:flex; align-items:flex-end;
+    font-family:'Archivo',monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  }
+  .tabbar{
+    flex:0 0 64px; display:flex; align-items:center; justify-content:space-around;
+    padding-bottom:12px;
+  }
+  .tab{ display:flex; flex-direction:column; align-items:center; gap:4px; font-size:9px; }
+  .tab svg{ width:21px; height:21px; }
+
+  /* spec strip under each phone */
+  .spec{
+    margin-top:24px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px 20px;
+  }
+  .spec h5{ font-family:'Archivo',sans-serif; text-transform:uppercase; letter-spacing:.16em; font-size:10px; color:var(--ink-soft); margin-bottom:12px; }
+  .swatches{ display:flex; gap:8px; margin-bottom:16px; }
+  .swatch{ flex:1; height:46px; border-radius:8px; display:flex; align-items:flex-end; padding:5px 6px; font-size:8px; font-family:'Archivo',monospace; letter-spacing:.04em; }
+  .typed{ font-size:12.5px; color:var(--ink-soft); }
+  .typed b{ color:var(--ink); font-weight:600; }
+  .typed .row{ display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px dashed var(--line); }
+  .typed .row:last-child{ border-bottom:0; }
+
+  /* next steps */
+  .next{
+    margin-top:56px;
+    background:#1a1815; color:#efe9df;
+    border-radius:18px; padding:34px 40px;
+    display:grid; grid-template-columns:1.1fr 1fr; gap:40px;
+  }
+  @media (max-width:1140px){ .next{grid-template-columns:1fr;} }
+  .next h3{ font-family:'Bodoni Moda',serif; font-size:24px; font-weight:600; margin-bottom:8px; }
+  .next p{ color:#b3a99a; font-size:14px; }
+  .next ol{ counter-reset:n; list-style:none; }
+  .next li{ position:relative; padding:10px 0 10px 38px; font-size:14.5px; border-bottom:1px solid rgba(255,255,255,.08); }
+  .next li:last-child{ border-bottom:0; }
+  .next li::before{
+    counter-increment:n; content:counter(n,decimal-leading-zero);
+    position:absolute; left:0; top:10px; font-family:'Archivo',sans-serif; font-size:12px; color:#c8a464; font-weight:700;
+  }
+  .pill{ display:inline-block; font-family:'Archivo',sans-serif; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#c8a464; border:1px solid rgba(200,164,100,.4); padding:4px 10px; border-radius:20px; margin-bottom:18px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="intro">
+    <div class="eyebrow">MLDA Collective · Product Design</div>
+    <h1>Three directions for a studio<br/>worth <em>fifteen thousand a year</em>.</h1>
+    <p class="sub">Before building out parent, teacher and admin in full, here's the most-used, most emotional screen — the <b>parent mobile home</b> — rendered three ways. Each is a complete world: palette, type, and layout language. Pick one, or mix the parts you love, and I'll extend it across all three sides of the app.</p>
+
+    <div class="intro-grid">
+      <div>
+        <h4>What I'm assuming</h4>
+        <ul>
+          <li>Parent &amp; teacher are mobile-first; admin is a desktop command center.</li>
+          <li>This replaces Google Sheets — clarity beats cleverness for owners.</li>
+          <li>The current gold / teal / warm-white palette is a strong starting DNA.</li>
+        </ul>
+      </div>
+      <div>
+        <h4>The bar we're clearing</h4>
+        <p>Families invest $15–25k a year and compete at nationals. The app should feel as considered as a recital program and as calm as a concierge — premium, but never fussy. Energy from competitive dance, restraint from luxury.</p>
+      </div>
+      <div>
+        <h4>How to read this</h4>
+        <ul>
+          <li><b>Atelier</b> — editorial &amp; serene, boutique luxe.</li>
+          <li><b>Spotlight</b> — dark, dramatic, the main stage.</li>
+          <li><b>Kinetic</b> — bold, expressive, full of movement.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BOARD ============ -->
+  <div class="board">
+
+    <!-- ============================================================= -->
+    <!-- DIRECTION A — ATELIER -->
+    <!-- ============================================================= -->
+    <div class="col">
+      <div class="col-head">
+        <div class="col-num">DIRECTION 01</div>
+        <div class="col-title">Atelier</div>
+        <div class="col-desc">Editorial and serene. Cream space, hairline gold, a high-contrast serif. Feels like a boutique studio's printed program.</div>
+      </div>
+
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen" style="background:#f5ede0;color:#26221c;font-family:'Hanken Grotesk',sans-serif;">
+          <div class="statusbar" style="color:#26221c;">
+            <span>9:41</span>
+            <span class="dots"><span style="background:#26221c;"></span><span style="background:#26221c;border-radius:50%;width:9px;"></span><span style="background:#26221c;"></span></span>
+          </div>
+          <div class="scr-body">
+            <!-- header -->
+            <div style="padding:6px 22px 14px;display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <div style="font-family:'Archivo';font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:#a07d3f;">MLDA Collective</div>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:25px;font-weight:600;line-height:1.05;margin-top:2px;">Good morning, Dana</div>
+              </div>
+              <div style="width:36px;height:36px;border-radius:50%;background:#1f7570;color:#f5ede0;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:16px;">D</div>
+            </div>
+            <!-- dancer pills -->
+            <div style="display:flex;gap:8px;padding:0 22px 16px;">
+              <div style="display:flex;align-items:center;gap:7px;background:#26221c;color:#f5ede0;border-radius:30px;padding:5px 12px 5px 6px;font-size:12px;"><span style="width:22px;height:22px;border-radius:50%;background:#c8a464;display:inline-block;"></span>Ava</div>
+              <div style="display:flex;align-items:center;gap:6px;border:1px solid #d8c9ad;border-radius:30px;padding:5px 13px;font-size:12px;color:#7a6f5c;"><span style="width:18px;height:18px;border-radius:50%;background:#e4d6ba;display:inline-block;"></span>Mia</div>
+            </div>
+            <!-- next up hero -->
+            <div style="margin:0 22px;border-top:1px solid #d8c9ad;border-bottom:1px solid #d8c9ad;padding:15px 0;">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;">
+                <span style="font-family:'Archivo';font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:#a07d3f;">Next on stage</span>
+                <span style="font-size:11px;color:#7a6f5c;">Today</span>
+              </div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;line-height:1.1;margin:6px 0 4px;">Ballet Technique</div>
+              <div style="font-size:12.5px;color:#5d544a;">4:30–5:30 PM · Studio B · Ms. Elena</div>
+            </div>
+            <!-- week strip -->
+            <div style="padding:16px 22px 6px;">
+              <div style="display:flex;justify-content:space-between;">
+                <div style="text-align:center;"><div style="font-size:10px;color:#a09684;">M</div><div style="width:7px;height:7px;border-radius:50%;background:#c8a464;margin:7px auto 0;"></div></div>
+                <div style="text-align:center;"><div style="font-size:10px;color:#a09684;">T</div><div style="width:7px;height:7px;border-radius:50%;background:#1f7570;margin:7px auto 0;"></div></div>
+                <div style="text-align:center;"><div style="font-size:11px;font-weight:700;color:#26221c;border-bottom:2px solid #26221c;padding-bottom:2px;">W</div><div style="width:7px;height:7px;border-radius:50%;background:#c8a464;margin:7px auto 0;"></div></div>
+                <div style="text-align:center;"><div style="font-size:10px;color:#a09684;">T</div><div style="margin-top:7px;height:7px;"></div></div>
+                <div style="text-align:center;"><div style="font-size:10px;color:#a09684;">F</div><div style="width:7px;height:7px;border-radius:50%;background:#d97a5e;margin:7px auto 0;"></div></div>
+                <div style="text-align:center;"><div style="font-size:10px;color:#a09684;">S</div><div style="width:7px;height:7px;border-radius:50%;background:#c8a464;margin:7px auto 0;"></div></div>
+              </div>
+            </div>
+            <!-- countdown + announce -->
+            <div style="margin:12px 22px 0;background:#26221c;border-radius:14px;padding:16px 18px;color:#f5ede0;display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <div style="font-family:'Archivo';font-size:8.5px;letter-spacing:.24em;text-transform:uppercase;color:#c8a464;">Nationals · Orlando</div>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:18px;margin-top:3px;">Costumes due Friday</div>
+              </div>
+              <div style="text-align:center;"><div style="font-family:'Cormorant Garamond',serif;font-size:30px;line-height:1;color:#c8a464;">24</div><div style="font-size:8px;letter-spacing:.1em;color:#a89a82;">DAYS</div></div>
+            </div>
+            <div class="ph-img" style="margin:14px 22px 0;height:64px;border-radius:12px;background-color:#e7d9bd;color:#9a8a68;padding:7px 10px;">Studio photo</div>
+          </div>
+          <div class="tabbar" style="background:#f5ede0;border-top:1px solid #e3d6bc;">
+            <div class="tab" style="color:#26221c;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Home</div>
+            <div class="tab" style="color:#a89a82;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Schedule</div>
+            <div class="tab" style="color:#a89a82;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Inbox</div>
+            <div class="tab" style="color:#a89a82;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>You</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spec">
+        <h5>Palette · Atelier</h5>
+        <div class="swatches">
+          <div class="swatch" style="background:#f5ede0;color:#9a8a68;">CREAM</div>
+          <div class="swatch" style="background:#26221c;color:#cabfa6;">INK</div>
+          <div class="swatch" style="background:#c8a464;color:#3a2e12;">GOLD</div>
+          <div class="swatch" style="background:#1f7570;color:#bfe3df;">TEAL</div>
+        </div>
+        <div class="typed">
+          <div class="row"><span>Display</span><b style="font-family:'Cormorant Garamond',serif;font-size:18px;">Cormorant Garamond</b></div>
+          <div class="row"><span>Body</span><b>Hanken Grotesk</b></div>
+          <div class="row"><span>Eyebrow</span><b style="font-family:'Archivo';letter-spacing:.16em;font-size:11px;">ARCHIVO CAPS</b></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- DIRECTION B — SPOTLIGHT -->
+    <!-- ============================================================= -->
+    <div class="col">
+      <div class="col-head">
+        <div class="col-num">DIRECTION 02</div>
+        <div class="col-title">Spotlight</div>
+        <div class="col-desc">Dark and dramatic — the main stage. Warm black, gold foil, a theatrical Bodoni. Premium, focused, a little bit nervous-excited.</div>
+      </div>
+
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen" style="background:#0e0d0c;color:#efe9df;font-family:'Archivo',sans-serif;">
+          <div class="statusbar" style="color:#efe9df;">
+            <span>9:41</span>
+            <span class="dots"><span style="background:#efe9df;"></span><span style="background:#efe9df;border-radius:50%;width:9px;"></span><span style="background:#efe9df;"></span></span>
+          </div>
+          <div class="scr-body" style="background:radial-gradient(120% 60% at 50% -8%, rgba(200,164,100,.22), transparent 60%);">
+            <div style="padding:8px 22px 16px;display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <div style="font-family:'Archivo';font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#c8a464;">MLDA Collective</div>
+                <div style="font-family:'Bodoni Moda',serif;font-size:24px;font-weight:600;margin-top:4px;">Evening, Dana</div>
+              </div>
+              <div style="width:36px;height:36px;border-radius:50%;border:1px solid #c8a464;color:#c8a464;display:flex;align-items:center;justify-content:center;font-family:'Bodoni Moda',serif;font-size:16px;">D</div>
+            </div>
+            <!-- spotlight hero -->
+            <div style="margin:0 18px;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#1c1916,#100e0c);border:1px solid rgba(200,164,100,.25);">
+              <div class="ph-img" style="height:118px;background-color:#1a1714;color:#7d6a45;background-image:repeating-linear-gradient(135deg,rgba(200,164,100,.08) 0 8px,transparent 8px 16px);padding:8px 12px;">Dancer photo</div>
+              <div style="padding:14px 16px 16px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:#c8a464;">Up next · Today</span><span style="font-size:11px;color:#8e857a;">Studio B</span></div>
+                <div style="font-family:'Bodoni Moda',serif;font-size:27px;font-weight:600;margin:7px 0 3px;">Ballet Technique</div>
+                <div style="font-size:12px;color:#a89e90;">4:30–5:30 PM · Ms. Elena</div>
+              </div>
+            </div>
+            <!-- week chips -->
+            <div style="display:flex;gap:6px;padding:16px 18px 0;">
+              <div style="flex:1;text-align:center;padding:8px 0;border-radius:9px;background:#1a1714;font-size:10px;color:#8e857a;">M<div style="width:5px;height:5px;border-radius:50%;background:#c8a464;margin:5px auto 0;"></div></div>
+              <div style="flex:1;text-align:center;padding:8px 0;border-radius:9px;background:#1a1714;font-size:10px;color:#8e857a;">T<div style="width:5px;height:5px;border-radius:50%;background:#1f7570;margin:5px auto 0;"></div></div>
+              <div style="flex:1;text-align:center;padding:8px 0;border-radius:9px;background:#c8a464;color:#241c0a;font-size:10px;font-weight:700;">W<div style="width:5px;height:5px;border-radius:50%;background:#241c0a;margin:5px auto 0;"></div></div>
+              <div style="flex:1;text-align:center;padding:8px 0;border-radius:9px;background:#1a1714;font-size:10px;color:#8e857a;">T<div style="height:5px;margin-top:5px;"></div></div>
+              <div style="flex:1;text-align:center;padding:8px 0;border-radius:9px;background:#1a1714;font-size:10px;color:#8e857a;">F<div style="width:5px;height:5px;border-radius:50%;background:#d97a5e;margin:5px auto 0;"></div></div>
+            </div>
+            <!-- countdown -->
+            <div style="margin:16px 18px 0;display:flex;align-items:center;gap:14px;">
+              <div style="text-align:center;"><div style="font-family:'Bodoni Moda',serif;font-size:40px;line-height:.9;color:#c8a464;">24</div><div style="font-size:8px;letter-spacing:.14em;color:#8e857a;">DAYS</div></div>
+              <div style="border-left:1px solid rgba(255,255,255,.12);padding-left:14px;">
+                <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#c8a464;">Nationals · Orlando</div>
+                <div style="font-size:13px;color:#d8cdbd;margin-top:3px;">Costume payment due Fri</div>
+              </div>
+            </div>
+          </div>
+          <div class="tabbar" style="background:#0e0d0c;border-top:1px solid rgba(255,255,255,.08);">
+            <div class="tab" style="color:#c8a464;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Home</div>
+            <div class="tab" style="color:#6f675c;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Schedule</div>
+            <div class="tab" style="color:#6f675c;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Inbox</div>
+            <div class="tab" style="color:#6f675c;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>You</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spec">
+        <h5>Palette · Spotlight</h5>
+        <div class="swatches">
+          <div class="swatch" style="background:#0e0d0c;color:#9a8f7d;">BLACK</div>
+          <div class="swatch" style="background:#c8a464;color:#241c0a;">GOLD</div>
+          <div class="swatch" style="background:#efe9df;color:#7a7264;">BONE</div>
+          <div class="swatch" style="background:#1f7570;color:#bfe3df;">TEAL</div>
+        </div>
+        <div class="typed">
+          <div class="row"><span>Display</span><b style="font-family:'Bodoni Moda',serif;font-size:18px;">Bodoni Moda</b></div>
+          <div class="row"><span>Body / UI</span><b style="font-family:'Archivo';">Archivo</b></div>
+          <div class="row"><span>Eyebrow</span><b style="font-family:'Archivo';letter-spacing:.16em;font-size:11px;">ARCHIVO CAPS</b></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- DIRECTION C — KINETIC -->
+    <!-- ============================================================= -->
+    <div class="col">
+      <div class="col-head">
+        <div class="col-num">DIRECTION 03</div>
+        <div class="col-title">Kinetic</div>
+        <div class="col-desc">Bold and expressive. Oversized type, color blocks, a sense of motion. Energetic and young without losing the premium polish.</div>
+      </div>
+
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen" style="background:#f4f1ec;color:#19130f;font-family:'Hanken Grotesk',sans-serif;">
+          <div class="statusbar" style="color:#19130f;">
+            <span>9:41</span>
+            <span class="dots"><span style="background:#19130f;"></span><span style="background:#19130f;border-radius:50%;width:9px;"></span><span style="background:#19130f;"></span></span>
+          </div>
+          <div class="scr-body">
+            <div style="padding:6px 20px 12px;display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <div style="font-family:'Archivo';font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:#1f7570;font-weight:700;">MLDA Collective</div>
+                <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:26px;font-weight:800;line-height:1;margin-top:3px;letter-spacing:-.02em;">Hi, Dana</div>
+              </div>
+              <div style="width:36px;height:36px;border-radius:13px;background:#d97a5e;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque';font-weight:800;font-size:16px;">D</div>
+            </div>
+            <!-- big hero block -->
+            <div style="margin:2px 18px 0;background:#1f7570;color:#eafaf7;border-radius:20px;padding:16px 18px 18px;position:relative;overflow:hidden;">
+              <div style="position:absolute;right:-26px;top:-26px;width:96px;height:96px;border-radius:50%;background:rgba(255,255,255,.08);"></div>
+              <div style="font-family:'Archivo';font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#9fd8d2;font-weight:700;">Up next · Today</div>
+              <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:30px;font-weight:800;line-height:.98;margin:8px 0 8px;letter-spacing:-.02em;">Ballet<br/>Technique</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <span style="background:rgba(255,255,255,.16);border-radius:20px;padding:4px 11px;font-size:11px;">4:30 PM</span>
+                <span style="background:rgba(255,255,255,.16);border-radius:20px;padding:4px 11px;font-size:11px;">Studio B</span>
+                <span style="background:rgba(255,255,255,.16);border-radius:20px;padding:4px 11px;font-size:11px;">Ms. Elena</span>
+              </div>
+            </div>
+            <!-- countdown big -->
+            <div style="margin:12px 18px 0;background:#19130f;color:#f4f1ec;border-radius:18px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;overflow:hidden;">
+              <div>
+                <div style="font-family:'Archivo';font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:#d97a5e;font-weight:700;">Countdown · Nationals</div>
+                <div style="font-size:12px;color:#b8aea3;margin-top:3px;">Orlando · costumes due Fri</div>
+              </div>
+              <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:46px;font-weight:800;line-height:.85;color:#c8a464;letter-spacing:-.04em;">24</div>
+            </div>
+            <!-- week chips -->
+            <div style="display:flex;gap:7px;padding:14px 18px 0;">
+              <div style="flex:1;text-align:center;padding:9px 0;border-radius:12px;background:#e7e0d6;font-size:10px;font-weight:600;color:#7d7468;">M</div>
+              <div style="flex:1;text-align:center;padding:9px 0;border-radius:12px;background:#e7e0d6;font-size:10px;font-weight:600;color:#7d7468;">T</div>
+              <div style="flex:1;text-align:center;padding:9px 0;border-radius:12px;background:#d97a5e;color:#fff;font-size:10px;font-weight:700;">W</div>
+              <div style="flex:1;text-align:center;padding:9px 0;border-radius:12px;background:#e7e0d6;font-size:10px;font-weight:600;color:#7d7468;">T</div>
+              <div style="flex:1;text-align:center;padding:9px 0;border-radius:12px;background:#e7e0d6;font-size:10px;font-weight:600;color:#7d7468;">F</div>
+            </div>
+            <div style="padding:13px 18px 0;">
+              <div style="display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #e7e0d6;border-radius:14px;padding:11px 13px;">
+                <div style="width:34px;height:34px;border-radius:11px;background:#c8a464;flex:0 0 34px;"></div>
+                <div><div style="font-size:12.5px;font-weight:700;">New announcement</div><div style="font-size:11px;color:#8a8174;">Spring recital tickets are live</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="tabbar" style="background:#f4f1ec;border-top:1px solid #e7e0d6;">
+            <div class="tab" style="color:#d97a5e;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Home</div>
+            <div class="tab" style="color:#b0a89c;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Schedule</div>
+            <div class="tab" style="color:#b0a89c;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Inbox</div>
+            <div class="tab" style="color:#b0a89c;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>You</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spec">
+        <h5>Palette · Kinetic</h5>
+        <div class="swatches">
+          <div class="swatch" style="background:#f4f1ec;color:#9a9285;">PAPER</div>
+          <div class="swatch" style="background:#1f7570;color:#bfe3df;">TEAL</div>
+          <div class="swatch" style="background:#d97a5e;color:#3d180e;">CORAL</div>
+          <div class="swatch" style="background:#19130f;color:#c0b6a9;">INK</div>
+        </div>
+        <div class="typed">
+          <div class="row"><span>Display</span><b style="font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:800;">Bricolage Grotesque</b></div>
+          <div class="row"><span>Body</span><b>Hanken Grotesk</b></div>
+          <div class="row"><span>Eyebrow</span><b style="font-family:'Archivo';letter-spacing:.16em;font-size:11px;">ARCHIVO CAPS</b></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /board -->
+
+  <!-- ============ NEXT STEPS ============ -->
+  <section class="next">
+    <div>
+      <span class="pill">What happens next</span>
+      <h3>Pick a direction — or mix the parts.</h3>
+      <p>None of these are locked. You might love Atelier's calm with Kinetic's countdown, or Spotlight's drama on the teacher app only. Tell me what resonates and I'll converge on one system, then build it out everywhere.</p>
+      <p style="margin-top:14px;">Drop your <b style="color:#efe9df;">Base44 screenshots</b> (and <b style="color:#efe9df;">src/index.css</b>) any time — I'll match what's working and only upgrade what isn't.</p>
+    </div>
+    <div>
+      <ol>
+        <li>You choose a direction (or a mix) from the three above.</li>
+        <li>I lock the system — color, type, spacing, components.</li>
+        <li>Build out the <b>Parent app</b> — schedule, recital/costume tracker, announcements.</li>
+        <li>Build the <b>Teacher app</b> — attendance, rosters, dancer notes, privates booking.</li>
+        <li>Build the <b>Admin desktop</b> — enrollment, scheduling, everything in one place.</li>
+      </ol>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
