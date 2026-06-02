@@ -348,13 +348,13 @@ function ClassFormDialog({ open, onClose, classData, studios, teachers, selected
 
           {/* Times */}
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs text-muted-foreground">Start</Label>
-              <Input type="time" value={form.start_time || ''} onChange={e => setForm({ ...form, start_time: e.target.value })} className="bg-secondary border-border" />
+            <div className="min-w-0">
+              <Label className="text-xs text-muted-foreground mb-1 block">Start</Label>
+              <Input type="time" value={form.start_time || ''} onChange={e => setForm({ ...form, start_time: e.target.value })} className="bg-secondary border-border h-10 w-full text-sm" />
             </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">End</Label>
-              <Input type="time" value={form.end_time || ''} onChange={e => setForm({ ...form, end_time: e.target.value })} className="bg-secondary border-border" />
+            <div className="min-w-0">
+              <Label className="text-xs text-muted-foreground mb-1 block">End</Label>
+              <Input type="time" value={form.end_time || ''} onChange={e => setForm({ ...form, end_time: e.target.value })} className="bg-secondary border-border h-10 w-full text-sm" />
             </div>
           </div>
 
