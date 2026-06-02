@@ -1,64 +1,70 @@
-import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Bell, Check } from 'lucide-react';
-import SectionLabel from '@/components/shared/SectionLabel';
-import EmptyState from '@/components/shared/EmptyState';
+import { useMyHousehold } from '@/lib/useMyHousehold';
+import { Bell, Check, Pin } from 'lucide-react';
 import { format } from 'date-fns';
-import { motion } from 'framer-motion';
+
+const TAG_ACCENT = {
+  daily_digest: '#3aa89f',
+  announcement: '#c8a464',
+  schedule_change: '#d97a5e',
+  costume: '#c8a464',
+  default: '#a89e90',
+};
+function tagFor(t = '') { return (t || 'update').replace(/_/g, ' '); }
+function accentFor(t) { return TAG_ACCENT[t] || TAG_ACCENT.default; }
 
 export default function Notifications() {
-  const [userEmail, setUserEmail] = useState(null);
-  const queryClient = useQueryClient();
-  
-  useEffect(() => { base44.auth.me().then(u => setUserEmail(u?.email)); }, []);
+  const qc = useQueryClient();
+  const { data: household } = useMyHousehold();
 
   const { data: notifications = [] } = useQuery({
-    queryKey: ['notifications', userEmail],
-    queryFn: () => base44.entities.ScheduleNotification.filter({ recipient_email: userEmail }, '-created_date', 50),
-    enabled: !!userEmail,
+    queryKey: ['notifications', household?.email],
+    queryFn: () => base44.entities.ScheduleNotification.filter({ recipient_email: household.email }, '-created_date', 50),
+    enabled: !!household?.email,
   });
 
   const markRead = useMutation({
     mutationFn: (id) => base44.entities.ScheduleNotification.update(id, { read: true }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   });
 
   return (
-    <div className="px-4 pt-2 pb-6 max-w-lg mx-auto">
-      <SectionLabel className="pt-4 mb-4">Notifications</SectionLabel>
+    <div className="animate-[fade_.32s_ease] px-5">
+      <div className="pt-1">
+        <div className="text-[9.5px] tracking-[0.26em] uppercase text-teal-bright font-semibold">Inbox</div>
+        <h1 className="font-serif text-[25px] font-semibold mt-1">From the studio</h1>
+      </div>
 
       {notifications.length === 0 ? (
-        <EmptyState message="No notifications yet" sub="You'll be notified of any schedule changes" />
+        <div className="bg-card border border-border rounded-2xl p-8 text-center mt-5">
+          <Bell className="w-8 h-8 text-muted-2 mx-auto mb-3" />
+          <p className="text-[13px] text-muted-2">No announcements yet.</p>
+        </div>
       ) : (
-        <div className="space-y-2">
-          {notifications.map((n, i) => (
-            <motion.div
-              key={n.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className={`bg-card border border-border rounded-lg p-4 ${!n.read ? 'border-l-2 border-l-primary' : 'opacity-70'}`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1">
-                  <h3 className="font-body text-sm font-medium text-foreground">{n.title}</h3>
-                  <p className="text-xs text-muted-foreground mt-1">{n.message}</p>
-                  <p className="text-[10px] text-warm-gray mt-2">
-                    {n.created_date ? format(new Date(n.created_date), 'MMM d, h:mm a') : ''}
-                  </p>
+        <div className="mt-4 pb-2 flex flex-col gap-2.5">
+          {notifications.map(n => {
+            const accent = accentFor(n.type);
+            const unread = !n.read;
+            return (
+              <button key={n.id} onClick={() => unread && markRead.mutate(n.id)}
+                className="text-left rounded-2xl p-4 border transition-colors"
+                style={{ borderColor: unread ? 'rgba(200,164,100,.3)' : 'var(--border)', background: unread ? 'linear-gradient(180deg,#1b1712,#141210)' : 'var(--card)', opacity: unread ? 1 : 0.7 }}>
+                <div className="flex items-center gap-2 mb-2">
+                  {unread && <Pin className="w-3 h-3 text-gold" />}
+                  <span className="text-[9.5px] tracking-[0.12em] uppercase font-semibold" style={{ color: accent }}>{tagFor(n.type)}</span>
+                  <span className="text-[11px] text-muted-2 ml-auto">{n.created_date ? format(new Date(n.created_date), 'MMM d') : ''}</span>
                 </div>
-                {!n.read && (
-                  <button
-                    onClick={() => markRead.mutate(n.id)}
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <Check className="w-4 h-4" />
-                  </button>
+                <div className="text-[15px] font-semibold mb-1">{n.title}</div>
+                {n.message && <div className="text-[12.5px] text-muted-foreground leading-relaxed">{n.message}</div>}
+                {unread && (
+                  <div className="flex items-center gap-1.5 mt-2.5 text-[11px]" style={{ color: accent }}>
+                    <Check className="w-3.5 h-3.5" /> Tap to mark read
+                  </div>
                 )}
-              </div>
-            </motion.div>
-          ))}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

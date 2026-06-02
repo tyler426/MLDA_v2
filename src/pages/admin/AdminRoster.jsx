@@ -11,6 +11,7 @@ import SectionLabel from '@/components/shared/SectionLabel';
 import HouseholdCaregivers from '@/components/admin/HouseholdCaregivers';
 import TeacherLoginInvite from '@/components/admin/TeacherLoginInvite';
 import DancerLoginInvite from '@/components/shared/DancerLoginInvite';
+import PhotoUpload from '@/components/shared/PhotoUpload';
 import { Plus, Search, UserPlus, Users, Pencil, Archive, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -252,6 +253,7 @@ function RosterFormDialog({ open, onClose, type, editData, parents, queryClient 
                   <SelectContent>{parents.map(p => <SelectItem key={p.id} value={p.id}>{p.primary_contact_name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
+              <PhotoUpload value={form.photo_url} onChange={url => setForm({ ...form, photo_url: url })} label="Dancer photo" />
             </>
           )}
           {type === 'parent' && (
