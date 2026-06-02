@@ -284,7 +284,7 @@ function ClassFormDialog({ open, onClose, classData, studios, teachers, selected
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="bg-card border-border max-w-lg max-h-[92vh] overflow-y-auto">
+      <DialogContent className="bg-card border-border max-w-lg max-h-[92vh] overflow-y-auto" onInteractOutside={e => e.preventDefault()} onPointerDownOutside={e => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="font-body text-foreground">{classData ? 'Edit Class' : 'New Class'}</DialogTitle>
         </DialogHeader>

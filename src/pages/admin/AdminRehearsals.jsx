@@ -252,7 +252,7 @@ function RehearsalCreatorDialog({ open, onClose, studios, teachers, pieces, danc
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { onClose(); setImpactPreview(null); } }}>
-      <DialogContent className="bg-card border-border max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="bg-card border-border max-w-lg max-h-[85vh] overflow-y-auto" onInteractOutside={e => e.preventDefault()} onPointerDownOutside={e => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="font-body text-foreground">Create Rehearsal Block</DialogTitle>
         </DialogHeader>
@@ -434,7 +434,7 @@ function RehearsalEditorDialog({ rehearsalId, onClose, studios, teachers, pieces
 
   return (
     <Dialog open={true} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="bg-card border-border max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="bg-card border-border max-w-lg max-h-[85vh] overflow-y-auto" onInteractOutside={e => e.preventDefault()} onPointerDownOutside={e => e.preventDefault()}>
         <DialogHeader className="flex items-center justify-between">
           <DialogTitle className="font-body text-foreground">Edit Rehearsal Block</DialogTitle>
           <button

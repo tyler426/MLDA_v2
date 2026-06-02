@@ -105,7 +105,8 @@ export default function BookSpaceDialog({ open, onClose, studios, pieces, dancer
 
   return (
     <Dialog open={open} onOpenChange={v => { if (!v) onClose(); }}>
-      <DialogContent className="bg-card border-border w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+      <DialogContent className="bg-card border-border w-full max-w-2xl max-h-[92vh] overflow-y-auto"
+        onInteractOutside={e => e.preventDefault()} onPointerDownOutside={e => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="font-body text-foreground">Book a Space</DialogTitle>
         </DialogHeader>

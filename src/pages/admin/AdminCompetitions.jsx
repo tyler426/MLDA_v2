@@ -59,6 +59,10 @@ export default function AdminCompetitions() {
     mutationFn: (id) => base44.entities.CompetitionEntry.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['compEntries'] }),
   });
+  const updateEntry = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.CompetitionEntry.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['compEntries'] }),
+  });
 
   const weekendShifts = selectedWeekend ? shifts.filter(s => s.competition_weekend_id === selectedWeekend.id).sort((a, b) => `${a.date}${a.start_time}`.localeCompare(`${b.date}${b.start_time}`)) : [];
   const weekendEntries = selectedWeekend ? compEntries.filter(e => e.competition_weekend_id === selectedWeekend.id) : [];
@@ -147,37 +151,43 @@ export default function AdminCompetitions() {
             )}
           </div>
 
-          {/* Routine call times (feeds the parent Compete tab) */}
+          {/* Competing routines — add the routine first; fill entry # and call time later */}
           <div>
-            <SectionLabel className="mb-3">Routine call times</SectionLabel>
+            <SectionLabel className="mb-1">Competing routines</SectionLabel>
+            <p className="text-[11px] text-muted-2 mb-3">Add a routine that's competing. Entry number &amp; call time can be filled in later when the schedule is released — they flow straight to families.</p>
             <div className="bg-card border border-border rounded-lg p-3 mb-2 flex items-end gap-2 flex-wrap">
-              <div className="flex-1 min-w-[140px]">
+              <div className="flex-1 min-w-[160px]">
                 <Label className="text-xs text-muted-foreground">Routine</Label>
                 <Select value={entryPiece} onValueChange={setEntryPiece}>
-                  <SelectTrigger className="bg-secondary border-border h-9 text-xs"><SelectValue placeholder="Select piece" /></SelectTrigger>
+                  <SelectTrigger className="bg-secondary border-border h-9 text-xs"><SelectValue placeholder="Select routine" /></SelectTrigger>
                   <SelectContent>{pieces.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label className="text-xs text-muted-foreground">Call time</Label>
-                <Input type="time" value={entryTime} onChange={e => setEntryTime(e.target.value)} className="bg-secondary border-border h-9 text-xs w-32" />
-              </div>
-              <Button size="sm" disabled={!entryPiece || !entryTime || createEntry.isPending}
-                onClick={() => createEntry.mutate({ competition_weekend_id: selectedWeekend.id, piece_id: entryPiece, call_time: entryTime })}
-                className="bg-primary text-[#06110f] font-bold text-[11px] h-9">Add</Button>
+              <Button size="sm" disabled={!entryPiece || createEntry.isPending}
+                onClick={() => createEntry.mutate({ competition_weekend_id: selectedWeekend.id, piece_id: entryPiece, call_time: null, entry_number: null })}
+                className="bg-primary text-[#06110f] font-bold text-[11px] h-9"><Plus className="w-3.5 h-3.5 mr-1" />Add routine</Button>
             </div>
             {weekendEntries.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic">No call times set</p>
+              <p className="text-xs text-muted-foreground italic">No routines added yet</p>
             ) : (
               <div className="space-y-2">
                 {weekendEntries.map(en => {
                   const piece = pieces.find(p => p.id === en.piece_id);
                   return (
-                    <div key={en.id} className="bg-card border border-border rounded-lg p-3 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
+                    <div key={en.id} className="bg-card border border-border rounded-lg p-3 flex items-center gap-3 flex-wrap">
+                      <div className="flex items-center gap-2 flex-1 min-w-[120px]">
                         <Music2 className="w-3.5 h-3.5 text-gold" />
                         <span className="text-sm text-foreground">{piece?.title || 'Routine'}</span>
-                        <span className="text-xs text-gold flex items-center gap-1"><Clock className="w-3 h-3" />Call {formatTime(en.call_time)}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                        Entry #
+                        <Input defaultValue={en.entry_number || ''} onBlur={e => updateEntry.mutate({ id: en.id, data: { entry_number: e.target.value || null } })}
+                          placeholder="—" className="bg-secondary border-border h-8 w-16 text-xs" />
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                        Call
+                        <Input type="time" defaultValue={en.call_time || ''} onBlur={e => updateEntry.mutate({ id: en.id, data: { call_time: e.target.value || null } })}
+                          className="bg-secondary border-border h-8 w-[110px] text-xs" />
                       </div>
                       <button onClick={() => deleteEntry.mutate(en.id)} className="p-1.5 text-muted-foreground hover:text-terracotta"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
@@ -253,7 +263,7 @@ function EntryFormDialog({ open, onClose, weekend, pieces, onSave }) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { onClose(); setForm({ title: '', category: '', scheduled_date: '', scheduled_time: '', piece_id: '' }); } }}>
-      <DialogContent className="bg-card border-border max-w-sm">
+      <DialogContent className="bg-card border-border max-w-sm" onInteractOutside={e => e.preventDefault()} onPointerDownOutside={e => e.preventDefault()}>
         <DialogHeader><DialogTitle className="font-body text-foreground">Add Competing Number</DialogTitle></DialogHeader>
         <form onSubmit={(e) => { e.preventDefault(); onSave(form); setForm({ title: '', category: '', scheduled_date: '', scheduled_time: '', piece_id: '' }); }} className="space-y-3">
           <div>
@@ -297,7 +307,7 @@ function WeekendFormDialog({ open, onClose, onSave }) {
   const [form, setForm] = useState({ name: '', start_date: '', end_date: '', venue: '', notes: '' });
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { onClose(); setForm({ name: '', start_date: '', end_date: '', venue: '', notes: '' }); } }}>
-      <DialogContent className="bg-card border-border max-w-sm">
+      <DialogContent className="bg-card border-border max-w-sm" onInteractOutside={e => e.preventDefault()} onPointerDownOutside={e => e.preventDefault()}>
         <DialogHeader><DialogTitle className="font-body text-foreground">New Competition Weekend</DialogTitle></DialogHeader>
         <form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="space-y-3">
           <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required className="bg-secondary border-border" /></div>
@@ -318,7 +328,7 @@ function ShiftFormDialog({ open, onClose, weekend, teachers, onSave }) {
   const [form, setForm] = useState({ date: '', start_time: '08:00', end_time: '17:00', teacher_id: '', role: '' });
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { onClose(); setForm({ date: '', start_time: '08:00', end_time: '17:00', teacher_id: '', role: '' }); } }}>
-      <DialogContent className="bg-card border-border max-w-sm">
+      <DialogContent className="bg-card border-border max-w-sm" onInteractOutside={e => e.preventDefault()} onPointerDownOutside={e => e.preventDefault()}>
         <DialogHeader><DialogTitle className="font-body text-foreground">Add Shift</DialogTitle></DialogHeader>
         <form onSubmit={(e) => { e.preventDefault(); onSave({ ...form, competition_weekend_id: weekend?.id }); }} className="space-y-3">
           <div><Label className="text-xs text-muted-foreground">Date</Label><Input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required className="bg-secondary border-border" /></div>
