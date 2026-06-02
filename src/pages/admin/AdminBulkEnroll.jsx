@@ -77,7 +77,7 @@ export default function AdminBulkEnroll() {
 
   return (
     <div className="px-4 pt-2 pb-6 max-w-4xl mx-auto">
-      <SectionLabel className="pt-4 mb-4">Bulk Enrollment</SectionLabel>
+      <h1 className="font-serif text-[28px] font-semibold mb-4 -tracking-[0.01em]">Bulk enrollment</h1>
 
       {/* Class selector */}
       <div className="bg-card border border-border rounded-lg p-4 mb-4">

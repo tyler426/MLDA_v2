@@ -45,7 +45,7 @@ export default function AdminPieces() {
   return (
     <div className="px-4 pt-2 pb-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between pt-4 mb-4">
-        <SectionLabel>Pieces</SectionLabel>
+        <h1 className="font-serif text-[28px] font-semibold -tracking-[0.01em]">Pieces</h1>
         <Button size="sm" onClick={() => setShowCreate(true)} className="bg-primary hover:bg-primary/90 font-caps text-[10px] uppercase tracking-[0.12em]">
           <Plus className="w-4 h-4 mr-1" /> New Piece
         </Button>

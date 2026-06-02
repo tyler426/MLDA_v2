@@ -74,7 +74,7 @@ export default function AdminAttendance() {
 
   return (
     <div className="px-4 pt-2 pb-6 max-w-2xl mx-auto">
-      <SectionLabel className="pt-4 mb-4">Attendance</SectionLabel>
+      <h1 className="font-serif text-[28px] font-semibold mb-4 -tracking-[0.01em]">Attendance</h1>
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 border-b border-border overflow-x-auto">

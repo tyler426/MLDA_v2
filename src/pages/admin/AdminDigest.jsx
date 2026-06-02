@@ -103,7 +103,7 @@ export default function AdminDigest() {
 
   return (
     <div className="px-4 pt-2 pb-6 max-w-lg mx-auto">
-      <SectionLabel className="pt-4 mb-6">Daily Digest</SectionLabel>
+      <h1 className="font-serif text-[28px] font-semibold mb-6 -tracking-[0.01em]">Daily digest</h1>
 
       {/* Status card */}
       <div className="bg-card border border-border rounded-lg p-4 mb-6">

@@ -22,7 +22,7 @@ export default function AdminNotifications() {
   return (
     <div className="px-4 pt-2 pb-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between pt-4 mb-4">
-        <SectionLabel>Notifications Log</SectionLabel>
+        <h1 className="font-serif text-[28px] font-semibold -tracking-[0.01em]">Notifications log</h1>
         <div className={`flex items-center gap-1.5 text-[10px] font-caps uppercase tracking-[0.12em] px-2 py-1 rounded-md ${notificationsEnabled ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted-foreground'}`}>
           {notificationsEnabled ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
           {notificationsEnabled ? 'Sending' : 'Paused'}

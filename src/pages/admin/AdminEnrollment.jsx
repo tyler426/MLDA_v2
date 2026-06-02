@@ -78,7 +78,7 @@ export default function AdminEnrollment() {
 
   return (
     <div className="px-4 pt-2 pb-8 max-w-4xl mx-auto">
-      <SectionLabel className="pt-4 mb-1">Class Roster & Enrollment</SectionLabel>
+      <h1 className="font-serif text-[28px] font-semibold mb-1 -tracking-[0.01em]">Class roster & enrollment</h1>
       <p className="text-xs text-muted-foreground mb-4">{filteredClasses.length} classes · {totalEnrolled} active enrollments</p>
 
       {/* Filters */}
