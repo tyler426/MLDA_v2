@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
   if (type === 'parent') {
     const { data: household } = await admin.from('households').select('*').eq('ics_token', token).single();
     if (!household) return new Response('Not found', { status: 404 });
-    const { data: dancers } = await admin.from('dancers').select('*').eq('household_id', household.id);
+    const { data: dancers } = await admin.from('dancers').select('*').eq('parent_household_id', household.id);
     const dancerIds = (dancers ?? []).map((d: any) => d.id);
     const { data: enrollments } = await admin.from('class_enrollments')
       .select('*').in('dancer_id', dancerIds.length ? dancerIds : ['00000000-0000-0000-0000-000000000000']).eq('active', true);

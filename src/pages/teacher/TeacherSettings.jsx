@@ -20,7 +20,8 @@ export default function TeacherSettings() {
   });
 
   const icsToken = teacher?.ics_token;
-  const icsUrl = icsToken ? `${window.location.origin}/api/ics/teacher/${icsToken}` : null;
+  const fnBase = import.meta.env.VITE_SUPABASE_URL?.replace('.supabase.co', '.functions.supabase.co');
+  const icsUrl = icsToken ? `${fnBase}/ics-feed?type=teacher&token=${icsToken}` : null;
 
   const handleCopy = async () => {
     if (icsUrl) {

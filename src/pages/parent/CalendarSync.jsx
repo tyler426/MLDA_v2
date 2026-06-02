@@ -1,26 +1,17 @@
-import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useMyHousehold } from '@/lib/useMyHousehold';
 import { Button } from '@/components/ui/button';
 import { Copy, Check, Calendar } from 'lucide-react';
 import SectionLabel from '@/components/shared/SectionLabel';
 import { toast } from 'sonner';
 
 export default function CalendarSync() {
-  const [userEmail, setUserEmail] = useState(null);
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => { base44.auth.me().then(u => setUserEmail(u?.email)); }, []);
-
-  const { data: household } = useQuery({
-    queryKey: ['parentHousehold', userEmail],
-    queryFn: () => base44.entities.ParentHousehold.filter({ email: userEmail }),
-    enabled: !!userEmail,
-    select: d => d[0],
-  });
+  const { data: household } = useMyHousehold();
 
   const icsToken = household?.ics_token;
-  const icsUrl = icsToken ? `${window.location.origin}/api/ics/parent/${icsToken}` : null;
+  const fnBase = import.meta.env.VITE_SUPABASE_URL?.replace('.supabase.co', '.functions.supabase.co');
+  const icsUrl = icsToken ? `${fnBase}/ics-feed?type=parent&token=${icsToken}` : null;
 
   const handleCopy = async () => {
     if (icsUrl) {

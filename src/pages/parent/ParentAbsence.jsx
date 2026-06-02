@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMyHousehold } from '@/lib/useMyHousehold';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,7 +19,6 @@ const STATUS_COLORS = {
 };
 
 export default function ParentAbsence() {
-  const [userEmail, setUserEmail] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({
@@ -35,14 +35,7 @@ export default function ParentAbsence() {
   const [expandedAbsence, setExpandedAbsence] = useState(null);
   const qc = useQueryClient();
 
-  useEffect(() => { base44.auth.me().then(u => setUserEmail(u?.email)); }, []);
-
-  const { data: household } = useQuery({
-    queryKey: ['parentHousehold', userEmail],
-    queryFn: () => base44.entities.ParentHousehold.filter({ email: userEmail }),
-    enabled: !!userEmail,
-    select: d => d[0],
-  });
+  const { data: household } = useMyHousehold();
 
   const { data: dancers = [] } = useQuery({
     queryKey: ['dancers', household?.id],

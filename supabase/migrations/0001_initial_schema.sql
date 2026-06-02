@@ -87,10 +87,10 @@ create table if not exists teachers (
 -- Households (a family unit) + caregiver memberships (the NEW multi-login model)
 -- -----------------------------------------------------------------------------
 create table if not exists households (
-  id                 uuid primary key default gen_random_uuid(),
-  name               text not null,            -- e.g. "The Smith Family" (was primary_contact_name)
-  email              text,                     -- optional legacy primary contact
-  phone              text,
+  id                    uuid primary key default gen_random_uuid(),
+  primary_contact_name  text not null,         -- display label for the family (kept from Base44)
+  email                 text,                  -- optional contact email
+  phone                 text,
   ics_token          uuid not null default gen_random_uuid(),
   notification_prefs jsonb not null default '{}'::jsonb,
   created_at         timestamptz not null default now()
@@ -119,7 +119,7 @@ create table if not exists dancers (
   dob                   date,
   program               dance_program,
   level                 text,
-  household_id          uuid references households(id) on delete set null,
+  parent_household_id   uuid references households(id) on delete set null,
   jackrabbit_student_id text,
   archived              boolean not null default false,
   created_at            timestamptz not null default now()
@@ -311,7 +311,7 @@ insert into app_settings (id) values (1) on conflict (id) do nothing;
 -- -----------------------------------------------------------------------------
 create index if not exists idx_household_members_profile on household_members(profile_id);
 create index if not exists idx_household_members_household on household_members(household_id);
-create index if not exists idx_dancers_household on dancers(household_id);
+create index if not exists idx_dancers_household on dancers(parent_household_id);
 create index if not exists idx_enrollments_dancer on class_enrollments(dancer_id);
 create index if not exists idx_enrollments_class on class_enrollments(class_id);
 create index if not exists idx_classes_day on dance_classes(day_of_week);

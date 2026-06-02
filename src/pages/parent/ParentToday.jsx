@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useMyHousehold } from '@/lib/useMyHousehold';
 import PickupTimeHero from '@/components/shared/PickupTimeHero';
 import ClassCard from '@/components/shared/ClassCard';
 import SectionLabel from '@/components/shared/SectionLabel';
@@ -21,19 +22,8 @@ function computeEndTime(startTime, durationHours) {
 }
 
 export default function ParentToday() {
-  const [userEmail, setUserEmail] = useState(null);
   const [selectedDow, setSelectedDow] = useState(null); // null = today
-
-  useEffect(() => {
-    base44.auth.me().then(u => setUserEmail(u?.email));
-  }, []);
-
-  const { data: household } = useQuery({
-    queryKey: ['parentHousehold', userEmail],
-    queryFn: () => base44.entities.ParentHousehold.filter({ email: userEmail }),
-    enabled: !!userEmail,
-    select: data => data[0],
-  });
+  const { data: household } = useMyHousehold();
 
   const { data: dancers = [] } = useQuery({
     queryKey: ['dancers', household?.id],

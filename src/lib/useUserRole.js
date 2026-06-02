@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabaseClient';
 
+// Role now comes straight from the `profiles.role` column (admin | teacher | parent),
+// instead of being guessed by matching the user's email against tables.
 export function useUserRole() {
   const [role, setRole] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
@@ -13,36 +16,29 @@ export function useUserRole() {
       try {
         const user = await base44.auth.me();
         if (!user) { setLoading(false); return; }
-        
+
         setUserEmail(user.email);
-        
-        // Check if admin
-        if (user.role === 'admin') {
-          setRole('admin');
-          setLoading(false);
-          return;
+        setRole(user.role || 'parent');
+
+        if (user.role === 'teacher') {
+          // Link the teacher record by profile, falling back to email.
+          let { data: teachers } = await supabase
+            .from('teachers').select('*').eq('profile_id', user.id);
+          if (!teachers?.length) {
+            ({ data: teachers } = await supabase
+              .from('teachers').select('*').eq('email', user.email));
+          }
+          setTeacherRecord(teachers?.[0] || null);
+        } else if (!user.role || user.role === 'parent') {
+          const { data } = await supabase
+            .from('household_members')
+            .select('households(*)')
+            .eq('profile_id', user.id)
+            .order('is_primary', { ascending: false })
+            .limit(1);
+          setParentRecord(data?.[0]?.households || null);
         }
 
-        // Check if teacher
-        const teachers = await base44.entities.Teacher.filter({ email: user.email });
-        if (teachers.length > 0) {
-          setRole('teacher');
-          setTeacherRecord(teachers[0]);
-          setLoading(false);
-          return;
-        }
-
-        // Check if parent
-        const parents = await base44.entities.ParentHousehold.filter({ email: user.email });
-        if (parents.length > 0) {
-          setRole('parent');
-          setParentRecord(parents[0]);
-          setLoading(false);
-          return;
-        }
-
-        // Default to parent if no match found
-        setRole('parent');
         setLoading(false);
       } catch (e) {
         console.error('Error determining role:', e);

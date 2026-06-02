@@ -35,7 +35,7 @@ $$;
 -- Dancers in the current user's households.
 create or replace function my_dancer_ids()
 returns setof uuid language sql stable security definer set search_path = public as $$
-  select id from dancers where household_id in (select my_household_ids());
+  select id from dancers where parent_household_id in (select my_household_ids());
 $$;
 
 -- -----------------------------------------------------------------------------
@@ -106,7 +106,7 @@ create policy hm_admin  on household_members for all using (is_admin()) with che
 -- dancers — caregivers read their household's dancers; teachers read all
 -- -----------------------------------------------------------------------------
 create policy dancers_read on dancers for select
-  using (is_teacher() or household_id in (select my_household_ids()));
+  using (is_teacher() or parent_household_id in (select my_household_ids()));
 create policy dancers_admin_all on dancers for all using (is_admin()) with check (is_admin());
 
 -- -----------------------------------------------------------------------------

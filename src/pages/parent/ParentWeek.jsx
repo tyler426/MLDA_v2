@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useMyHousehold } from '@/lib/useMyHousehold';
 import { format, isToday } from 'date-fns';
 import ClassCard from '@/components/shared/ClassCard';
 import SectionLabel from '@/components/shared/SectionLabel';
@@ -17,15 +18,7 @@ function computeEndTime(startTime, durationHours) {
 }
 
 export default function ParentWeek() {
-  const [userEmail, setUserEmail] = useState(null);
-  useEffect(() => { base44.auth.me().then(u => setUserEmail(u?.email)); }, []);
-
-  const { data: household } = useQuery({
-    queryKey: ['parentHousehold', userEmail],
-    queryFn: () => base44.entities.ParentHousehold.filter({ email: userEmail }),
-    enabled: !!userEmail,
-    select: d => d[0],
-  });
+  const { data: household } = useMyHousehold();
 
   const { data: dancers = [] } = useQuery({
     queryKey: ['dancers', household?.id],

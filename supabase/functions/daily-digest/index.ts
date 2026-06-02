@@ -41,7 +41,7 @@ Deno.serve(async () => {
     const errors: unknown[] = [];
 
     for (const household of households) {
-      const kids = dancers.filter((d: any) => d.household_id === household.id && !d.archived);
+      const kids = dancers.filter((d: any) => d.parent_household_id === household.id && !d.archived);
       if (!kids.length) continue;
 
       const lines: string[] = [];
@@ -65,7 +65,7 @@ Deno.serve(async () => {
       }
       if (!lines.length || !household.email) continue;
 
-      const body = `Hi ${household.name},\n\nHere is today's schedule for your dancer${kids.length > 1 ? 's' : ''} — ${todayStr}:\n\n${lines.join('\n')}\n\nSee you at the studio!\n— MLDA Collective`;
+      const body = `Hi ${household.primary_contact_name},\n\nHere is today's schedule for your dancer${kids.length > 1 ? 's' : ''} — ${todayStr}:\n\n${lines.join('\n')}\n\nSee you at the studio!\n— MLDA Collective`;
 
       try {
         const res = await fetch('https://api.resend.com/emails', {
