@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useMyHousehold } from '@/lib/useMyHousehold';
 import { todayDateStr } from '@/lib/scheduleUtils';
+import { tzAbbrev } from '@/lib/dateUtils';
 import { Shirt, Play, Pause, ChevronRight } from 'lucide-react';
 import { differenceInCalendarDays, parseISO } from 'date-fns';
 import { toast } from 'sonner';
@@ -32,7 +33,13 @@ export default function ParentPieces() {
   const myPieceIds = new Set(pieceCasts.filter(pc => dancerIds.has(pc.dancer_id)).map(pc => pc.piece_id));
   const myPieces = pieces.filter(p => myPieceIds.has(p.id));
   const myCostumes = costumes.filter(c => dancerIds.has(c.dancer_id));
-  const callTimeFor = pid => fmtCallTime(entries.find(e => e.piece_id === pid)?.call_time);
+  const callTimeFor = pid => {
+    const e = entries.find(e => e.piece_id === pid);
+    if (!e?.call_time) return null;
+    const w = comps.find(c => c.id === e.competition_weekend_id);
+    const tz = w ? tzAbbrev(w.timezone, w.start_date) : '';
+    return `${fmtCallTime(e.call_time)}${tz ? ` ${tz}` : ''}`;
+  };
 
   const upcoming = comps.filter(c => c.start_date && c.start_date >= todayDateStr()).sort((a, b) => a.start_date.localeCompare(b.start_date));
   const nextComp = upcoming[0];

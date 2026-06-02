@@ -11,7 +11,7 @@ import SectionLabel from '@/components/shared/SectionLabel';
 import EmptyState from '@/components/shared/EmptyState';
 import { Plus, Trophy, MapPin, Calendar, Clock, UserPlus, Trash2, Music2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { fmtDate } from '@/lib/dateUtils';
+import { fmtDate, COMMON_TIMEZONES } from '@/lib/dateUtils';
 import { formatTime } from '@/lib/scheduleUtils';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -305,9 +305,10 @@ function EntryFormDialog({ open, onClose, weekend, pieces, onSave }) {
 }
 
 function WeekendFormDialog({ open, onClose, onSave }) {
-  const [form, setForm] = useState({ name: '', start_date: '', end_date: '', venue: '', notes: '' });
+  const EMPTY = { name: '', start_date: '', end_date: '', venue: '', timezone: 'America/Denver', notes: '' };
+  const [form, setForm] = useState(EMPTY);
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) { onClose(); setForm({ name: '', start_date: '', end_date: '', venue: '', notes: '' }); } }}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) { onClose(); setForm(EMPTY); } }}>
       <DialogContent className="bg-card border-border max-w-sm" onInteractOutside={e => e.preventDefault()} onPointerDownOutside={e => e.preventDefault()}>
         <DialogHeader><DialogTitle className="font-body text-foreground">New Competition Weekend</DialogTitle></DialogHeader>
         <form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="space-y-3">
@@ -317,6 +318,13 @@ function WeekendFormDialog({ open, onClose, onSave }) {
             <div><Label className="text-xs text-muted-foreground">End</Label><Input type="date" value={form.end_date} onChange={e => setForm({ ...form, end_date: e.target.value })} required className="bg-secondary border-border" /></div>
           </div>
           <div><Label className="text-xs text-muted-foreground">Venue</Label><Input value={form.venue} onChange={e => setForm({ ...form, venue: e.target.value })} className="bg-secondary border-border" /></div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Timezone <span className="text-muted-2">(call times shown in this zone)</span></Label>
+            <Select value={form.timezone} onValueChange={v => setForm({ ...form, timezone: v })}>
+              <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+              <SelectContent>{COMMON_TIMEZONES.map(tz => <SelectItem key={tz.value} value={tz.value}>{tz.label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
           <div><Label className="text-xs text-muted-foreground">Notes</Label><Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} className="bg-secondary border-border" /></div>
           <DialogFooter><Button type="submit" className="bg-primary hover:bg-primary/90 font-caps text-[10px] uppercase tracking-[0.12em]">Create</Button></DialogFooter>
         </form>
