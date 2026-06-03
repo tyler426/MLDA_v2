@@ -3,11 +3,17 @@ import { base44 } from '@/api/base44Client';
 import { supabase } from '@/lib/supabaseClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, startOfWeek, addDays, isSameMonth, isToday, parseISO } from 'date-fns';
-import { ChevronLeft, ChevronRight, X, Wand2, Send } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Wand2, Send, Plus, Trophy, Sparkles } from 'lucide-react';
 import SectionLabel from '@/components/shared/SectionLabel';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { formatTime, weekStartStr } from '@/lib/scheduleUtils';
 import { useSeasonWeeks } from '@/lib/useSeasonWeeks';
 import { useStudioConfig } from '@/lib/useStudioConfig';
+import { COMMON_TIMEZONES } from '@/lib/dateUtils';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -52,6 +58,7 @@ export default function MonthlyCalendar({ role = 'parent' }) {
   const [selectedDay, setSelectedDay] = useState(null);
   const [programFilter, setProgramFilter] = useState('all');
   const [markProgram, setMarkProgram] = useState('all'); // program a new designation applies to
+  const [addKind, setAddKind] = useState(null); // 'comp' | 'guest' — quick-add dialog
   const [selectedDancerId, setSelectedDancerId] = useState(null);
   const qc = useQueryClient();
   const isAdmin = role === 'admin';
@@ -196,6 +203,18 @@ export default function MonthlyCalendar({ role = 'parent' }) {
     onError: (e) => toast.error(e.message),
   });
 
+  // Quick-add a competition or guest artist straight from a day on the month.
+  const createCompMutation = useMutation({
+    mutationFn: (d) => base44.entities.CompetitionWeekend.create(d),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['competitions'] }); setAddKind(null); toast.success('Competition added'); },
+    onError: (e) => toast.error(e.message),
+  });
+  const createGuestMutation = useMutation({
+    mutationFn: (d) => base44.entities.DanceClass.create(d),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['allClasses'] }); setAddKind(null); toast.success('Guest artist added'); },
+    onError: (e) => toast.error(e.message),
+  });
+
   const monthStart = format(new Date(year, month, 1), 'yyyy-MM-dd');
   const monthEnd = format(endOfMonth(new Date(year, month, 1)), 'yyyy-MM-dd');
 
@@ -311,7 +330,7 @@ export default function MonthlyCalendar({ role = 'parent' }) {
       )}
       {isAdmin && (
         <p className="text-[11px] text-muted-2 -mt-1 mb-3">
-          Tap the <span className="text-foreground">B/T label</span> beside each week to set it Black or Teal (this drives which classes show on the day &amp; week views). Tap a day to mark a Tribe Vibe / travel week.
+          Tap the <span className="text-foreground">B/T label</span> beside each week to set it Black or Teal (this drives which classes show on the day &amp; week views). Tap any day to <span className="text-foreground">add a competition or guest artist</span>, or mark a Tribe Vibe / travel week.
         </p>
       )}
 
@@ -424,10 +443,21 @@ export default function MonthlyCalendar({ role = 'parent' }) {
               </button>
             </div>
 
-            {/* Admin: Tribe Vibe / Approved Travel designations */}
+            {/* Admin: add events + Tribe Vibe / Approved Travel designations */}
             {isAdmin && selectedDateStr && (
               <div className="mb-4 bg-secondary/30 border border-border rounded-lg p-3">
-                <p className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-2">Studio designation</p>
+                <p className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-2">Add to {format(selectedDay, 'MMM d')}</p>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  <button onClick={() => setAddKind('comp')}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded font-caps text-[11px] uppercase tracking-[0.1em] border border-border text-muted-foreground hover:text-foreground transition-colors">
+                    <Trophy className="w-3.5 h-3.5" /> Competition
+                  </button>
+                  <button onClick={() => setAddKind('guest')}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded font-caps text-[11px] uppercase tracking-[0.1em] border border-border text-muted-foreground hover:text-foreground transition-colors">
+                    <Sparkles className="w-3.5 h-3.5" /> Guest artist
+                  </button>
+                </div>
+                <p className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-2">Designate week</p>
                 <div className="flex items-center gap-1.5 mb-2 flex-wrap">
                   <span className="text-[11px] text-muted-2">Applies to:</span>
                   {['all', ...(cfg?.programs || [])].map(p => (
@@ -545,7 +575,101 @@ export default function MonthlyCalendar({ role = 'parent' }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Quick-add dialogs (admin) */}
+      {isAdmin && addKind === 'comp' && selectedDateStr && (
+        <CompetitionQuickAdd date={selectedDateStr} programs={cfg?.programs || []} onClose={() => setAddKind(null)} onSave={(d) => createCompMutation.mutate(d)} saving={createCompMutation.isPending} />
+      )}
+      {isAdmin && addKind === 'guest' && selectedDateStr && (
+        <GuestArtistQuickAdd date={selectedDateStr} studios={studios} teachers={teachers} onClose={() => setAddKind(null)} onSave={(d) => createGuestMutation.mutate(d)} saving={createGuestMutation.isPending} />
+      )}
     </div>
+  );
+}
+
+function CompetitionQuickAdd({ date, programs, onClose, onSave, saving }) {
+  const [form, setForm] = useState({ name: '', start_date: date, end_date: date, venue: '', program: 'all', timezone: 'America/Denver' });
+  return (
+    <Dialog open onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="bg-card border-border max-w-sm" onInteractOutside={e => e.preventDefault()} onPointerDownOutside={e => e.preventDefault()}>
+        <DialogHeader><DialogTitle className="font-body text-foreground">New competition</DialogTitle></DialogHeader>
+        <form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="space-y-3">
+          <div><Label className="text-xs text-muted-foreground">Name</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required className="bg-secondary border-border" /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><Label className="text-xs text-muted-foreground">Start</Label><Input type="date" value={form.start_date} onChange={e => setForm({ ...form, start_date: e.target.value })} required className="bg-secondary border-border" /></div>
+            <div><Label className="text-xs text-muted-foreground">End</Label><Input type="date" value={form.end_date} onChange={e => setForm({ ...form, end_date: e.target.value })} required className="bg-secondary border-border" /></div>
+          </div>
+          <div><Label className="text-xs text-muted-foreground">Venue</Label><Input value={form.venue} onChange={e => setForm({ ...form, venue: e.target.value })} className="bg-secondary border-border" /></div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Who's competing</Label>
+            <Select value={form.program} onValueChange={v => setForm({ ...form, program: v })}>
+              <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Whole studio</SelectItem>
+                {programs.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Timezone</Label>
+            <Select value={form.timezone} onValueChange={v => setForm({ ...form, timezone: v })}>
+              <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+              <SelectContent>{COMMON_TIMEZONES.map(tz => <SelectItem key={tz.value} value={tz.value}>{tz.label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" onClick={onClose} className="text-[12px]">Cancel</Button>
+            <Button type="submit" disabled={saving} className="bg-primary text-[#06110f] font-bold text-[12px]">Add</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function GuestArtistQuickAdd({ date, studios, teachers, onClose, onSave, saving }) {
+  const [form, setForm] = useState({ guest_artist_name: '', title: 'Guest artist', start_time: '17:00', end_time: '18:30', studio_id: '', teacher_id: '' });
+  const submit = (e) => {
+    e.preventDefault();
+    onSave({
+      title: form.title || 'Guest artist',
+      one_time_date: date,
+      guest_artist: true,
+      guest_artist_name: form.guest_artist_name,
+      start_time: form.start_time,
+      end_time: form.end_time,
+      studio_id: form.studio_id || null,
+      teacher_id: form.teacher_id || null,
+    });
+  };
+  return (
+    <Dialog open onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="bg-card border-border max-w-sm" onInteractOutside={e => e.preventDefault()} onPointerDownOutside={e => e.preventDefault()}>
+        <DialogHeader><DialogTitle className="font-body text-foreground">Guest artist on {date}</DialogTitle></DialogHeader>
+        <form onSubmit={submit} className="space-y-3">
+          <div><Label className="text-xs text-muted-foreground">Guest name</Label><Input value={form.guest_artist_name} onChange={e => setForm({ ...form, guest_artist_name: e.target.value })} required placeholder="e.g. Travis Wall" className="bg-secondary border-border" /></div>
+          <div><Label className="text-xs text-muted-foreground">Session title</Label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="bg-secondary border-border" /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><Label className="text-xs text-muted-foreground">Start</Label><Input type="time" value={form.start_time} onChange={e => setForm({ ...form, start_time: e.target.value })} className="bg-secondary border-border" /></div>
+            <div><Label className="text-xs text-muted-foreground">End</Label><Input type="time" value={form.end_time} onChange={e => setForm({ ...form, end_time: e.target.value })} className="bg-secondary border-border" /></div>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Studio <span className="text-muted-2">(optional)</span></Label>
+            <Select value={form.studio_id || 'none'} onValueChange={v => setForm({ ...form, studio_id: v === 'none' ? '' : v })}>
+              <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="—" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">—</SelectItem>
+                {studios.map(s => <SelectItem key={s.id} value={s.id}>Studio {s.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" onClick={onClose} className="text-[12px]">Cancel</Button>
+            <Button type="submit" disabled={saving} className="bg-primary text-[#06110f] font-bold text-[12px]">Add</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
