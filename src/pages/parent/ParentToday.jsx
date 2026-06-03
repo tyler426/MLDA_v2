@@ -85,7 +85,12 @@ export default function ParentToday() {
       {/* greeting */}
       <div className="flex items-center justify-between pt-1">
         <div>
-          <div className="text-[11px] tracking-[0.26em] uppercase text-gold font-semibold">MLDA Collective</div>
+          <div className="flex items-center gap-2">
+            <div className="text-[11px] tracking-[0.26em] uppercase text-gold font-semibold">MLDA Collective</div>
+            {thisWeekType && (
+              <span className={`text-[10px] font-caps uppercase tracking-[0.12em] px-2 py-0.5 rounded-full ${thisWeekType === 'Teal' ? 'bg-teal/20 text-teal' : 'bg-zinc-700 text-zinc-200'}`}>{thisWeekType} week</span>
+            )}
+          </div>
           <div className="font-serif text-[25px] font-semibold mt-1">{greeting()}, {firstName}</div>
         </div>
       </div>

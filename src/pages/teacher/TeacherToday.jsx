@@ -55,7 +55,12 @@ export default function TeacherToday() {
   return (
     <div className="animate-[fade_.32s_ease] px-5">
       <div className="pt-1">
-        <div className="text-[11px] tracking-[0.26em] uppercase text-gold font-semibold">{format(new Date(), 'EEEE · MMMM d')}</div>
+        <div className="flex items-center gap-2">
+          <div className="text-[11px] tracking-[0.26em] uppercase text-gold font-semibold">{format(new Date(), 'EEEE · MMMM d')}</div>
+          {weekTypeFor(activeDateStr) && (
+            <span className={`text-[10px] font-caps uppercase tracking-[0.12em] px-2 py-0.5 rounded-full ${weekTypeFor(activeDateStr) === 'Teal' ? 'bg-teal/20 text-teal' : 'bg-zinc-700 text-zinc-200'}`}>{weekTypeFor(activeDateStr)} week</span>
+          )}
+        </div>
         <h1 className="font-serif text-[25px] font-semibold mt-1">{greeting()}, {teacher?.first_name || 'Teacher'}</h1>
       </div>
 

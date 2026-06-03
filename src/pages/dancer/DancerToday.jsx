@@ -68,7 +68,12 @@ export default function DancerToday() {
   return (
     <div className="px-4 pt-2 pb-6 max-w-lg mx-auto">
       <div className="flex items-baseline justify-between pt-4 mb-1">
-        <SectionLabel>{isToday ? 'Today' : DAYS[activeDow]}</SectionLabel>
+        <div className="flex items-center gap-2">
+          <SectionLabel>{isToday ? 'Today' : DAYS[activeDow]}</SectionLabel>
+          {weekTypeFor(activeDateStr) && (
+            <span className={`text-[10px] font-caps uppercase tracking-[0.12em] px-2 py-0.5 rounded-full ${weekTypeFor(activeDateStr) === 'Teal' ? 'bg-teal/20 text-teal' : 'bg-zinc-700 text-zinc-200'}`}>{weekTypeFor(activeDateStr)} week</span>
+          )}
+        </div>
         {dancer && <span className="text-xs text-muted-foreground">{dancer.first_name}</span>}
       </div>
 

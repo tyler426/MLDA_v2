@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useStudioConfig } from '@/lib/useStudioConfig';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Send, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -14,18 +15,28 @@ export default function AdminComms() {
   const { data: cfg } = useStudioConfig();
   const { data: households = [] } = useQuery({ queryKey: ['allParents'], queryFn: () => base44.entities.ParentHousehold.list() });
   const { data: dancers = [] } = useQuery({ queryKey: ['allDancers'], queryFn: () => base44.entities.Dancer.list() });
+  const { data: pieces = [] } = useQuery({ queryKey: ['pieces'], queryFn: () => base44.entities.Piece.list() });
+  const { data: pieceCasts = [] } = useQuery({ queryKey: ['pieceCasts'], queryFn: () => base44.entities.PieceCast.list() });
 
   const audiences = [
     { key: 'all', label: 'All families' },
     ...(cfg?.programs || []).map(p => ({ key: `program:${p}`, label: p })),
     ...(cfg?.levels || []).map(l => ({ key: `level:${l}`, label: l })),
   ];
+  const selectedPieceId = audience.startsWith('piece:') ? audience.slice(6) : '';
 
-  // Households that match the selected audience (via their dancers).
+  // Households that match the selected audience (via their dancers / casting).
   const targetHouseholds = (() => {
     if (audience === 'all') return households.filter(h => h.email);
     const [kind, val] = audience.split(':');
-    const ok = new Set(dancers.filter(d => (kind === 'program' ? d.program === val : d.level === val)).map(d => d.parent_household_id));
+    let dancerIds;
+    if (kind === 'piece') {
+      const cast = new Set(pieceCasts.filter(pc => pc.piece_id === val).map(pc => pc.dancer_id));
+      dancerIds = dancers.filter(d => cast.has(d.id));
+    } else {
+      dancerIds = dancers.filter(d => (kind === 'program' ? d.program === val : d.level === val));
+    }
+    const ok = new Set(dancerIds.map(d => d.parent_household_id));
     return households.filter(h => h.email && ok.has(h.id));
   })();
 
@@ -43,7 +54,10 @@ export default function AdminComms() {
     onError: (e) => toast.error(e.message || 'Send failed'),
   });
 
-  const label = audiences.find(a => a.key === audience)?.label || 'All families';
+  const selectedPiece = pieces.find(p => p.id === selectedPieceId);
+  const label = audience.startsWith('piece:')
+    ? (selectedPiece ? `"${selectedPiece.title}" cast` : 'Routine cast')
+    : (audiences.find(a => a.key === audience)?.label || 'All families');
 
   return (
     <div className="animate-[fade_.3s_ease] max-w-2xl">
@@ -61,6 +75,19 @@ export default function AdminComms() {
             </button>
           ))}
           {audiences.length === 1 && <span className="text-[12px] text-muted-2 self-center">Add programs/levels in Settings to target groups.</span>}
+        </div>
+
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
+          <span className="text-[12px] text-muted-2">…or a specific routine:</span>
+          <Select value={selectedPieceId || 'none'} onValueChange={v => setAudience(v === 'none' ? 'all' : `piece:${v}`)}>
+            <SelectTrigger className="bg-secondary border-border h-9 w-[260px] text-sm"><SelectValue placeholder="Select a routine…" /></SelectTrigger>
+            <SelectContent className="max-h-[300px]">
+              <SelectItem value="none">— none —</SelectItem>
+              {pieces.slice().sort((a, b) => (a.title || '').localeCompare(b.title || '')).map(p => (
+                <SelectItem key={p.id} value={p.id}>{p.title}{p.kind === 'solo' ? ' (solo)' : ''}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="text-[10px] tracking-[0.2em] uppercase text-muted-2 mt-5 mb-2">Subject</div>
