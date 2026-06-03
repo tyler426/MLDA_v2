@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import {
   LayoutGrid, CalendarDays, AlertTriangle, Music, FileText, Users, Trophy,
-  ClipboardList, GraduationCap, DollarSign, Megaphone, Settings, Search, Bell, Calendar,
+  ClipboardList, GraduationCap, DollarSign, Megaphone, Settings, Search, Bell, Calendar, Tent,
 } from 'lucide-react';
 
 // Desktop "command center" shell for the Admin side — Spotlight design system.
@@ -16,6 +16,7 @@ const STUDIO_NAV = [
   { label: 'Enrollment', path: '/admin/enroll', icon: GraduationCap },
   { label: 'Roster', path: '/admin/roster', icon: Users },
   { label: 'Competitions', path: '/admin/competitions', icon: Trophy },
+  { label: 'Camps', path: '/admin/camps', icon: Tent },
   { label: 'Attendance', path: '/admin/attendance', icon: ClipboardList },
 ];
 const OPS_NAV = [

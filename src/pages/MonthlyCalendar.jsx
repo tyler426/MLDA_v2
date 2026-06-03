@@ -27,6 +27,7 @@ const EVENT_STYLES = {
   one_time_class: 'bg-accent/20 text-accent border-accent/30',
   tribe_vibe: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
   travel_approved: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+  camp: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
 };
 
 const VARIANT_BADGE = {
@@ -78,6 +79,7 @@ export default function MonthlyCalendar({ role = 'parent' }) {
   const { data: enrollments = [] } = useQuery({ queryKey: ['enrollments'], queryFn: () => base44.entities.ClassEnrollment.list() });
   const { data: competitions = [] } = useQuery({ queryKey: ['competitions'], queryFn: () => base44.entities.CompetitionWeekend.list() });
   const { data: calendarMarks = [] } = useQuery({ queryKey: ['calendarMarks'], queryFn: () => base44.entities.CalendarMark.list() });
+  const { data: camps = [] } = useQuery({ queryKey: ['camps'], queryFn: () => base44.entities.Camp.list() });
   const { data: studios = [] } = useQuery({ queryKey: ['studios'], queryFn: () => base44.entities.Studio.list() });
   const { data: teachers = [] } = useQuery({ queryKey: ['teachers'], queryFn: () => base44.entities.Teacher.list() });
   const { data: pieces = [] } = useQuery({ queryKey: ['pieces'], queryFn: () => base44.entities.Piece.list() });
@@ -106,6 +108,9 @@ export default function MonthlyCalendar({ role = 'parent' }) {
     : (programFilter === 'all' ? null : programFilter);
   // An item shows when it's studio-wide, or when its program matches the active scope.
   const matchesProgram = (item) => !item.program || item.program === 'all' || activeProgram === null || item.program === activeProgram;
+  // Parents also see only camps for their dancer's level (or all-level camps).
+  const activeLevel = role === 'parent' ? (householdDancers.find(d => d.id === selectedDancerId)?.level || null) : null;
+  const campMatches = (camp) => matchesProgram(camp) && (role !== 'parent' || !(camp.levels || []).length || (activeLevel && camp.levels.includes(activeLevel)));
 
   const deleteBookingMutation = useMutation({
     mutationFn: (id) => base44.entities.SpaceBooking.delete(id),
@@ -241,6 +246,12 @@ export default function MonthlyCalendar({ role = 'parent' }) {
       events.push({ type: 'competition', label: comp.name, sub: comp.venue || '', id: comp.id, data: comp, style: EVENT_STYLES.competition });
     });
 
+    // Camps (program + level scoped)
+    camps.filter(c => c.start_date <= dateStr && (c.end_date || c.start_date) >= dateStr && campMatches(c)).forEach(c => {
+      const levels = (c.levels || []).length ? c.levels.join(', ') : 'All levels';
+      events.push({ type: 'camp', label: c.name, sub: [c.location, levels].filter(Boolean).join(' · '), id: c.id, data: c, style: EVENT_STYLES.camp });
+    });
+
     events.push(...marksForDate(dateStr));
     return events;
   }
@@ -339,6 +350,7 @@ export default function MonthlyCalendar({ role = 'parent' }) {
         {[
           { label: 'Guest Artist', style: EVENT_STYLES.guest_artist },
           { label: 'Competition', style: EVENT_STYLES.competition },
+          { label: 'Camp', style: EVENT_STYLES.camp },
           { label: 'Tribe Vibe', style: EVENT_STYLES.tribe_vibe },
           { label: 'Travel OK', style: EVENT_STYLES.travel_approved },
         ].map(l => (

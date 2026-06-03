@@ -46,6 +46,7 @@ import AdminRehearsals from '@/pages/admin/AdminRehearsals';
 import AdminPieces from '@/pages/admin/AdminPieces';
 import AdminRoster from '@/pages/admin/AdminRoster';
 import AdminCompetitions from '@/pages/admin/AdminCompetitions';
+import AdminCamps from '@/pages/admin/AdminCamps';
 import AdminNotifications from '@/pages/admin/AdminNotifications';
 import AdminSettings from '@/pages/admin/AdminSettings';
 import AdminConflicts from '@/pages/admin/AdminConflicts';
@@ -136,6 +137,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/pieces" element={<AdminPieces />} />
         <Route path="/admin/roster" element={<AdminRoster />} />
         <Route path="/admin/competitions" element={<AdminCompetitions />} />
+        <Route path="/admin/camps" element={<AdminCamps />} />
         <Route path="/admin/notifications" element={<AdminNotifications />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
         <Route path="/admin/conflicts" element={<AdminConflicts />} />

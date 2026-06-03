@@ -27,6 +27,7 @@ const TABLE = {
   CompetitionShift: 'competition_shifts',
   SeasonWeek: 'season_weeks',
   CalendarMark: 'calendar_marks',
+  Camp: 'camps',
   ScheduleException: 'schedule_exceptions',
   AttendanceRecord: 'attendance_records',
   AbsenceReport: 'absence_reports',
