@@ -94,7 +94,7 @@ export default function TeacherToday() {
         {myClasses.map((c, i) => {
           const glow = isToday && i === nextIdx && !c.taken;
           return (
-            <button key={c.id} onClick={() => navigate('/teacher/attendance')}
+            <button key={c.id} onClick={() => navigate(`/teacher/attendance?class=${c.id}&dow=${activeDow}`)}
               className="text-left rounded-2xl p-4 border bg-card"
               style={{ borderColor: glow ? 'rgba(58,168,159,.35)' : 'var(--border)', boxShadow: glow ? '0 0 0 4px rgba(44,144,137,.16)' : 'none' }}>
               <div className="flex items-center gap-3.5">

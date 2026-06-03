@@ -3,16 +3,18 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Check, X, Plus, Trash2, Clock } from 'lucide-react';
+import { Check, X, Plus, Trash2, Clock, CalendarPlus } from 'lucide-react';
 import { formatTime } from '@/lib/scheduleUtils';
 import { format } from 'date-fns';
 import { fmtDate } from '@/lib/dateUtils';
+import BookSpaceDialog from '@/components/teacher/BookSpaceDialog';
 import { toast } from 'sonner';
 
 export default function TeacherPrivates() {
   const qc = useQueryClient();
   const [tab, setTab] = useState('requests');
   const [slot, setSlot] = useState({ date: '', start_time: '16:00', end_time: '17:00' });
+  const [bookReq, setBookReq] = useState(null); // request being turned into a booking
 
   const { data: me } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
   const { data: teacherRows = [] } = useQuery({
@@ -25,6 +27,8 @@ export default function TeacherPrivates() {
   const { data: slots = [] } = useQuery({ queryKey: ['availability'], queryFn: () => base44.entities.AvailabilitySlot.list() });
   const { data: dancers = [] } = useQuery({ queryKey: ['allDancers'], queryFn: () => base44.entities.Dancer.list() });
   const { data: households = [] } = useQuery({ queryKey: ['allParents'], queryFn: () => base44.entities.ParentHousehold.list() });
+  const { data: studios = [] } = useQuery({ queryKey: ['studios'], queryFn: () => base44.entities.Studio.list() });
+  const { data: pieces = [] } = useQuery({ queryKey: ['pieces'], queryFn: () => base44.entities.Piece.list() });
 
   const mine = r => !r.teacher_id || r.teacher_id === teacher?.id;
   const pending = requests.filter(r => r.status === 'pending' && mine(r));
@@ -48,6 +52,9 @@ export default function TeacherPrivates() {
     mutationFn: id => base44.entities.AvailabilitySlot.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['availability'] }),
   });
+
+  // Approve a request, then open Book Space prefilled to schedule the actual lesson.
+  const approveAndBook = (r) => { setStatus.mutate({ id: r.id, status: 'approved' }); setBookReq(r); };
 
   return (
     <div className="animate-[fade_.32s_ease] px-5">
@@ -75,7 +82,7 @@ export default function TeacherPrivates() {
               <div className="text-[11.5px] text-muted-2 mt-0.5">{r.when_text || 'flexible'}{parentName(r.household_id) ? ` · ${parentName(r.household_id)}` : ''}</div>
               <div className="flex gap-2 mt-3">
                 <Button size="sm" onClick={() => setStatus.mutate({ id: r.id, status: 'declined' })} variant="outline" className="flex-1 h-9 text-xs"><X className="w-3.5 h-3.5 mr-1" />Decline</Button>
-                <Button size="sm" onClick={() => setStatus.mutate({ id: r.id, status: 'approved' })} className="flex-1 h-9 bg-primary text-[#06110f] font-bold text-xs"><Check className="w-3.5 h-3.5 mr-1" />Approve</Button>
+                <Button size="sm" onClick={() => approveAndBook(r)} className="flex-1 h-9 bg-primary text-[#06110f] font-bold text-xs"><Check className="w-3.5 h-3.5 mr-1" />Approve &amp; book</Button>
               </div>
             </div>
           )))}
@@ -106,9 +113,25 @@ export default function TeacherPrivates() {
                 <span className="text-[10.5px] px-2 py-0.5 rounded-full" style={{ background: 'rgba(44,144,137,.16)', color: '#3aa89f' }}>Approved</span>
               </div>
               <div className="text-[12.5px] text-muted-foreground mt-1">{r.focus || 'Private'} · {r.when_text || 'time TBD'}</div>
+              <Button size="sm" onClick={() => setBookReq(r)} variant="outline" className="mt-3 h-9 text-xs"><CalendarPlus className="w-3.5 h-3.5 mr-1" />Book the space</Button>
             </div>
           )))}
       </div>
+
+      <BookSpaceDialog
+        open={!!bookReq}
+        onClose={() => setBookReq(null)}
+        studios={studios}
+        pieces={pieces}
+        dancers={dancers}
+        teacher={teacher}
+        initial={bookReq ? {
+          type: 'private',
+          dancer_ids: [bookReq.dancer_id].filter(Boolean),
+          notes: bookReq.focus || '',
+          label: `${dancerName(bookReq.dancer_id)}${bookReq.focus ? ` · ${bookReq.focus}` : ''}`,
+        } : undefined}
+      />
     </div>
   );
 }

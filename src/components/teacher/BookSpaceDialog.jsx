@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,7 @@ function timeAddMinutes(timeStr, mins) {
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
-export default function BookSpaceDialog({ open, onClose, studios, pieces, dancers, teacher }) {
+export default function BookSpaceDialog({ open, onClose, studios, pieces, dancers, teacher, initial }) {
   const queryClient = useQueryClient();
   const [type, setType] = useState('rehearsal');
   const [pieceSearch, setPieceSearch] = useState('');
@@ -42,6 +42,20 @@ export default function BookSpaceDialog({ open, onClose, studios, pieces, dancer
     hour_slots: [],
   });
   const [saving, setSaving] = useState(false);
+
+  // Prefill (e.g. when approving a private-lesson request → book the actual slot).
+  useEffect(() => {
+    if (open && initial) {
+      setType(initial.type || 'rehearsal');
+      setForm(prev => ({
+        ...prev,
+        date: initial.date || prev.date,
+        dancer_ids: initial.dancer_ids || prev.dancer_ids,
+        notes: initial.notes || prev.notes,
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   // Private-lesson slots of the chosen length (e.g. 30 min) across the booking.
   const slotMin = form.slot_minutes || 30;
@@ -115,6 +129,12 @@ export default function BookSpaceDialog({ open, onClose, studios, pieces, dancer
         <DialogHeader>
           <DialogTitle className="font-body text-foreground">Book a Space</DialogTitle>
         </DialogHeader>
+
+        {initial?.label && (
+          <div className="rounded-md bg-gold/10 border border-gold/30 px-3 py-2 text-[12px] text-gold">
+            Booking {initial.label} — set the time, studio and slots below.
+          </div>
+        )}
 
         <Tabs value={type} onValueChange={setType}>
           <TabsList className="w-full mb-4">

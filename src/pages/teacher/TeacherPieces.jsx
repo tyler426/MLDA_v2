@@ -280,20 +280,42 @@ function PieceFormDialog({ open, onClose, piece, cfg, defaultChoreographer, teac
 
 function CastDialog({ open, onClose, piece, dancers, pieceCasts, qc }) {
   const isSolo = piece?.kind === 'solo';
-  const currentCast = pieceCasts.filter(pc => pc.piece_id === piece?.id).map(pc => pc.dancer_id);
+  // Local optimistic cast so checkboxes respond instantly and survive refetch races.
+  const [castIds, setCastIds] = useState([]);
+  const [loadedPiece, setLoadedPiece] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  // Seed local state from the latest data whenever the dialog opens for a piece.
+  if (open && piece && loadedPiece !== piece.id) {
+    setCastIds(pieceCasts.filter(pc => pc.piece_id === piece.id).map(pc => pc.dancer_id));
+    setLoadedPiece(piece.id);
+  }
+  if (!open && loadedPiece !== null) setLoadedPiece(null);
 
   const toggleDancer = async (dancerId) => {
-    const existing = pieceCasts.find(pc => pc.piece_id === piece.id && pc.dancer_id === dancerId);
-    if (existing) {
-      await base44.entities.PieceCast.delete(existing.id);
-    } else {
-      // For solos, replace any existing cast member so there's only one.
-      if (isSolo) {
-        for (const pc of pieceCasts.filter(pc => pc.piece_id === piece.id)) await base44.entities.PieceCast.delete(pc.id);
+    if (busy || !piece) return;
+    const wasIn = castIds.includes(dancerId);
+    setCastIds(wasIn ? castIds.filter(x => x !== dancerId) : isSolo ? [dancerId] : [...castIds, dancerId]);
+    setBusy(true);
+    try {
+      const existing = pieceCasts.find(pc => pc.piece_id === piece.id && pc.dancer_id === dancerId);
+      if (wasIn) {
+        if (existing) await base44.entities.PieceCast.delete(existing.id);
+      } else {
+        if (isSolo) {
+          for (const pc of pieceCasts.filter(pc => pc.piece_id === piece.id && pc.dancer_id !== dancerId)) {
+            await base44.entities.PieceCast.delete(pc.id);
+          }
+        }
+        if (!existing) await base44.entities.PieceCast.create({ piece_id: piece.id, dancer_id: dancerId });
       }
-      await base44.entities.PieceCast.create({ piece_id: piece.id, dancer_id: dancerId });
+      await qc.invalidateQueries({ queryKey: ['pieceCasts'] });
+    } catch (e) {
+      toast.error(e.message || 'Could not update cast');
+      setCastIds(prev => wasIn ? [...prev, dancerId] : prev.filter(x => x !== dancerId)); // revert
+    } finally {
+      setBusy(false);
     }
-    qc.invalidateQueries({ queryKey: ['pieceCasts'] });
   };
 
   return (
@@ -302,10 +324,10 @@ function CastDialog({ open, onClose, piece, dancers, pieceCasts, qc }) {
         <DialogHeader>
           <DialogTitle className="font-serif text-foreground">Cast — {piece?.title}</DialogTitle>
         </DialogHeader>
-        <p className="text-[11px] text-muted-2 -mt-1">{isSolo ? 'Pick the soloist (one dancer).' : 'Tap dancers to add or remove them from this routine.'}</p>
+        <p className="text-[11px] text-muted-2 -mt-1">{isSolo ? 'Pick the soloist (one dancer).' : 'Tap dancers to add or remove them from this routine.'} {castIds.length > 0 && <span className="text-primary">· {castIds.length} cast</span>}</p>
         <div className="space-y-1.5 mt-1">
           {dancers.map(d => {
-            const inCast = currentCast.includes(d.id);
+            const inCast = castIds.includes(d.id);
             return (
               <label key={d.id} className="flex items-center gap-2 cursor-pointer rounded-lg border border-border p-2.5">
                 <Checkbox checked={inCast} onCheckedChange={() => toggleDancer(d.id)} />

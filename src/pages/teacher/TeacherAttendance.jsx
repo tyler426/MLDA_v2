@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -19,11 +20,21 @@ const STATUS_STYLE = {
 };
 
 export default function TeacherAttendance() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [userEmail, setUserEmail] = useState(null);
-  const [selectedDow, setSelectedDow] = useState(null);
-  const [activeClassId, setActiveClassId] = useState(null);
+  const [selectedDow, setSelectedDow] = useState(searchParams.get('dow') !== null ? Number(searchParams.get('dow')) : null);
+  const [activeClassId, setActiveClassId] = useState(searchParams.get('class') || null);
   const [localStatuses, setLocalStatuses] = useState({});
   const qc = useQueryClient();
+
+  // Deep-link: /teacher/attendance?class=<id>&dow=<n> jumps straight into a class.
+  useEffect(() => {
+    const cls = searchParams.get('class');
+    const dow = searchParams.get('dow');
+    if (cls) setActiveClassId(cls);
+    if (dow !== null) setSelectedDow(Number(dow));
+    if (cls || dow !== null) setSearchParams({}, { replace: true }); // clear so back-button returns to the list
+  }, []);
 
   const todayDow = getTodayDow();
   const activeDow = selectedDow !== null ? selectedDow : todayDow;
