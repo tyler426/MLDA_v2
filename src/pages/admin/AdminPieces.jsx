@@ -76,7 +76,7 @@ export default function AdminPieces() {
                     </h3>
                     {p.choreographer && <p className="text-xs text-muted-foreground mt-0.5">Choreo: {p.choreographer}</p>}
                     <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                      {p.kind === 'solo' && <span className="font-caps text-[9.5px] uppercase tracking-[0.1em] px-1.5 py-0.5 rounded bg-gold/12 text-gold">Solo</span>}
+                      {p.kind === 'solo' && <span className="font-caps text-[11px] uppercase tracking-[0.1em] px-1.5 py-0.5 rounded bg-gold/12 text-gold">Solo</span>}
                       {p.level && <span className="font-caps text-[10px] uppercase tracking-[0.1em] text-warm-gray">{p.level}</span>}
                       {p.genre && <span className="text-[10px] text-muted-foreground">{p.genre}</span>}
                       {p.size && <span className="text-[10px] text-muted-foreground">{p.size}</span>}

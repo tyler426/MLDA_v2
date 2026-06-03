@@ -110,7 +110,7 @@ export default function AdminSchedule() {
 
       {/* Week variant toggle */}
       <div className="flex items-center gap-2 mb-4">
-        <span className="font-caps text-[9px] uppercase tracking-[0.15em] text-muted-foreground mr-1">Week</span>
+        <span className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground mr-1">Week</span>
         {['All', 'Black', 'Teal'].map(v => (
           <button
             key={v}
@@ -189,7 +189,7 @@ export default function AdminSchedule() {
                           className={`rounded-md p-2.5 border ${b.type === 'private' ? 'bg-gold/5 border-gold/25' : 'bg-primary/5 border-primary/25'}`}
                         >
                           <div className="flex items-center justify-between gap-1 mb-0.5">
-                            <span className={`text-[9px] font-caps uppercase tracking-[0.1em] ${b.type === 'private' ? 'text-gold' : 'text-primary'}`}>
+                            <span className={`text-[11px] font-caps uppercase tracking-[0.1em] ${b.type === 'private' ? 'text-gold' : 'text-primary'}`}>
                               {b.type === 'private' ? 'Private' : 'Rehearsal'}
                             </span>
                             <button

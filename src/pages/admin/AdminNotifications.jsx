@@ -63,8 +63,8 @@ export default function AdminNotifications() {
                     <span className="flex items-center gap-1 text-[10px] text-warm-gray">
                       <Mail className="w-3 h-3" />{n.recipient_email}
                     </span>
-                    <span className="font-caps text-[9px] uppercase tracking-[0.1em] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">{n.recipient_type}</span>
-                    {n.read && <span className="text-[9px] text-primary">Read</span>}
+                    <span className="font-caps text-[11px] uppercase tracking-[0.1em] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">{n.recipient_type}</span>
+                    {n.read && <span className="text-[11px] text-primary">Read</span>}
                   </div>
                 </div>
               </div>

@@ -5,7 +5,7 @@ import { formatTime, getTodayDow } from '@/lib/scheduleUtils';
 import { AlertTriangle, ClipboardList, Trophy, Megaphone, Plus, Users } from 'lucide-react';
 import { format } from 'date-fns';
 
-const STYLE_COLOR = ['#2c9089', '#7c6fcf', '#c8a464', '#d97a5e', '#5a9bd4', '#cf6f9c'];
+const STYLE_COLOR = ['#2c9089', '#7c6fcf', '#7a9e8c', '#6b8cae', '#5a9bd4', '#cf6f9c'];
 function colorFor(str = '') { let s = 0; for (const c of str) s += c.charCodeAt(0); return STYLE_COLOR[s % STYLE_COLOR.length]; }
 function toMin(t) { if (!t) return 0; const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 function overlaps(a, b) { return toMin(a.start_time) < toMin(b.end_time) && toMin(a.end_time) > toMin(b.start_time); }

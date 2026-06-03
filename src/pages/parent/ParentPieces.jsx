@@ -58,7 +58,7 @@ export default function ParentPieces() {
   return (
     <div className="animate-[fade_.32s_ease] px-5">
       <div className="pt-1">
-        <div className="text-[9.5px] tracking-[0.26em] uppercase text-gold font-semibold">Competition season</div>
+        <div className="text-[11px] tracking-[0.26em] uppercase text-gold font-semibold">Competition season</div>
         <h1 className="font-serif text-[25px] font-semibold mt-1">{nextComp ? `Road to ${nextComp.name}` : 'Competitions'}</h1>
       </div>
 
@@ -67,7 +67,7 @@ export default function ParentPieces() {
         <div className="mt-4 rounded-2xl border p-5" style={{ borderColor: 'rgba(200,164,100,.32)', background: 'radial-gradient(120% 90% at 80% 0%,rgba(200,164,100,.18),transparent 55%),linear-gradient(180deg,#1b1712,#121110)' }}>
           <div className="flex justify-between items-start">
             <div>
-              <div className="text-[9.5px] tracking-[0.26em] uppercase text-gold font-semibold">{nextComp.venue || 'Venue TBA'}</div>
+              <div className="text-[11px] tracking-[0.26em] uppercase text-gold font-semibold">{nextComp.venue || 'Venue TBA'}</div>
               <div className="font-serif text-[28px] font-semibold mt-1.5 mb-0.5">{nextComp.name}</div>
               <div className="text-[12.5px] text-muted-foreground">{nextComp.start_date}{nextComp.end_date ? ` – ${nextComp.end_date}` : ''}</div>
             </div>
@@ -124,7 +124,7 @@ export default function ParentPieces() {
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <span className="w-[7px] h-[7px] rounded-full" style={{ background: styleColor(p.title) }} />
-                  <span className="text-[9.5px] tracking-[0.14em] uppercase" style={{ color: styleColor(p.title) }}>{p.level || 'Routine'}</span>
+                  <span className="text-[11px] tracking-[0.14em] uppercase" style={{ color: styleColor(p.title) }}>{p.level || 'Routine'}</span>
                 </div>
                 {callTimeFor(p.id) && <span className="text-[11px] px-2.5 py-0.5 rounded-full" style={{ background: 'rgba(200,164,100,.14)', color: '#c8a464' }}>Call {callTimeFor(p.id)}</span>}
               </div>

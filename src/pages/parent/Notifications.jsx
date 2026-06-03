@@ -32,7 +32,7 @@ export default function Notifications() {
   return (
     <div className="animate-[fade_.32s_ease] px-5">
       <div className="pt-1">
-        <div className="text-[9.5px] tracking-[0.26em] uppercase text-teal-bright font-semibold">Inbox</div>
+        <div className="text-[11px] tracking-[0.26em] uppercase text-teal-bright font-semibold">Inbox</div>
         <h1 className="font-serif text-[25px] font-semibold mt-1">From the studio</h1>
       </div>
 
@@ -52,7 +52,7 @@ export default function Notifications() {
                 style={{ borderColor: unread ? 'rgba(200,164,100,.3)' : 'var(--border)', background: unread ? 'linear-gradient(180deg,#1b1712,#141210)' : 'var(--card)', opacity: unread ? 1 : 0.7 }}>
                 <div className="flex items-center gap-2 mb-2">
                   {unread && <Pin className="w-3 h-3 text-gold" />}
-                  <span className="text-[9.5px] tracking-[0.12em] uppercase font-semibold" style={{ color: accent }}>{tagFor(n.type)}</span>
+                  <span className="text-[11px] tracking-[0.12em] uppercase font-semibold" style={{ color: accent }}>{tagFor(n.type)}</span>
                   <span className="text-[11px] text-muted-2 ml-auto">{n.created_date ? format(new Date(n.created_date), 'MMM d') : ''}</span>
                 </div>
                 <div className="text-[15px] font-semibold mb-1">{n.title}</div>

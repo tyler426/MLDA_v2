@@ -128,8 +128,8 @@ export default function AdminEnrollment() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-medium text-sm text-foreground">{cls.title}</span>
-                    {cls.level && <span className="font-caps text-[9px] uppercase tracking-[0.12em] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">{cls.level}</span>}
-                    {cls.week_variant && <span className={`font-caps text-[9px] uppercase tracking-[0.1em] px-1.5 py-0.5 rounded ${cls.week_variant === 'Black' ? 'bg-secondary text-foreground' : 'bg-teal/20 text-teal'}`}>{cls.week_variant}</span>}
+                    {cls.level && <span className="font-caps text-[11px] uppercase tracking-[0.12em] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">{cls.level}</span>}
+                    {cls.week_variant && <span className={`font-caps text-[11px] uppercase tracking-[0.1em] px-1.5 py-0.5 rounded ${cls.week_variant === 'Black' ? 'bg-secondary text-foreground' : 'bg-teal/20 text-teal'}`}>{cls.week_variant}</span>}
                   </div>
                   <div className="flex items-center gap-3 mt-0.5 text-[10px] text-muted-foreground">
                     <span>{DAY_NAMES_SHORT[cls.day_of_week]} {formatTime(cls.start_time)}–{formatTime(cls.end_time)}</span>

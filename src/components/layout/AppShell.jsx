@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import { CalendarDays, Clock, Settings, Music, Trophy, Home, Mail, User, LogOut, Users, Sparkles } from 'lucide-react';
+import { CalendarDays, Clock, Settings, Music, Trophy, Home, Mail, User, LogOut, Users } from 'lucide-react';
 
 // Spotlight mobile shell — phone-centered column + bottom tab bar.
 // Primary tabs match the design (5 each); secondary features (Month, Absences,
@@ -25,7 +25,6 @@ const teacherNav = [
   { label: 'Schedule', path: '/teacher/week', icon: CalendarDays },
   { label: 'Dancers', path: '/teacher/dancers', icon: Users },
   { label: 'Pieces', path: '/teacher/pieces', icon: Music },
-  { label: 'Privates', path: '/teacher/privates', icon: Sparkles },
   { label: 'Settings', path: '/teacher/settings', icon: Settings },
 ];
 
@@ -40,7 +39,7 @@ export default function AppShell({ role }) {
       <header className="flex-none flex items-center justify-between px-5 py-3">
         <span className="font-serif text-[18px] font-semibold text-gold">MLDA</span>
         <button onClick={() => logout()} className="flex items-center gap-1.5 text-muted-2 hover:text-foreground transition-colors">
-          <span className="font-caps text-[9px] uppercase tracking-[0.2em]">Sign out</span>
+          <span className="font-caps text-[11px] uppercase tracking-[0.2em]">Sign out</span>
           <LogOut className="w-[15px] h-[15px]" />
         </button>
       </header>
@@ -57,10 +56,12 @@ export default function AppShell({ role }) {
             const isActive = location.pathname === path;
             return (
               <Link key={path} to={path}
-                className={`flex flex-col items-center gap-1.5 px-1.5 transition-colors ${isActive ? 'text-teal-bright' : 'text-muted-2 hover:text-muted-foreground'}`}
+                className={`flex flex-col items-center transition-colors ${isActive ? 'text-teal-bright' : 'text-muted-2 hover:text-muted-foreground'}`}
               >
-                <Icon className="w-[22px] h-[22px]" strokeWidth={isActive ? 2 : 1.6} />
-                <span className="text-[9.5px] tracking-[0.02em]">{label}</span>
+                <span className={`flex flex-col items-center gap-1.5 rounded-xl px-2 py-1 ${isActive ? 'bg-primary/10' : ''}`}>
+                  <Icon className="w-[22px] h-[22px]" strokeWidth={isActive ? 2 : 1.6} />
+                  <span className="text-[11px] tracking-[0.02em]">{label}</span>
+                </span>
               </Link>
             );
           })}

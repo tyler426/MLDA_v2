@@ -298,10 +298,10 @@ export default function ParentAbsence() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-body font-medium text-sm text-foreground">{dancer?.first_name} {dancer?.last_name}</p>
-                    <span className={`font-caps text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 rounded ${STATUS_COLORS[a.status]}`}>
+                    <span className={`font-caps text-[11px] uppercase tracking-[0.12em] px-2 py-0.5 rounded ${STATUS_COLORS[a.status]}`}>
                       {a.status}
                     </span>
-                    <span className={`font-caps text-[9px] uppercase tracking-[0.1em] px-2 py-0.5 rounded ${a.excused ? 'text-primary bg-primary/10' : 'text-warm-gray bg-secondary'}`}>
+                    <span className={`font-caps text-[11px] uppercase tracking-[0.1em] px-2 py-0.5 rounded ${a.excused ? 'text-primary bg-primary/10' : 'text-warm-gray bg-secondary'}`}>
                       {a.excused ? 'Excused' : 'Unexcused'}
                     </span>
                   </div>

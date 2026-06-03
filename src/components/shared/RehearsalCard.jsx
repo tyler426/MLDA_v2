@@ -59,7 +59,7 @@ export default function RehearsalCard({ rehearsal, pieces = [], dancers = [], pi
         <div className="mt-3 pt-3 border-t border-primary/20">
           {calledDancers.length > 0 ? (
             <div>
-              <p className="font-caps text-[9px] uppercase tracking-[0.15em] text-muted-foreground mb-1.5 flex items-center gap-1">
+              <p className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-1.5 flex items-center gap-1">
                 <Users className="w-3 h-3" /> Called ({calledDancers.length})
               </p>
               <div className="flex flex-wrap gap-1">

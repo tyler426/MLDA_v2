@@ -38,7 +38,7 @@ export default function AbsenceThread({ messages = [], onSend, role = 'studio', 
             <div key={i} className={`flex ${isStudio ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[80%] rounded-lg px-3 py-2 ${isStudio ? 'bg-primary/10 text-foreground' : 'bg-secondary text-foreground'}`}>
                 <p className="text-xs leading-relaxed">{m.text}</p>
-                <p className={`text-[9px] mt-1 font-caps tracking-[0.08em] ${isStudio ? 'text-primary/60 text-right' : 'text-warm-gray'}`}>
+                <p className={`text-[11px] mt-1 font-caps tracking-[0.08em] ${isStudio ? 'text-primary/60 text-right' : 'text-warm-gray'}`}>
                   {m.sender_name} · {m.timestamp ? format(parseISO(m.timestamp), 'MMM d, h:mm a') : ''}
                 </p>
               </div>
@@ -55,7 +55,7 @@ export default function AbsenceThread({ messages = [], onSend, role = 'studio', 
               key={q}
               onClick={() => handleQuick(q)}
               disabled={isSending}
-              className="text-[9px] font-caps uppercase tracking-[0.08em] border border-border px-2 py-1 rounded hover:border-primary/40 hover:text-foreground text-warm-gray transition-colors"
+              className="text-[11px] font-caps uppercase tracking-[0.08em] border border-border px-2 py-1 rounded hover:border-primary/40 hover:text-foreground text-warm-gray transition-colors"
             >
               {q}
             </button>

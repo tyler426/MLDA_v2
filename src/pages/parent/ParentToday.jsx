@@ -82,7 +82,7 @@ export default function ParentToday() {
       {/* greeting */}
       <div className="flex items-center justify-between pt-1">
         <div>
-          <div className="text-[9.5px] tracking-[0.26em] uppercase text-gold font-semibold">MLDA Collective</div>
+          <div className="text-[11px] tracking-[0.26em] uppercase text-gold font-semibold">MLDA Collective</div>
           <div className="font-serif text-[25px] font-semibold mt-1">{greeting()}, {firstName}</div>
         </div>
       </div>
@@ -109,11 +109,11 @@ export default function ParentToday() {
 
       {/* up next hero */}
       <div className="mt-5">
-        <div className="text-[9.5px] tracking-[0.26em] uppercase text-teal-bright font-semibold mb-2.5">Up next · Today</div>
+        <div className="text-[11px] tracking-[0.26em] uppercase text-teal-bright font-semibold mb-2.5">Up next · Today</div>
         {next ? (
           <button onClick={() => navigate('/week')} className="block w-full text-left">
             <div className="rounded-[20px] overflow-hidden border" style={{ borderColor: 'rgba(58,168,159,.35)', background: 'linear-gradient(180deg,#19211f,#121311)', boxShadow: '0 0 0 4px rgba(44,144,137,.16)' }}>
-              <div className="h-[112px] flex items-end px-3 py-2.5 text-[9px] uppercase tracking-[0.1em] text-[#6f6048]"
+              <div className="h-[112px] flex items-end px-3 py-2.5 text-[11px] uppercase tracking-[0.1em] text-[#6f6048]"
                 style={heroPhoto ? { backgroundImage: `url(${heroPhoto})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { backgroundColor: '#13211f', backgroundImage: 'repeating-linear-gradient(135deg,rgba(58,168,159,.1) 0 9px,transparent 9px 18px)' }}>
                 {!heroPhoto && `${dancer?.first_name} · add a photo`}
               </div>
@@ -135,12 +135,12 @@ export default function ParentToday() {
       {/* today's rehearsals & private lessons */}
       {(todayRehearsals.length > 0 || todayPrivates.length > 0) && (
         <div className="mt-5 flex flex-col gap-2.5">
-          <div className="text-[9.5px] tracking-[0.26em] uppercase text-gold font-semibold">Also today</div>
+          <div className="text-[11px] tracking-[0.26em] uppercase text-gold font-semibold">Also today</div>
           {todayRehearsals.map(r => (
             <button key={r.id} onClick={() => setEventSheet({ event: r, kind: 'rehearsal' })} className="flex gap-3.5 rounded-2xl p-3.5 border items-center text-left w-full" style={{ borderColor: 'rgba(200,164,100,.3)', background: 'rgba(200,164,100,.06)' }}>
               <Music className="w-4 h-4 text-gold flex-none" />
               <div className="flex-1 min-w-0">
-                <div className="text-[9.5px] tracking-[0.14em] uppercase text-gold">Rehearsal · tap for details</div>
+                <div className="text-[11px] tracking-[0.14em] uppercase text-gold">Rehearsal · tap for details</div>
                 <div className="text-[14px] font-semibold mt-0.5">{formatTime(r.start_time)}–{formatTime(r.end_time)} · Studio {studioName(r.studio_id)}</div>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-2 self-center" />
@@ -150,7 +150,7 @@ export default function ParentToday() {
             <button key={b.id} onClick={() => setEventSheet({ event: b, kind: 'booking' })} className="flex gap-3.5 rounded-2xl p-3.5 border items-center text-left w-full" style={{ borderColor: 'rgba(200,164,100,.3)', background: 'rgba(200,164,100,.06)' }}>
               <Clock className="w-4 h-4 text-gold flex-none" />
               <div className="flex-1 min-w-0">
-                <div className="text-[9.5px] tracking-[0.14em] uppercase text-gold">Private lesson · tap for details</div>
+                <div className="text-[11px] tracking-[0.14em] uppercase text-gold">Private lesson · tap for details</div>
                 <div className="text-[14px] font-semibold mt-0.5">{formatTime(b.start_time)} · Studio {studioName(b.studio_id)}</div>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-2 self-center" />
@@ -162,7 +162,7 @@ export default function ParentToday() {
       {/* week strip */}
       <div className="mt-5">
         <div className="flex items-center justify-between mb-2.5">
-          <div className="text-[9.5px] tracking-[0.26em] uppercase text-muted-2 font-semibold">This week</div>
+          <div className="text-[11px] tracking-[0.26em] uppercase text-muted-2 font-semibold">This week</div>
           <button onClick={() => navigate('/week')} className="text-[11.5px] text-teal-bright flex items-center gap-1">Full schedule <ChevronRight className="w-3 h-3" /></button>
         </div>
         <div className="flex gap-1.5">
@@ -190,7 +190,7 @@ export default function ParentToday() {
               <div className="text-[8.5px] tracking-[0.18em] text-muted-2 mt-0.5">DAYS</div>
             </div>
             <div className="flex-1 border-l border-border pl-4">
-              <div className="text-[9.5px] tracking-[0.26em] uppercase text-gold font-semibold">Next competition</div>
+              <div className="text-[11px] tracking-[0.26em] uppercase text-gold font-semibold">Next competition</div>
               <div className="font-serif text-[19px] font-semibold mt-1 mb-0.5">{nextComp.name}</div>
               <div className="text-[11.5px] text-muted-foreground">{nextComp.venue || nextComp.start_date}</div>
             </div>

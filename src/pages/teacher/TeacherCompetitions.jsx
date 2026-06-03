@@ -70,7 +70,7 @@ export default function TeacherCompetitions() {
               {/* Competing numbers */}
               {w.competing_entries?.length > 0 && (
                 <div className="p-4 border-b border-border">
-                  <p className="font-caps text-[9px] uppercase tracking-[0.18em] text-gold mb-2 flex items-center gap-1">
+                  <p className="font-caps text-[11px] uppercase tracking-[0.18em] text-gold mb-2 flex items-center gap-1">
                     <Music2 className="w-3 h-3" /> Competing Numbers
                   </p>
                   <div className="space-y-1.5">
@@ -100,7 +100,7 @@ export default function TeacherCompetitions() {
               {/* My shifts */}
               {w.shifts.length > 0 && (
                 <div className="p-4 space-y-2">
-                  <p className="font-caps text-[9px] uppercase tracking-[0.18em] text-muted-foreground mb-2">My Shifts</p>
+                  <p className="font-caps text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-2">My Shifts</p>
                   {w.shifts.map(s => (
                     <div key={s.id} className="flex items-center justify-between text-sm">
                       <div>

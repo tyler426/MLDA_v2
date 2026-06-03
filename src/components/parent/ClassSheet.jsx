@@ -47,7 +47,7 @@ export default function ClassSheet({ cls, dancer, household, date, studios = [],
           <div>
             <div className="flex items-center gap-2">
               <span className="w-[7px] h-[7px] rounded-full" style={{ background: col }} />
-              <span className="text-[9.5px] tracking-[0.14em] uppercase" style={{ color: col }}>{cls.level || 'Class'}</span>
+              <span className="text-[11px] tracking-[0.14em] uppercase" style={{ color: col }}>{cls.level || 'Class'}</span>
             </div>
             <div className="font-serif text-[28px] font-semibold mt-1.5">{cls.title}</div>
           </div>
@@ -56,11 +56,11 @@ export default function ClassSheet({ cls, dancer, household, date, studios = [],
 
         <div className="grid grid-cols-2 gap-2.5 my-4">
           <div className="bg-secondary rounded-xl p-3">
-            <div className="text-[9.5px] tracking-[0.14em] uppercase text-muted-2 flex items-center gap-1"><Clock className="w-3 h-3" />Time</div>
+            <div className="text-[11px] tracking-[0.14em] uppercase text-muted-2 flex items-center gap-1"><Clock className="w-3 h-3" />Time</div>
             <div className="font-serif text-[17px] mt-1">{formatTime(cls.start_time)}–{formatTime(cls.end_time)}</div>
           </div>
           <div className="bg-secondary rounded-xl p-3">
-            <div className="text-[9.5px] tracking-[0.14em] uppercase text-muted-2 flex items-center gap-1"><MapPin className="w-3 h-3" />Studio</div>
+            <div className="text-[11px] tracking-[0.14em] uppercase text-muted-2 flex items-center gap-1"><MapPin className="w-3 h-3" />Studio</div>
             <div className="font-serif text-[17px] mt-1">{studio ? studio.name : '—'}</div>
           </div>
         </div>
@@ -83,7 +83,7 @@ export default function ClassSheet({ cls, dancer, household, date, studios = [],
 
         {bring.length > 0 && (
           <>
-            <div className="text-[9.5px] tracking-[0.14em] uppercase text-muted-2 mb-2">Bring to class</div>
+            <div className="text-[11px] tracking-[0.14em] uppercase text-muted-2 mb-2">Bring to class</div>
             <div className="flex flex-wrap gap-1.5 mb-5">
               {bring.map((x, i) => <span key={i} className="text-[11px] px-2.5 py-1 rounded-full bg-secondary text-muted-foreground">{x}</span>)}
             </div>

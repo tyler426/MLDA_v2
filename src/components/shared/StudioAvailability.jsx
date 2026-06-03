@@ -94,7 +94,7 @@ export default function StudioAvailability({ date, startTime, endTime, selectedS
 
   return (
     <div className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
-      <p className="font-caps text-[9px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Studio Availability — {date}</p>
+      <p className="font-caps text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Studio Availability — {date}</p>
 
       {/* Hour ruler */}
       <div className="relative h-4 mb-1">
@@ -114,7 +114,7 @@ export default function StudioAvailability({ date, startTime, endTime, selectedS
         const isSelected = selectedStudioId === studio.id;
         return (
           <div key={studio.id} className={`flex items-center gap-2 ${isSelected ? 'opacity-100' : 'opacity-70'}`}>
-            <span className={`font-caps text-[9px] uppercase tracking-[0.15em] w-12 flex-shrink-0 ${isSelected ? 'text-primary' : 'text-warm-gray'}`}>
+            <span className={`font-caps text-[11px] uppercase tracking-[0.15em] w-12 flex-shrink-0 ${isSelected ? 'text-primary' : 'text-warm-gray'}`}>
               {studio.name}
             </span>
             <div className="relative flex-1 h-5 bg-secondary/50 rounded-sm overflow-hidden border border-border/50">
@@ -147,7 +147,7 @@ function LegendDot({ color, label }) {
   return (
     <div className="flex items-center gap-1">
       <div className={`w-2.5 h-2.5 rounded-sm ${color}`} />
-      <span className="text-[9px] font-caps uppercase tracking-[0.1em] text-muted-foreground">{label}</span>
+      <span className="text-[11px] font-caps uppercase tracking-[0.1em] text-muted-foreground">{label}</span>
     </div>
   );
 }

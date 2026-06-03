@@ -52,7 +52,7 @@ export default function TeacherPrivates() {
   return (
     <div className="animate-[fade_.32s_ease] px-5">
       <div className="pt-1">
-        <div className="text-[9.5px] tracking-[0.26em] uppercase text-gold font-semibold">Private lessons</div>
+        <div className="text-[11px] tracking-[0.26em] uppercase text-gold font-semibold">Private lessons</div>
         <h1 className="font-serif text-[25px] font-semibold mt-1">Requests &amp; availability</h1>
       </div>
 

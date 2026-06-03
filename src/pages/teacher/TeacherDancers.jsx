@@ -42,7 +42,7 @@ export default function TeacherDancers() {
   return (
     <div className="animate-[fade_.32s_ease] px-5">
       <div className="pt-1">
-        <div className="text-[9.5px] tracking-[0.26em] uppercase text-teal-bright font-semibold">Roster</div>
+        <div className="text-[11px] tracking-[0.26em] uppercase text-teal-bright font-semibold">Roster</div>
         <h1 className="font-serif text-[25px] font-semibold mt-1">Dancers &amp; notes</h1>
       </div>
 
@@ -107,7 +107,7 @@ export default function TeacherDancers() {
               {dancerNotes.map(n => (
                 <div key={n.id} className="bg-card border-l-2 rounded-xl p-3" style={{ borderLeftColor: tagColor(n.tag) }}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[9.5px] tracking-[0.12em] uppercase font-semibold" style={{ color: tagColor(n.tag) }}>{n.tag}</span>
+                    <span className="text-[11px] tracking-[0.12em] uppercase font-semibold" style={{ color: tagColor(n.tag) }}>{n.tag}</span>
                     <span className="text-[10.5px] text-muted-2">{n.created_date ? format(new Date(n.created_date), 'MMM d') : ''}</span>
                   </div>
                   <p className="text-[13px] text-foreground leading-relaxed">{n.body}</p>

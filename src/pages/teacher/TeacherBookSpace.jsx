@@ -145,7 +145,7 @@ export default function TeacherBookSpace() {
         {/* Time breakdown */}
         {form.duration_hours > 0 && (
           <div className="bg-secondary/50 rounded-md p-2">
-            <p className="font-caps text-[9px] uppercase tracking-[0.15em] text-muted-foreground mb-1.5">Time segments</p>
+            <p className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-1.5">Time segments</p>
             <div className="flex flex-wrap gap-1.5">
               {segments.map((seg, i) => (
                 <span key={i} className="text-[11px] bg-secondary text-muted-foreground px-2 py-0.5 rounded border border-border">

@@ -88,7 +88,7 @@ export default function AdminAttendance() {
           >
             {t}
             {t === 'Absence Reports' && pendingCount > 0 && (
-              <span className="ml-1.5 bg-gold/20 text-gold text-[9px] px-1.5 py-0.5 rounded-full">{pendingCount}</span>
+              <span className="ml-1.5 bg-gold/20 text-gold text-[11px] px-1.5 py-0.5 rounded-full">{pendingCount}</span>
             )}
           </button>
         ))}
@@ -119,14 +119,14 @@ export default function AdminAttendance() {
                       <p className="font-body font-medium text-sm text-foreground">
                         {dancer?.first_name} {dancer?.last_name}
                       </p>
-                      <span className={`font-caps text-[9px] uppercase tracking-[0.1em] px-2 py-0.5 rounded ${ABSENCE_STATUS[a.status]}`}>
+                      <span className={`font-caps text-[11px] uppercase tracking-[0.1em] px-2 py-0.5 rounded ${ABSENCE_STATUS[a.status]}`}>
                         {a.status}
                       </span>
-                      <span className={`font-caps text-[9px] uppercase tracking-[0.1em] px-2 py-0.5 rounded ${a.excused ? 'text-primary bg-primary/10' : 'text-warm-gray bg-secondary'}`}>
+                      <span className={`font-caps text-[11px] uppercase tracking-[0.1em] px-2 py-0.5 rounded ${a.excused ? 'text-primary bg-primary/10' : 'text-warm-gray bg-secondary'}`}>
                         {a.excused ? 'Excused' : 'Unexcused'}
                       </span>
                       {msgCount > 0 && (
-                        <span className="font-caps text-[9px] text-warm-gray">{msgCount} msg{msgCount > 1 ? 's' : ''}</span>
+                        <span className="font-caps text-[11px] text-warm-gray">{msgCount} msg{msgCount > 1 ? 's' : ''}</span>
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -176,7 +176,7 @@ export default function AdminAttendance() {
                             size="sm"
                             onClick={() => updateAbsenceMutation.mutate({ id: a.id, status: 'approved' })}
                             disabled={updateAbsenceMutation.isPending || a.status === 'approved'}
-                            className="flex-1 font-caps text-[9px] uppercase tracking-[0.08em] h-7 px-2"
+                            className="flex-1 font-caps text-[11px] uppercase tracking-[0.08em] h-7 px-2"
                           >
                             <Check className="w-3 h-3 mr-1" /> Approve
                           </Button>
@@ -185,7 +185,7 @@ export default function AdminAttendance() {
                             variant="outline"
                             onClick={() => updateAbsenceMutation.mutate({ id: a.id, status: 'denied' })}
                             disabled={updateAbsenceMutation.isPending || a.status === 'denied'}
-                            className="flex-1 font-caps text-[9px] uppercase tracking-[0.08em] h-7 px-2 border-terracotta/40 text-terracotta hover:bg-terracotta/10"
+                            className="flex-1 font-caps text-[11px] uppercase tracking-[0.08em] h-7 px-2 border-terracotta/40 text-terracotta hover:bg-terracotta/10"
                           >
                             <X className="w-3 h-3 mr-1" /> Deny
                           </Button>
@@ -198,7 +198,7 @@ export default function AdminAttendance() {
                         <button
                           onClick={() => updateAbsenceMutation.mutate({ id: a.id, excused: !a.excused })}
                           disabled={updateAbsenceMutation.isPending}
-                          className={`w-full flex items-center justify-center gap-1.5 h-7 rounded-md font-caps text-[9px] uppercase tracking-[0.08em] border transition-colors ${
+                          className={`w-full flex items-center justify-center gap-1.5 h-7 rounded-md font-caps text-[11px] uppercase tracking-[0.08em] border transition-colors ${
                             a.excused
                               ? 'bg-primary/10 text-primary border-primary/30 hover:bg-terracotta/10 hover:text-terracotta hover:border-terracotta/30'
                               : 'bg-secondary text-warm-gray border-border hover:bg-primary/10 hover:text-primary hover:border-primary/30'
@@ -253,7 +253,7 @@ export default function AdminAttendance() {
               {Object.entries(stats).map(([s, count]) => (
                 <div key={s} className={`rounded-lg p-2 text-center ${STATUS_STYLE[s]}`}>
                   <p className="font-display text-xl">{count}</p>
-                  <p className="font-caps text-[9px] uppercase tracking-[0.1em]">{s}</p>
+                  <p className="font-caps text-[11px] uppercase tracking-[0.1em]">{s}</p>
                 </div>
               ))}
             </div>
@@ -272,7 +272,7 @@ export default function AdminAttendance() {
                       <p className="font-body text-sm text-foreground">{dancer?.first_name} {dancer?.last_name}</p>
                       {cls && <p className="text-[10px] text-warm-gray">{cls.title}</p>}
                     </div>
-                    <span className={`font-caps text-[9px] uppercase tracking-[0.1em] px-2 py-0.5 rounded ${STATUS_STYLE[r.status]}`}>
+                    <span className={`font-caps text-[11px] uppercase tracking-[0.1em] px-2 py-0.5 rounded ${STATUS_STYLE[r.status]}`}>
                       {r.status}
                     </span>
                   </div>

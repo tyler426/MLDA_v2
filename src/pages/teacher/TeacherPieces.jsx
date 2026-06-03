@@ -132,7 +132,7 @@ function Badge({ children, tone = 'gray' }) {
     gold: 'bg-gold/12 text-gold',
     teal: 'bg-primary/12 text-primary',
   };
-  return <span className={`font-caps text-[9.5px] uppercase tracking-[0.1em] px-2 py-0.5 rounded ${tones[tone]}`}>{children}</span>;
+  return <span className={`font-caps text-[11px] uppercase tracking-[0.1em] px-2 py-0.5 rounded ${tones[tone]}`}>{children}</span>;
 }
 
 function PieceCard({ piece, index, castCount, onEdit, onCast, onDelete }) {

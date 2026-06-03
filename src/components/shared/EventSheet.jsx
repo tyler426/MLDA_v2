@@ -35,7 +35,7 @@ export default function EventSheet({ event, kind = 'rehearsal', onClose }) {
         <div className="w-9 h-1 rounded-full bg-border mx-auto mb-3" />
         <div className="flex items-start justify-between">
           <div>
-            <span className="text-[9.5px] tracking-[0.14em] uppercase font-semibold" style={{ color: accent }}>{heading}</span>
+            <span className="text-[11px] tracking-[0.14em] uppercase font-semibold" style={{ color: accent }}>{heading}</span>
             <div className="font-serif text-[26px] font-semibold mt-1.5">
               {eventPieces.length === 1 ? `"${eventPieces[0].title}"` : eventPieces.length > 1 ? `${eventPieces.length} routines` : heading}
             </div>
@@ -45,18 +45,18 @@ export default function EventSheet({ event, kind = 'rehearsal', onClose }) {
 
         <div className="grid grid-cols-2 gap-2.5 my-4">
           <div className="bg-secondary rounded-xl p-3">
-            <div className="text-[9.5px] tracking-[0.14em] uppercase text-muted-2 flex items-center gap-1"><Clock className="w-3 h-3" />Time</div>
+            <div className="text-[11px] tracking-[0.14em] uppercase text-muted-2 flex items-center gap-1"><Clock className="w-3 h-3" />Time</div>
             <div className="font-serif text-[17px] mt-1">{formatTime(event.start_time)}{end ? `–${formatTime(end)}` : ''}</div>
           </div>
           <div className="bg-secondary rounded-xl p-3">
-            <div className="text-[9.5px] tracking-[0.14em] uppercase text-muted-2 flex items-center gap-1"><MapPin className="w-3 h-3" />Studio</div>
+            <div className="text-[11px] tracking-[0.14em] uppercase text-muted-2 flex items-center gap-1"><MapPin className="w-3 h-3" />Studio</div>
             <div className="font-serif text-[17px] mt-1">{studio ? studio.name : '—'}</div>
           </div>
         </div>
 
         {eventPieces.length > 0 && (
           <>
-            <div className="text-[9.5px] tracking-[0.14em] uppercase text-muted-2 mb-2 flex items-center gap-1"><Music className="w-3 h-3" />{kind === 'rehearsal' ? 'Pieces being called' : 'Routines'}</div>
+            <div className="text-[11px] tracking-[0.14em] uppercase text-muted-2 mb-2 flex items-center gap-1"><Music className="w-3 h-3" />{kind === 'rehearsal' ? 'Pieces being called' : 'Routines'}</div>
             <div className="flex flex-wrap gap-1.5 mb-4">
               {eventPieces.map(p => <span key={p.id} className="text-[12px] px-2.5 py-1 rounded-full" style={{ background: 'rgba(200,164,100,.12)', color: '#c8a464' }}>{p.title}{p.level ? ` · ${p.level}` : ''}</span>)}
             </div>
@@ -65,7 +65,7 @@ export default function EventSheet({ event, kind = 'rehearsal', onClose }) {
 
         {eventDancers.length > 0 && (
           <>
-            <div className="text-[9.5px] tracking-[0.14em] uppercase text-muted-2 mb-2 flex items-center gap-1"><Users className="w-3 h-3" />{isPrivate ? 'Student(s)' : 'Dancers called'}</div>
+            <div className="text-[11px] tracking-[0.14em] uppercase text-muted-2 mb-2 flex items-center gap-1"><Users className="w-3 h-3" />{isPrivate ? 'Student(s)' : 'Dancers called'}</div>
             <div className="flex flex-wrap gap-1.5 mb-4">
               {eventDancers.map(d => <span key={d.id} className="text-[12px] px-2.5 py-1 rounded-full bg-secondary text-muted-foreground">{d.first_name} {d.last_name}</span>)}
             </div>

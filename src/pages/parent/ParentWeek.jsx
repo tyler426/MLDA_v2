@@ -53,7 +53,7 @@ export default function ParentWeek() {
   return (
     <div className="animate-[fade_.32s_ease] px-5">
       <div className="pt-1">
-        <div className="text-[9.5px] tracking-[0.26em] uppercase text-teal-bright font-semibold">Schedule</div>
+        <div className="text-[11px] tracking-[0.26em] uppercase text-teal-bright font-semibold">Schedule</div>
         <h1 className="font-serif text-[25px] font-semibold mt-1">{dancer ? `${dancer.first_name}'s week` : 'Schedule'}</h1>
       </div>
 
@@ -105,8 +105,8 @@ export default function ParentWeek() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="w-[7px] h-[7px] rounded-full" style={{ background: col }} />
-                  <span className="text-[9.5px] tracking-[0.14em] uppercase" style={{ color: col }}>{c.level || 'Class'}</span>
-                  {pulled && <span className="text-[9px] text-gold ml-1">· Pulled to rehearsal</span>}
+                  <span className="text-[11px] tracking-[0.14em] uppercase" style={{ color: col }}>{c.level || 'Class'}</span>
+                  {pulled && <span className="text-[11px] text-gold ml-1">· Pulled to rehearsal</span>}
                 </div>
                 <div className="text-[15px] font-semibold mt-1 mb-0.5 truncate">{c.title}</div>
                 <div className="text-[11.5px] text-muted-foreground truncate">Studio {studioName(c.studio_id)} · {teacherName(c.teacher_id)}</div>
@@ -119,7 +119,7 @@ export default function ParentWeek() {
           <button key={r.id} onClick={() => setEventSheet(r)} className="flex gap-3.5 rounded-2xl p-3.5 border items-center text-left w-full" style={{ borderColor: 'rgba(200,164,100,.3)', background: 'rgba(200,164,100,.06)' }}>
             <Music className="w-4 h-4 text-gold flex-none" />
             <div className="flex-1 min-w-0">
-              <div className="text-[9.5px] tracking-[0.14em] uppercase text-gold">Rehearsal · tap for details</div>
+              <div className="text-[11px] tracking-[0.14em] uppercase text-gold">Rehearsal · tap for details</div>
               <div className="text-[14px] font-semibold mt-0.5">{formatTime(r.start_time)}–{formatTime(r.end_time)} · Studio {studioName(r.studio_id)}</div>
               {r.notes && <div className="text-[11.5px] text-muted-2 truncate">{r.notes}</div>}
             </div>

@@ -37,7 +37,7 @@ export default function ParentSettings() {
   return (
     <div className="px-5 pt-1 pb-6 space-y-4">
       <div>
-        <div className="text-[9.5px] tracking-[0.26em] uppercase text-gold font-semibold">Family</div>
+        <div className="text-[11px] tracking-[0.26em] uppercase text-gold font-semibold">Family</div>
         <h1 className="font-serif text-[25px] font-semibold mt-1">{household?.primary_contact_name || 'Your account'}</h1>
       </div>
 

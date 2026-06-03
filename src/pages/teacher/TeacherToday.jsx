@@ -53,7 +53,7 @@ export default function TeacherToday() {
   return (
     <div className="animate-[fade_.32s_ease] px-5">
       <div className="pt-1">
-        <div className="text-[9.5px] tracking-[0.26em] uppercase text-gold font-semibold">{format(new Date(), 'EEEE · MMMM d')}</div>
+        <div className="text-[11px] tracking-[0.26em] uppercase text-gold font-semibold">{format(new Date(), 'EEEE · MMMM d')}</div>
         <h1 className="font-serif text-[25px] font-semibold mt-1">{greeting()}, {teacher?.first_name || 'Teacher'}</h1>
       </div>
 
@@ -78,7 +78,7 @@ export default function TeacherToday() {
         ))}
       </div>
 
-      <div className="text-[9.5px] tracking-[0.26em] uppercase text-teal-bright font-semibold mt-5 mb-3">{isToday ? "Today's classes" : DAYS[activeDow]} · tap to take attendance</div>
+      <div className="text-[11px] tracking-[0.26em] uppercase text-teal-bright font-semibold mt-5 mb-3">{isToday ? "Today's classes" : DAYS[activeDow]} · tap to take attendance</div>
 
       <div className="pb-2 flex flex-col gap-2.5">
         {myClasses.length === 0 && dayBookings.length === 0 && (
@@ -111,7 +111,7 @@ export default function TeacherToday() {
           return (
             <button key={b.id} onClick={() => setEventSheet(b)} className="text-left rounded-2xl p-4 border w-full" style={{ borderColor: b.type === 'private' ? 'rgba(200,164,100,.3)' : 'rgba(44,144,137,.3)' }}>
               <div className="flex items-center justify-between">
-                <span className="text-[9.5px] tracking-[0.14em] uppercase font-semibold" style={{ color: b.type === 'private' ? '#c8a464' : '#3aa89f' }}>{b.type === 'private' ? 'Private lesson' : 'Rehearsal booking'} · tap for details</span>
+                <span className="text-[11px] tracking-[0.14em] uppercase font-semibold" style={{ color: b.type === 'private' ? '#c8a464' : '#3aa89f' }}>{b.type === 'private' ? 'Private lesson' : 'Rehearsal booking'} · tap for details</span>
                 <ChevronRight className="w-4 h-4 text-muted-2" />
               </div>
               <div className="mt-1.5 flex items-center gap-3 text-[12px] text-muted-foreground">

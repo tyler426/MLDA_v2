@@ -298,7 +298,7 @@ export default function TeacherWeek() {
                             const from = `${String(h + i).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
                             const to = `${String(h + i + 1).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
                             return (
-                              <span key={i} className="text-[9px] bg-border text-muted-foreground px-1.5 py-0.5 rounded font-caps tracking-[0.08em]">
+                              <span key={i} className="text-[11px] bg-border text-muted-foreground px-1.5 py-0.5 rounded font-caps tracking-[0.08em]">
                                 Hr {i + 1}: {from}–{to}
                               </span>
                             );

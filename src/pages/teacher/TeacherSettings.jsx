@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Copy, Check, Calendar, Music, Trophy, ClipboardList, ChevronRight } from 'lucide-react';
+import { Copy, Check, Calendar, Music, Trophy, ClipboardList, ChevronRight, Sparkles } from 'lucide-react';
 import SectionLabel from '@/components/shared/SectionLabel';
 import NotificationToggle from '@/components/shared/NotificationToggle';
 import { toast } from 'sonner';
@@ -43,6 +43,7 @@ export default function TeacherSettings() {
       {/* Quick links to features kept off the bottom nav */}
       <div className="bg-card border border-border rounded-2xl overflow-hidden">
         {[
+          { to: '/teacher/privates', icon: Sparkles, label: 'Private lessons' },
           { to: '/teacher/pieces', icon: Music, label: 'My pieces' },
           { to: '/teacher/competitions', icon: Trophy, label: 'Competitions' },
           { to: '/teacher/attendance', icon: ClipboardList, label: 'Attendance' },

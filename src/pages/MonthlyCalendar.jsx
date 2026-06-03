@@ -238,7 +238,7 @@ export default function MonthlyCalendar({ role = 'parent' }) {
           <button onClick={() => setCurrentDate(new Date(year, month - 1, 1))} className="p-1.5 rounded-md hover:bg-secondary transition-colors">
             <ChevronLeft className="w-4 h-4 text-muted-foreground" />
           </button>
-          <button onClick={() => setCurrentDate(new Date())} className="font-caps text-[9px] uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground px-2 py-1 rounded transition-colors border border-border">
+          <button onClick={() => setCurrentDate(new Date())} className="font-caps text-[11px] uppercase tracking-[0.12em] text-muted-foreground hover:text-foreground px-2 py-1 rounded transition-colors border border-border">
             Today
           </button>
           <button onClick={() => setCurrentDate(new Date(year, month + 1, 1))} className="p-1.5 rounded-md hover:bg-secondary transition-colors">
@@ -250,12 +250,12 @@ export default function MonthlyCalendar({ role = 'parent' }) {
       {/* Parent dancer selector */}
       {role === 'parent' && householdDancers.length > 0 && (
         <div className="mb-3 flex items-center gap-2 flex-wrap">
-          <span className="font-caps text-[9px] uppercase tracking-[0.15em] text-muted-foreground">Dancer:</span>
+          <span className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground">Dancer:</span>
           {householdDancers.map(d => (
             <button
               key={d.id}
               onClick={() => { setSelectedDancerId(d.id); setSelectedDay(null); }}
-              className={`px-2.5 py-0.5 rounded font-caps text-[9px] uppercase tracking-[0.1em] border transition-colors ${
+              className={`px-2.5 py-0.5 rounded font-caps text-[11px] uppercase tracking-[0.1em] border transition-colors ${
                 selectedDancerId === d.id
                   ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-transparent text-muted-foreground border-border hover:text-foreground'
@@ -269,12 +269,12 @@ export default function MonthlyCalendar({ role = 'parent' }) {
 
       {/* Week variant filter */}
       <div className="flex items-center gap-2 mb-3">
-        <span className="font-caps text-[9px] uppercase tracking-[0.15em] text-muted-foreground">Week:</span>
+        <span className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground">Week:</span>
         {['All', 'Black', 'Teal'].map(v => (
           <button
             key={v}
             onClick={() => setWeekVariant(v)}
-            className={`px-2.5 py-0.5 rounded font-caps text-[9px] uppercase tracking-[0.1em] border transition-colors ${
+            className={`px-2.5 py-0.5 rounded font-caps text-[11px] uppercase tracking-[0.1em] border transition-colors ${
               weekVariant === v
                 ? v === 'Teal' ? 'bg-teal/20 text-teal border-teal/40'
                   : v === 'Black' ? 'bg-zinc-700 text-zinc-200 border-zinc-600'
@@ -295,14 +295,14 @@ export default function MonthlyCalendar({ role = 'parent' }) {
           { label: 'Guest Artist', style: EVENT_STYLES.guest_artist },
           { label: 'Competition', style: EVENT_STYLES.competition },
         ].map(l => (
-          <span key={l.label} className={`font-caps text-[9px] uppercase tracking-[0.1em] px-2 py-0.5 rounded border ${l.style}`}>{l.label}</span>
+          <span key={l.label} className={`font-caps text-[11px] uppercase tracking-[0.1em] px-2 py-0.5 rounded border ${l.style}`}>{l.label}</span>
         ))}
       </div>
 
       {/* Day-of-week headers */}
       <div className="grid grid-cols-7 gap-px mb-1">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-          <div key={d} className="text-center font-caps text-[9px] uppercase tracking-[0.15em] text-muted-foreground py-1">{d}</div>
+          <div key={d} className="text-center font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground py-1">{d}</div>
         ))}
       </div>
 
@@ -404,7 +404,7 @@ export default function MonthlyCalendar({ role = 'parent' }) {
             {/* Special events */}
             {selectedEvents.length > 0 && (
               <div className="mb-4">
-                <p className="font-caps text-[9px] uppercase tracking-[0.15em] text-muted-foreground mb-2">Special Events & Bookings</p>
+                <p className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-2">Special Events & Bookings</p>
                 <div className="space-y-2">
                   {selectedEvents.map(ev => (
                     <div key={ev.id + ev.type} className={`rounded-lg border p-3 ${ev.style}`}>
@@ -427,14 +427,14 @@ export default function MonthlyCalendar({ role = 'parent' }) {
                           {/* Dancers on booking (admin/teacher view) */}
                           {(ev.dancers?.length > 0 || ev.data?.dancer_ids?.length > 0) && (
                             <div>
-                              <p className="text-[9px] font-caps uppercase tracking-[0.08em] text-warm-gray mt-1.5 mb-0.5">Dancers</p>
+                              <p className="text-[11px] font-caps uppercase tracking-[0.08em] text-warm-gray mt-1.5 mb-0.5">Dancers</p>
                               <div className="flex flex-wrap gap-1">
                                 {(ev.dancers || []).map(d => (
-                                  <span key={d.id} className="bg-black/20 px-1.5 py-0.5 rounded text-[9px]">{d.first_name} {d.last_name}</span>
+                                  <span key={d.id} className="bg-black/20 px-1.5 py-0.5 rounded text-[11px]">{d.first_name} {d.last_name}</span>
                                 ))}
                                 {!ev.dancers && ev.data?.dancer_ids?.map(did => {
                                   const d = dancers.find(x => x.id === did);
-                                  return d ? <span key={did} className="bg-black/20 px-1.5 py-0.5 rounded text-[9px]">{d.first_name} {d.last_name}</span> : null;
+                                  return d ? <span key={did} className="bg-black/20 px-1.5 py-0.5 rounded text-[11px]">{d.first_name} {d.last_name}</span> : null;
                                 })}
                               </div>
                             </div>
@@ -442,14 +442,14 @@ export default function MonthlyCalendar({ role = 'parent' }) {
                           {/* Pieces on booking (admin/teacher view) */}
                           {(ev.pieces?.length > 0 || ev.data?.piece_ids?.length > 0) && (
                             <div>
-                              <p className="text-[9px] font-caps uppercase tracking-[0.08em] text-warm-gray mt-1.5 mb-0.5">Pieces</p>
+                              <p className="text-[11px] font-caps uppercase tracking-[0.08em] text-warm-gray mt-1.5 mb-0.5">Pieces</p>
                               <div className="flex flex-wrap gap-1">
                                 {(ev.pieces || []).map(p => (
-                                  <span key={p.id} className="bg-black/20 px-1.5 py-0.5 rounded text-[9px] italic">{p.title}</span>
+                                  <span key={p.id} className="bg-black/20 px-1.5 py-0.5 rounded text-[11px] italic">{p.title}</span>
                                 ))}
                                 {!ev.pieces && ev.data?.piece_ids?.map(pid => {
                                   const p = pieces.find(x => x.id === pid);
-                                  return p ? <span key={pid} className="bg-black/20 px-1.5 py-0.5 rounded text-[9px] italic">{p.title}</span> : null;
+                                  return p ? <span key={pid} className="bg-black/20 px-1.5 py-0.5 rounded text-[11px] italic">{p.title}</span> : null;
                                 })}
                               </div>
                             </div>
@@ -516,7 +516,7 @@ export default function MonthlyCalendar({ role = 'parent' }) {
 
               return (
                 <div>
-                  <p className="font-caps text-[9px] uppercase tracking-[0.15em] text-muted-foreground mb-2">
+                  <p className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-2">
                     Classes by Studio
                     {weekVariant !== 'All' && <span className={`ml-2 px-1.5 py-0.5 rounded text-[8px] ${VARIANT_BADGE[weekVariant]}`}>{weekVariant} Week</span>}
                   </p>
@@ -524,7 +524,7 @@ export default function MonthlyCalendar({ role = 'parent' }) {
                     {studioGroups.map(({ studio, classes }) => (
                       <div key={studio?.id || 'unassigned'} className="bg-secondary/30 rounded-lg overflow-hidden border border-border">
                         <div className="px-2.5 py-1.5 bg-secondary/60 border-b border-border">
-                          <p className="font-caps text-[9px] uppercase tracking-[0.15em] text-warm-gray">
+                          <p className="font-caps text-[11px] uppercase tracking-[0.15em] text-warm-gray">
                             {studio ? `Studio ${studio.name}` : 'Unassigned'}
                           </p>
                         </div>

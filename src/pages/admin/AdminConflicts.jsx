@@ -130,10 +130,10 @@ export default function AdminConflicts() {
       <Tabs defaultValue="conflicts">
         <TabsList className="bg-secondary mb-4">
           <TabsTrigger value="conflicts" className="font-caps text-[10px] uppercase tracking-[0.1em]">
-            Conflicts {allConflicts.length > 0 && <span className="ml-1.5 bg-terracotta text-white text-[9px] rounded-full px-1.5">{allConflicts.length}</span>}
+            Conflicts {allConflicts.length > 0 && <span className="ml-1.5 bg-terracotta text-white text-[11px] rounded-full px-1.5">{allConflicts.length}</span>}
           </TabsTrigger>
           <TabsTrigger value="open" className="font-caps text-[10px] uppercase tracking-[0.1em]">
-            Open Rooms {usableSlots.length > 0 && <span className="ml-1.5 bg-primary text-primary-foreground text-[9px] rounded-full px-1.5">{usableSlots.length}</span>}
+            Open Rooms {usableSlots.length > 0 && <span className="ml-1.5 bg-primary text-primary-foreground text-[11px] rounded-full px-1.5">{usableSlots.length}</span>}
           </TabsTrigger>
         </TabsList>
 
@@ -208,7 +208,7 @@ export default function AdminConflicts() {
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Clock className="w-3 h-3" />
                     {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
-                    <span className="ml-auto text-[9px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">Book →</span>
+                    <span className="ml-auto text-[11px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">Book →</span>
                   </div>
                 </motion.button>
               ))}

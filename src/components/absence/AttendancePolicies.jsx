@@ -122,7 +122,7 @@ function DancerRow({ dancer, unexcused, total, rate, level }) {
     <div className="bg-card border border-border rounded-lg p-3">
       <div className="flex items-center justify-between mb-1">
         <p className="font-body text-sm text-foreground">{dancer.first_name} {dancer.last_name}</p>
-        <span className={`font-caps text-[9px] uppercase tracking-[0.1em] ${color}`}>
+        <span className={`font-caps text-[11px] uppercase tracking-[0.1em] ${color}`}>
           {unexcused} unexcused
         </span>
       </div>
@@ -141,10 +141,10 @@ function DancerYearCard({ dancer, unexcused, excused, lates, present, total, onP
       <div className="flex items-start justify-between mb-2">
         <div>
           <p className="font-body font-medium text-sm text-foreground">{dancer.first_name} {dancer.last_name}</p>
-          {dancer.level && <p className="font-caps text-[9px] uppercase tracking-[0.08em] text-warm-gray">{dancer.level}</p>}
+          {dancer.level && <p className="font-caps text-[11px] uppercase tracking-[0.08em] text-warm-gray">{dancer.level}</p>}
         </div>
         {onProbation && (
-          <span className="font-caps text-[9px] uppercase tracking-[0.1em] text-terracotta bg-terracotta/10 px-2 py-0.5 rounded">Probation</span>
+          <span className="font-caps text-[11px] uppercase tracking-[0.1em] text-terracotta bg-terracotta/10 px-2 py-0.5 rounded">Probation</span>
         )}
       </div>
 
@@ -159,7 +159,7 @@ function DancerYearCard({ dancer, unexcused, excused, lates, present, total, onP
       {/* Monthly breakdown */}
       {monthly.length > 0 && (
         <div>
-          <p className="font-caps text-[9px] uppercase tracking-[0.08em] text-warm-gray mb-1.5 flex items-center gap-1">
+          <p className="font-caps text-[11px] uppercase tracking-[0.08em] text-warm-gray mb-1.5 flex items-center gap-1">
             <Calendar className="w-2.5 h-2.5" /> Monthly
           </p>
           <div className="flex gap-1.5 flex-wrap">
@@ -186,7 +186,7 @@ function DancerYearCard({ dancer, unexcused, excused, lates, present, total, onP
 
 function Pill({ label, value, color }) {
   return (
-    <span className={`font-caps text-[9px] uppercase tracking-[0.08em] px-2 py-0.5 rounded ${color}`}>
+    <span className={`font-caps text-[11px] uppercase tracking-[0.08em] px-2 py-0.5 rounded ${color}`}>
       {value} {label}
     </span>
   );

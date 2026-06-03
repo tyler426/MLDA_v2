@@ -179,14 +179,14 @@ export default function TeacherAttendance() {
                     <div key={dancer.id} className="bg-card border border-border rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
                         <p className="font-body font-medium text-sm text-foreground">{dancer.first_name} {dancer.last_name}</p>
-                        <span className="font-caps text-[9px] uppercase tracking-[0.1em] text-warm-gray">{dancer.level}</span>
+                        <span className="font-caps text-[11px] uppercase tracking-[0.1em] text-warm-gray">{dancer.level}</span>
                       </div>
                       <div className="flex gap-1.5 flex-wrap">
                         {STATUS_OPTIONS.map(s => (
                           <button
                             key={s}
                             onClick={() => setLocalStatuses(prev => ({ ...prev, [dancer.id]: s }))}
-                            className={`px-2.5 py-1 rounded-md font-caps text-[9px] uppercase tracking-[0.1em] border transition-all ${
+                            className={`px-2.5 py-1 rounded-md font-caps text-[11px] uppercase tracking-[0.1em] border transition-all ${
                               current === s ? STATUS_STYLE[s] + ' font-semibold' : 'border-border text-muted-foreground hover:border-primary/30'
                             }`}
                           >

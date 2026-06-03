@@ -58,16 +58,16 @@ export default function AdminShell() {
             style={{ background: 'linear-gradient(150deg,#c8a464,#9c7a3c)' }}>M</div>
           <div>
             <div className="font-serif text-[17px] font-semibold leading-none">MLDA</div>
-            <div className="text-[9px] tracking-[0.24em] uppercase text-muted-2 mt-[3px]">Collective · Admin</div>
+            <div className="text-[11px] tracking-[0.24em] uppercase text-muted-2 mt-[3px]">Collective · Admin</div>
           </div>
         </div>
 
-        <div className="text-[9px] tracking-[0.2em] uppercase text-muted-2 px-[10px] pt-2 pb-2">Studio</div>
+        <div className="text-[11px] tracking-[0.2em] uppercase text-muted-2 px-[10px] pt-2 pb-2">Studio</div>
         <nav className="flex flex-col gap-0.5">
           {STUDIO_NAV.map(item => <NavItem key={item.path} item={item} active={isActive(item.path)} />)}
         </nav>
 
-        <div className="text-[9px] tracking-[0.2em] uppercase text-muted-2 px-[10px] pt-4 pb-2">Operations</div>
+        <div className="text-[11px] tracking-[0.2em] uppercase text-muted-2 px-[10px] pt-4 pb-2">Operations</div>
         <nav className="flex flex-col gap-0.5">
           {OPS_NAV.map(item => <NavItem key={item.path} item={item} active={isActive(item.path)} />)}
         </nav>
@@ -76,8 +76,7 @@ export default function AdminShell() {
           onClick={() => logout()}
           className="mt-auto flex items-center gap-2.5 p-[11px] rounded-xl bg-secondary border border-border text-left hover:border-border/80 transition-colors"
         >
-          <span className="w-[34px] h-[34px] rounded-full flex items-center justify-center font-serif font-semibold text-[#0a0908] text-[13px]"
-            style={{ background: '#2c9089' }}>{initials(user?.full_name || user?.email)}</span>
+          <span className="w-[34px] h-[34px] rounded-full flex items-center justify-center font-serif font-semibold text-[#0a0908] text-[13px] bg-primary">{initials(user?.full_name || user?.email)}</span>
           <span className="flex-1 min-w-0">
             <span className="block text-[12.5px] font-semibold truncate">{user?.full_name || 'Admin'}</span>
             <span className="block text-[10.5px] text-muted-2">Sign out</span>
