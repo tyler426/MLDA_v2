@@ -13,6 +13,7 @@ import { Plus, Trophy, MapPin, Calendar, Clock, UserPlus, Trash2, Music2 } from 
 import { format } from 'date-fns';
 import { fmtDate, COMMON_TIMEZONES } from '@/lib/dateUtils';
 import { formatTime } from '@/lib/scheduleUtils';
+import { useStudioConfig } from '@/lib/useStudioConfig';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -305,8 +306,9 @@ function EntryFormDialog({ open, onClose, weekend, pieces, onSave }) {
 }
 
 function WeekendFormDialog({ open, onClose, onSave }) {
-  const EMPTY = { name: '', start_date: '', end_date: '', venue: '', timezone: 'America/Denver', notes: '' };
+  const EMPTY = { name: '', start_date: '', end_date: '', venue: '', timezone: 'America/Denver', program: 'all', notes: '' };
   const [form, setForm] = useState(EMPTY);
+  const { data: cfg } = useStudioConfig();
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { onClose(); setForm(EMPTY); } }}>
       <DialogContent className="bg-card border-border max-w-sm" onInteractOutside={e => e.preventDefault()} onPointerDownOutside={e => e.preventDefault()}>
@@ -318,6 +320,16 @@ function WeekendFormDialog({ open, onClose, onSave }) {
             <div><Label className="text-xs text-muted-foreground">End</Label><Input type="date" value={form.end_date} onChange={e => setForm({ ...form, end_date: e.target.value })} required className="bg-secondary border-border" /></div>
           </div>
           <div><Label className="text-xs text-muted-foreground">Venue</Label><Input value={form.venue} onChange={e => setForm({ ...form, venue: e.target.value })} className="bg-secondary border-border" /></div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Who's competing <span className="text-muted-2">(shows on their calendar)</span></Label>
+            <Select value={form.program} onValueChange={v => setForm({ ...form, program: v })}>
+              <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Whole studio</SelectItem>
+                {(cfg?.programs || []).map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
           <div>
             <Label className="text-xs text-muted-foreground">Timezone <span className="text-muted-2">(call times shown in this zone)</span></Label>
             <Select value={form.timezone} onValueChange={v => setForm({ ...form, timezone: v })}>

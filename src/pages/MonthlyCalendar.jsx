@@ -5,8 +5,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, startOfWeek, addDays, isSameMonth, isToday, parseISO } from 'date-fns';
 import { ChevronLeft, ChevronRight, X, Wand2, Send } from 'lucide-react';
 import SectionLabel from '@/components/shared/SectionLabel';
-import { formatTime, weekStartStr, classRunsOnWeekType } from '@/lib/scheduleUtils';
+import { formatTime, weekStartStr } from '@/lib/scheduleUtils';
 import { useSeasonWeeks } from '@/lib/useSeasonWeeks';
+import { useStudioConfig } from '@/lib/useStudioConfig';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -49,16 +50,15 @@ function buildCalendarWeeks(year, month) {
 export default function MonthlyCalendar({ role = 'parent' }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
-  const [weekVariant, setWeekVariant] = useState('All');
+  const [programFilter, setProgramFilter] = useState('all');
+  const [markProgram, setMarkProgram] = useState('all'); // program a new designation applies to
   const [selectedDancerId, setSelectedDancerId] = useState(null);
   const qc = useQueryClient();
   const isAdmin = role === 'admin';
 
-  // Black/Teal week allocation
+  const { data: cfg } = useStudioConfig();
+  // Black/Teal week allocation (drives the gutter; classes live on day/week views)
   const { weekTypeFor } = useSeasonWeeks();
-  // The week type that should drive class filtering for a given date:
-  // an explicit preview filter wins, otherwise the week's real allocation.
-  const effectiveType = (dateStr) => (weekVariant === 'All' ? weekTypeFor(dateStr) : weekVariant);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -91,6 +91,14 @@ export default function MonthlyCalendar({ role = 'parent' }) {
       setSelectedDancerId(householdDancers[0].id);
     }
   }, [householdDancers.length, role]);
+
+  // Program scope: parents auto-scope to their selected dancer's program; admin/
+  // teacher use the program filter. null = show every program (whole studio).
+  const activeProgram = role === 'parent'
+    ? (householdDancers.find(d => d.id === selectedDancerId)?.program || null)
+    : (programFilter === 'all' ? null : programFilter);
+  // An item shows when it's studio-wide, or when its program matches the active scope.
+  const matchesProgram = (item) => !item.program || item.program === 'all' || activeProgram === null || item.program === activeProgram;
 
   const deleteBookingMutation = useMutation({
     mutationFn: (id) => base44.entities.SpaceBooking.delete(id),
@@ -154,7 +162,7 @@ export default function MonthlyCalendar({ role = 'parent' }) {
         start = format(addDays(parseISO(sun), 6), 'yyyy-MM-dd');     // Saturday…
         end = format(addDays(parseISO(sun), 7), 'yyyy-MM-dd');       // …through Sunday
       }
-      await base44.entities.CalendarMark.create({ kind, start_date: start, end_date: end });
+      await base44.entities.CalendarMark.create({ kind, start_date: start, end_date: end, program: markProgram === 'all' ? null : markProgram });
       return { removed: false };
     },
     onSuccess: (r) => { qc.invalidateQueries({ queryKey: ['calendarMarks'] }); toast.success(r.removed ? 'Designation removed' : 'Marked on calendar'); },
@@ -171,8 +179,12 @@ export default function MonthlyCalendar({ role = 'parent' }) {
         ? `Tribe Vibe (${range}): dancers are expected at the studio for rehearsals this week.`
         : `Approved travel weekend (${range}): no competition or Tribe Vibe — families are clear to travel.`)
         + (m.label ? ` ${m.label}` : '');
+      // Scope families to the designation's program; teachers always hear about it.
+      const targetHouseholds = (!m.program || m.program === 'all')
+        ? households.filter(h => h.email)
+        : households.filter(h => h.email && dancers.some(d => d.parent_household_id === h.id && d.program === m.program));
       let n = 0;
-      for (const h of households.filter(h => h.email)) {
+      for (const h of targetHouseholds) {
         await base44.entities.ScheduleNotification.create({ recipient_email: h.email, recipient_type: 'parent', type: 'announcement', title, message }); n++;
       }
       for (const t of teachers.filter(t => t.email)) {
@@ -187,124 +199,26 @@ export default function MonthlyCalendar({ role = 'parent' }) {
   const monthStart = format(new Date(year, month, 1), 'yyyy-MM-dd');
   const monthEnd = format(endOfMonth(new Date(year, month, 1)), 'yyyy-MM-dd');
 
-  function getEventsForDate(dateStr, dancerId = null) {
-    const dow = parseISO(dateStr).getDay();
+  // The month is a planning view: guest artists, competitions, Tribe Vibe weeks
+  // and travel weekends only — program-scoped. Recurring classes, rehearsals and
+  // private lessons live on the day & week views.
+  function getEventsForDate(dateStr) {
     const events = [];
 
-    // For parent view with dancer filter
-    if (role === 'parent' && dancerId) {
-      // RehearsalBlock records for this dancer
-      rehearsals.filter(r => {
-        if (r.date !== dateStr) return false;
-        if ((r.dancer_ids || []).includes(dancerId)) return true;
-        const castIds = new Set((r.piece_ids || []).flatMap(pid => pieceCasts.filter(pc => pc.piece_id === pid).map(pc => pc.dancer_id)));
-        return castIds.has(dancerId);
-      }).forEach(r => {
-        const studio = studios.find(s => s.id === r.studio_id);
-        events.push({
-          type: 'rehearsal_block',
-          label: 'Rehearsal',
-          sub: r.notes || '',
-          id: r.id,
-          data: r,
-          studio,
-          style: EVENT_STYLES.rehearsal_block,
-          canDelete: false,
-        });
-      });
-
-      // Space bookings for this dancer
-      spaceBookings.filter(b => b.date === dateStr && b.dancer_ids?.includes(dancerId)).forEach(b => {
-        const studio = studios.find(s => s.id === b.studio_id);
-        const teacher = teachers.find(t => t.id === b.teacher_id);
-        events.push({
-          type: b.type === 'private' ? 'space_private' : 'space_rehearsal',
-          label: b.type === 'private' ? 'Private Lesson' : 'Rehearsal',
-          sub: studio ? `Studio ${studio.name}` : '',
-          id: b.id,
-          data: b,
-          teacher,
-          studio,
-          style: b.type === 'private' ? EVENT_STYLES.space_private : EVENT_STYLES.space_rehearsal,
-          canDelete: false,
-        });
-      });
-
-      // Regular classes for this dancer
-      const dancerEnrollments = enrollments.filter(e => e.dancer_id === dancerId && e.active);
-      const dancerClasses = allClasses.filter(c => {
-        if (c.one_time_date === dateStr) {
-          return c.day_of_week === null; // one-time only
-        }
-        if (c.day_of_week !== dow) return false;
-        return dancerEnrollments.some(e => e.class_id === c.id);
-      });
-      
-      dancerClasses.forEach(c => {
-        const teacher = teachers.find(t => t.id === c.teacher_id);
-        events.push({
-          type: 'regular_class',
-          label: c.title,
-          sub: c.level || '',
-          id: c.id,
-          data: c,
-          teacher,
-          style: 'bg-secondary/40 text-foreground border-border',
-        });
-      });
-
-      // Major studio events: competitions only
-      competitions.filter(comp => comp.start_date <= dateStr && comp.end_date >= dateStr).forEach(comp => {
-        events.push({ type: 'competition', label: comp.name, sub: comp.venue || '', id: comp.id, data: comp, style: EVENT_STYLES.competition });
-      });
-
-      events.push(...marksForDate(dateStr));
-      return events;
-    }
-
-    // For admin/teacher view: show all events
-    // Rehearsal blocks
-    rehearsals.filter(r => r.date === dateStr).forEach(r => {
-      events.push({ type: 'rehearsal_block', label: 'Rehearsal', sub: r.notes || '', id: r.id, data: r, style: EVENT_STYLES.rehearsal_block });
-    });
-
-    // Space bookings
-    spaceBookings.filter(b => b.date === dateStr).forEach(b => {
-      const studio = studios.find(s => s.id === b.studio_id);
-      const teacher = teachers.find(t => t.id === b.teacher_id);
-      const bDancers = (b.dancer_ids || []).map(did => dancers.find(d => d.id === did)).filter(Boolean);
-      const bPieces = (b.piece_ids || []).map(pid => pieces.find(p => p.id === pid)).filter(Boolean);
-      events.push({
-        type: b.type === 'private' ? 'space_private' : 'space_rehearsal',
-        label: b.type === 'private' ? 'Private Lesson' : 'Rehearsal Booking',
-        sub: studio ? `Studio ${studio.name}` : '',
-        id: b.id,
-        data: b,
-        teacher,
-        studio,
-        dancers: bDancers,
-        pieces: bPieces,
-        style: b.type === 'private' ? EVENT_STYLES.space_private : EVENT_STYLES.space_rehearsal,
-        canDelete: true,
-      });
-    });
-
-    // One-time classes (guest artists, special sessions)
-    allClasses.filter(c => c.one_time_date === dateStr).forEach(c => {
+    // Guest artists (special one-time sessions)
+    allClasses.filter(c => c.one_time_date === dateStr && c.guest_artist).forEach(c => {
       const teacher = teachers.find(t => t.id === c.teacher_id);
       events.push({
-        type: c.guest_artist ? 'guest_artist' : 'one_time_class',
-        label: c.guest_artist ? `Guest: ${c.guest_artist_name || c.title}` : c.title,
+        type: 'guest_artist',
+        label: `Guest: ${c.guest_artist_name || c.title}`,
         sub: c.level || '',
-        id: c.id,
-        data: c,
-        teacher,
-        style: c.guest_artist ? EVENT_STYLES.guest_artist : EVENT_STYLES.one_time_class,
+        id: c.id, data: c, teacher,
+        style: EVENT_STYLES.guest_artist,
       });
     });
 
-    // Competitions
-    competitions.filter(comp => comp.start_date <= dateStr && comp.end_date >= dateStr).forEach(comp => {
+    // Competitions (program-scoped)
+    competitions.filter(comp => comp.start_date <= dateStr && comp.end_date >= dateStr && matchesProgram(comp)).forEach(comp => {
       events.push({ type: 'competition', label: comp.name, sub: comp.venue || '', id: comp.id, data: comp, style: EVENT_STYLES.competition });
     });
 
@@ -315,7 +229,7 @@ export default function MonthlyCalendar({ role = 'parent' }) {
   // Tribe Vibe / Approved Travel designations covering a date, as calendar events.
   function marksForDate(dateStr) {
     return calendarMarks
-      .filter(m => m.start_date <= dateStr && m.end_date >= dateStr)
+      .filter(m => m.start_date <= dateStr && m.end_date >= dateStr && matchesProgram(m))
       .map(m => ({
         type: m.kind,
         label: m.kind === 'tribe_vibe' ? 'Tribe Vibe' : 'Travel OK',
@@ -327,16 +241,8 @@ export default function MonthlyCalendar({ role = 'parent' }) {
       }));
   }
 
-  function getDayClasses(dateStr) {
-    const dow = parseISO(dateStr).getDay();
-    return allClasses
-      .filter(c => !c.one_time_date && c.day_of_week === dow)
-      .sort((a, b) => a.start_time.localeCompare(b.start_time));
-  }
-
   const selectedDateStr = selectedDay ? format(selectedDay, 'yyyy-MM-dd') : null;
-  const selectedEvents = selectedDateStr ? getEventsForDate(selectedDateStr, selectedDancerId) : [];
-  const selectedClasses = selectedDateStr ? getDayClasses(selectedDateStr) : [];
+  const selectedEvents = selectedDateStr ? getEventsForDate(selectedDateStr) : [];
 
   return (
     <div className="px-4 pt-2 pb-6 max-w-2xl mx-auto">
@@ -376,46 +282,42 @@ export default function MonthlyCalendar({ role = 'parent' }) {
         </div>
       )}
 
-      {/* Week variant filter */}
-      <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <span className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground">{isAdmin ? 'Preview:' : 'Week:'}</span>
-        {['All', 'Black', 'Teal'].map(v => (
-          <button
-            key={v}
-            onClick={() => setWeekVariant(v)}
-            className={`px-2.5 py-0.5 rounded font-caps text-[11px] uppercase tracking-[0.1em] border transition-colors ${
-              weekVariant === v
-                ? v === 'Teal' ? 'bg-teal/20 text-teal border-teal/40'
-                  : v === 'Black' ? 'bg-zinc-700 text-zinc-200 border-zinc-600'
-                  : 'bg-primary text-primary-foreground border-primary'
-                : 'bg-transparent text-muted-foreground border-border hover:text-foreground'
-            }`}
-          >
-            {v === 'All' ? (isAdmin ? 'As allocated' : 'All') : `${v}`}
-          </button>
-        ))}
-        {isAdmin && (
-          <button
-            onClick={() => fillYearMutation.mutate({ startWeek: weekStartStr(weeks[0][0]), firstType: weekTypeFor(weeks[0][0]) || 'Black' })}
-            disabled={fillYearMutation.isPending}
-            className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded font-caps text-[11px] uppercase tracking-[0.1em] border border-border text-muted-foreground hover:text-foreground hover:border-border/80 transition-colors"
-            title="Fill 52 weeks alternating, starting from the first week shown"
-          >
-            <Wand2 className="w-3.5 h-3.5" /> Auto-fill year
-          </button>
-        )}
-      </div>
+      {/* Program filter (admin & teacher); parents are auto-scoped to their dancer) */}
+      {role !== 'parent' && (
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground">Program:</span>
+          {['all', ...(cfg?.programs || [])].map(p => (
+            <button
+              key={p}
+              onClick={() => setProgramFilter(p)}
+              className={`px-2.5 py-0.5 rounded font-caps text-[11px] uppercase tracking-[0.1em] border transition-colors ${
+                programFilter === p ? 'bg-primary text-primary-foreground border-primary' : 'bg-transparent text-muted-foreground border-border hover:text-foreground'
+              }`}
+            >
+              {p === 'all' ? 'All studio' : p}
+            </button>
+          ))}
+          {isAdmin && (
+            <button
+              onClick={() => fillYearMutation.mutate({ startWeek: weekStartStr(weeks[0][0]), firstType: weekTypeFor(weeks[0][0]) || 'Black' })}
+              disabled={fillYearMutation.isPending}
+              className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded font-caps text-[11px] uppercase tracking-[0.1em] border border-border text-muted-foreground hover:text-foreground hover:border-border/80 transition-colors"
+              title="Fill 52 weeks alternating, starting from the first week shown"
+            >
+              <Wand2 className="w-3.5 h-3.5" /> Auto-fill weeks
+            </button>
+          )}
+        </div>
+      )}
       {isAdmin && (
         <p className="text-[11px] text-muted-2 -mt-1 mb-3">
-          Tap the <span className="text-foreground">B/T label</span> at the start of each week to set it Black or Teal (tap again to cycle, third tap clears). Parents, teachers &amp; dancers then see only that week’s classes.
+          Tap the <span className="text-foreground">B/T label</span> beside each week to set it Black or Teal (this drives which classes show on the day &amp; week views). Tap a day to mark a Tribe Vibe / travel week.
         </p>
       )}
 
       {/* Legend */}
       <div className="flex flex-wrap gap-2 mb-3">
         {[
-          { label: 'Rehearsal', style: EVENT_STYLES.space_rehearsal },
-          { label: 'Private Lesson', style: EVENT_STYLES.space_private },
           { label: 'Guest Artist', style: EVENT_STYLES.guest_artist },
           { label: 'Competition', style: EVENT_STYLES.competition },
           { label: 'Tribe Vibe', style: EVENT_STYLES.tribe_vibe },
@@ -466,29 +368,8 @@ export default function MonthlyCalendar({ role = 'parent' }) {
                   const dateStr = format(day, 'yyyy-MM-dd');
                   const inMonth = isSameMonth(day, new Date(year, month, 1));
                   const today = isToday(day);
-                  const events = inMonth ? getEventsForDate(dateStr, selectedDancerId) : [];
+                  const events = inMonth ? getEventsForDate(dateStr) : [];
                   const isSelected = selectedDateStr === dateStr;
-                  const dow = day.getDay();
-
-                  // Classes for this day, filtered by the week's Black/Teal allocation
-                  let dayRegularClasses = [];
-                  if (!inMonth) {
-                    dayRegularClasses = [];
-                  } else if (role === 'parent' && selectedDancerId) {
-                    const dancerEnrollments = enrollments.filter(e => e.dancer_id === selectedDancerId && e.active);
-                    dayRegularClasses = allClasses.filter(c => {
-                      if (c.one_time_date === dateStr) return true;
-                      if (c.day_of_week !== dow) return false;
-                      if (!dancerEnrollments.some(e => e.class_id === c.id)) return false;
-                      return classRunsOnWeekType(c, effectiveType(dateStr));
-                    });
-                  } else {
-                    dayRegularClasses = allClasses.filter(c => {
-                      if (c.one_time_date) return c.one_time_date === dateStr;
-                      if (c.day_of_week !== dow) return false;
-                      return classRunsOnWeekType(c, effectiveType(dateStr));
-                    });
-                  }
 
                   return (
                     <button
@@ -505,14 +386,7 @@ export default function MonthlyCalendar({ role = 'parent' }) {
                         {day.getDate()}
                       </div>
 
-                      {/* Class count pill if classes exist */}
-                      {dayRegularClasses.length > 0 && (
-                        <div className="text-[8px] font-caps uppercase tracking-[0.08em] text-muted-foreground mb-0.5">
-                          {dayRegularClasses.length} class{dayRegularClasses.length > 1 ? 'es' : ''}
-                        </div>
-                      )}
-
-                      {/* Special events */}
+                      {/* Events */}
                       <div className="space-y-0.5">
                         {events.slice(0, 3).map(ev => (
                           <div key={ev.id} className={`text-[8px] font-caps uppercase tracking-[0.05em] px-1 py-0.5 rounded border truncate ${ev.style}`}>
@@ -554,6 +428,15 @@ export default function MonthlyCalendar({ role = 'parent' }) {
             {isAdmin && selectedDateStr && (
               <div className="mb-4 bg-secondary/30 border border-border rounded-lg p-3">
                 <p className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-2">Studio designation</p>
+                <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                  <span className="text-[11px] text-muted-2">Applies to:</span>
+                  {['all', ...(cfg?.programs || [])].map(p => (
+                    <button key={p} onClick={() => setMarkProgram(p)}
+                      className={`px-2 py-0.5 rounded text-[11px] border transition-colors ${markProgram === p ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}>
+                      {p === 'all' ? 'Whole studio' : p}
+                    </button>
+                  ))}
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { kind: 'tribe_vibe', on: 'Tribe Vibe week', off: 'Mark Tribe Vibe week' },
@@ -587,7 +470,7 @@ export default function MonthlyCalendar({ role = 'parent' }) {
             {/* Special events */}
             {selectedEvents.length > 0 && (
               <div className="mb-4">
-                <p className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-2">Special Events & Bookings</p>
+                <p className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-2">On this day</p>
                 <div className="space-y-2">
                   {selectedEvents.map(ev => (
                     <div key={ev.id + ev.type} className={`rounded-lg border p-3 ${ev.style}`}>
@@ -655,90 +538,10 @@ export default function MonthlyCalendar({ role = 'parent' }) {
               </div>
             )}
 
-            {/* Regular classes — grouped by studio */}
-            {(() => {
-              const dow = selectedDay.getDay();
-              const dateStr = format(selectedDay, 'yyyy-MM-dd');
-
-              const selWt = effectiveType(dateStr);
-              let regularClasses;
-              if (role === 'parent' && selectedDancerId) {
-                const dancerEnrollments = enrollments.filter(e => e.dancer_id === selectedDancerId && e.active);
-                regularClasses = allClasses.filter(c => {
-                  if (c.one_time_date) return false;
-                  if (c.day_of_week !== dow) return false;
-                  if (!dancerEnrollments.some(e => e.class_id === c.id)) return false;
-                  return classRunsOnWeekType(c, selWt);
-                });
-              } else {
-                regularClasses = allClasses.filter(c => {
-                  if (c.one_time_date) return false;
-                  if (c.day_of_week !== dow) return false;
-                  return classRunsOnWeekType(c, selWt);
-                });
-              }
-
-              if (regularClasses.length === 0 && selectedEvents.length === 0) {
-                return <p className="text-xs text-muted-foreground text-center py-4 italic">No classes or events scheduled</p>;
-              }
-              if (regularClasses.length === 0) return null;
-
-              // Group by studio
-              const studioGroups = studios.map(studio => ({
-                studio,
-                classes: regularClasses
-                  .filter(c => c.studio_id === studio.id)
-                  .sort((a, b) => a.start_time.localeCompare(b.start_time)),
-              })).filter(g => g.classes.length > 0);
-
-              // Classes with no studio assigned
-              const unassigned = regularClasses
-                .filter(c => !studios.some(s => s.id === c.studio_id))
-                .sort((a, b) => a.start_time.localeCompare(b.start_time));
-              if (unassigned.length > 0) studioGroups.push({ studio: null, classes: unassigned });
-
-              return (
-                <div>
-                  <p className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-2">
-                    Classes by Studio
-                    {selWt && <span className={`ml-2 px-1.5 py-0.5 rounded text-[8px] ${VARIANT_BADGE[selWt]}`}>{selWt} Week</span>}
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {studioGroups.map(({ studio, classes }) => (
-                      <div key={studio?.id || 'unassigned'} className="bg-secondary/30 rounded-lg overflow-hidden border border-border">
-                        <div className="px-2.5 py-1.5 bg-secondary/60 border-b border-border">
-                          <p className="font-caps text-[11px] uppercase tracking-[0.15em] text-warm-gray">
-                            {studio ? `Studio ${studio.name}` : 'Unassigned'}
-                          </p>
-                        </div>
-                        <div className="p-2 space-y-1.5">
-                          {classes.map(c => {
-                            const teacher = teachers.find(t => t.id === c.teacher_id);
-                            return (
-                              <div key={c.id} className="bg-secondary/40 rounded-md p-2 border border-transparent">
-                                <div className="flex items-start justify-between gap-1">
-                                  <p className="font-body text-xs font-medium text-foreground leading-tight">{c.title}</p>
-                                  {c.week_variant && (
-                                    <span className={`flex-shrink-0 text-[7px] font-caps uppercase tracking-[0.1em] px-1 py-0.5 rounded ${VARIANT_BADGE[c.week_variant]}`}>
-                                      {c.week_variant}
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-[10px] text-muted-foreground mt-0.5">{formatTime(c.start_time)} – {formatTime(c.end_time)}</p>
-                                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                  {teacher && <span className="text-[10px] text-warm-gray">{teacher.first_name} {teacher.last_name?.[0]}.</span>}
-                                  {c.level && <span className="text-[10px] text-gold/70">{c.level}</span>}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })()}
+            {selectedEvents.length === 0 && !isAdmin && (
+              <p className="text-xs text-muted-foreground text-center py-4 italic">Nothing on the calendar this day.</p>
+            )}
+            <p className="text-[11px] text-muted-2 mt-1">Classes are on the day &amp; week views.</p>
           </motion.div>
         )}
       </AnimatePresence>
