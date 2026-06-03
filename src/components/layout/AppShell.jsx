@@ -24,6 +24,7 @@ const teacherNav = [
   { label: 'Today', path: '/teacher/today', icon: Clock },
   { label: 'Schedule', path: '/teacher/week', icon: CalendarDays },
   { label: 'Dancers', path: '/teacher/dancers', icon: Users },
+  { label: 'Pieces', path: '/teacher/pieces', icon: Music },
   { label: 'Privates', path: '/teacher/privates', icon: Sparkles },
   { label: 'Settings', path: '/teacher/settings', icon: Settings },
 ];
@@ -56,7 +57,7 @@ export default function AppShell({ role }) {
             const isActive = location.pathname === path;
             return (
               <Link key={path} to={path}
-                className={`flex flex-col items-center gap-1.5 px-2 transition-colors ${isActive ? 'text-teal-bright' : 'text-muted-2 hover:text-muted-foreground'}`}
+                className={`flex flex-col items-center gap-1.5 px-1.5 transition-colors ${isActive ? 'text-teal-bright' : 'text-muted-2 hover:text-muted-foreground'}`}
               >
                 <Icon className="w-[22px] h-[22px]" strokeWidth={isActive ? 2 : 1.6} />
                 <span className="text-[9.5px] tracking-[0.02em]">{label}</span>

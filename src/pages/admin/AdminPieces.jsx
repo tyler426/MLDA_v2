@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useStudioConfig } from '@/lib/useStudioConfig';
 import EmptyState from '@/components/shared/EmptyState';
 import { Plus, Music, Users, Pencil, Trash2, Upload, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -18,6 +20,7 @@ export default function AdminPieces() {
   const [manageCast, setManageCast] = useState(null);
   const queryClient = useQueryClient();
 
+  const { data: cfg } = useStudioConfig();
   const { data: pieces = [] } = useQuery({ queryKey: ['pieces'], queryFn: () => base44.entities.Piece.list() });
   const { data: dancers = [] } = useQuery({ queryKey: ['allDancers'], queryFn: () => base44.entities.Dancer.filter({ archived: false }) });
   const { data: pieceCasts = [] } = useQuery({ queryKey: ['pieceCasts'], queryFn: () => base44.entities.PieceCast.list() });
@@ -72,8 +75,12 @@ export default function AdminPieces() {
                       {p.title}
                     </h3>
                     {p.choreographer && <p className="text-xs text-muted-foreground mt-0.5">Choreo: {p.choreographer}</p>}
-                    <div className="flex items-center gap-3 mt-2">
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                      {p.kind === 'solo' && <span className="font-caps text-[9.5px] uppercase tracking-[0.1em] px-1.5 py-0.5 rounded bg-gold/12 text-gold">Solo</span>}
                       {p.level && <span className="font-caps text-[10px] uppercase tracking-[0.1em] text-warm-gray">{p.level}</span>}
+                      {p.genre && <span className="text-[10px] text-muted-foreground">{p.genre}</span>}
+                      {p.kind !== 'solo' && p.size && <span className="text-[10px] text-muted-foreground">{p.size}</span>}
+                      {p.age_division && <span className="text-[10px] text-muted-foreground">{p.age_division}</span>}
                       {p.season && <span className="text-[10px] text-muted-foreground">{p.season}</span>}
                     </div>
                   </div>
@@ -104,6 +111,7 @@ export default function AdminPieces() {
         open={showCreate || !!editPiece}
         onClose={() => { setShowCreate(false); setEditPiece(null); }}
         piece={editPiece}
+        cfg={cfg}
         onSave={(data) => editPiece ? updateMutation.mutate({ id: editPiece.id, data }) : createMutation.mutate(data)}
       />
 
@@ -120,17 +128,27 @@ export default function AdminPieces() {
   );
 }
 
-const EMPTY_PIECE = { title: '', choreographer: '', season: '', level: '', duration: '', music_url: '' };
-function PieceFormDialog({ open, onClose, piece, onSave }) {
+const EMPTY_PIECE = { title: '', kind: 'group', choreographer: '', season: '', level: '', genre: '', size: '', age_division: '', duration: '', music_url: '' };
+function PieceFormDialog({ open, onClose, piece, cfg, onSave }) {
   const [form, setForm] = useState(EMPTY_PIECE);
   const [loadedId, setLoadedId] = useState(null);
   const [uploading, setUploading] = useState(false);
 
   if (open && piece && loadedId !== piece.id) {
-    setForm({ title: piece.title, choreographer: piece.choreographer || '', season: piece.season || '', level: piece.level || '', duration: piece.duration || '', music_url: piece.music_url || '' });
+    setForm({ title: piece.title, kind: piece.kind || 'group', choreographer: piece.choreographer || '', season: piece.season || '', level: piece.level || '', genre: piece.genre || '', size: piece.size || '', age_division: piece.age_division || '', duration: piece.duration || '', music_url: piece.music_url || '' });
     setLoadedId(piece.id);
   }
   if (open && !piece && loadedId !== null) { setForm(EMPTY_PIECE); setLoadedId(null); }
+
+  const ClassSelect = ({ label, value, onChange, options }) => (
+    <div>
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <Select value={value || undefined} onValueChange={onChange}>
+        <SelectTrigger className="bg-secondary border-border h-10 text-sm"><SelectValue placeholder="Select…" /></SelectTrigger>
+        <SelectContent>{(options || []).map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+      </Select>
+    </div>
+  );
 
   const uploadMusic = async (e) => {
     const file = e.target.files?.[0];
@@ -149,16 +167,34 @@ function PieceFormDialog({ open, onClose, piece, onSave }) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { onClose(); setForm(EMPTY_PIECE); setLoadedId(null); } }}>
-      <DialogContent className="bg-card border-border max-w-sm">
+      <DialogContent className="bg-card border-border max-w-sm max-h-[88vh] overflow-y-auto">
         <DialogHeader><DialogTitle className="font-serif text-foreground">{piece ? 'Edit piece' : 'New piece'}</DialogTitle></DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); onSave(form); setForm(EMPTY_PIECE); setLoadedId(null); }} className="space-y-3">
+        <form onSubmit={(e) => { e.preventDefault(); const payload = { ...form }; if (payload.kind === 'solo') payload.size = ''; onSave(payload); setForm(EMPTY_PIECE); setLoadedId(null); }} className="space-y-3">
           <div><Label className="text-xs text-muted-foreground">Title</Label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required className="bg-secondary border-border" /></div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Type</Label>
+            <div className="flex gap-1.5 mt-1 bg-secondary border border-border rounded-lg p-1">
+              {[['group', 'Group'], ['solo', 'Solo']].map(([k, l]) => (
+                <button type="button" key={k} onClick={() => setForm({ ...form, kind: k })}
+                  className={`flex-1 text-[12px] font-semibold py-1.5 rounded-md transition-colors ${form.kind === k ? 'bg-primary text-[#06110f]' : 'text-muted-foreground'}`}>{l}</button>
+              ))}
+            </div>
+          </div>
           <div><Label className="text-xs text-muted-foreground">Choreographer</Label><Input value={form.choreographer} onChange={e => setForm({ ...form, choreographer: e.target.value })} className="bg-secondary border-border" /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div><Label className="text-xs text-muted-foreground">Season</Label><Input value={form.season} onChange={e => setForm({ ...form, season: e.target.value })} placeholder="2025-26" className="bg-secondary border-border" /></div>
-            <div><Label className="text-xs text-muted-foreground">Level</Label><Input value={form.level} onChange={e => setForm({ ...form, level: e.target.value })} className="bg-secondary border-border" /></div>
+            <ClassSelect label="Level" value={form.level} onChange={v => setForm({ ...form, level: v })} options={cfg?.levels} />
+            <ClassSelect label="Genre" value={form.genre} onChange={v => setForm({ ...form, genre: v })} options={cfg?.genres} />
           </div>
-          <div><Label className="text-xs text-muted-foreground">Duration</Label><Input value={form.duration} onChange={e => setForm({ ...form, duration: e.target.value })} placeholder="e.g. 2:45" className="bg-secondary border-border" /></div>
+          <div className="grid grid-cols-2 gap-3">
+            {form.kind !== 'solo'
+              ? <ClassSelect label="Size" value={form.size} onChange={v => setForm({ ...form, size: v })} options={cfg?.sizes} />
+              : <div><Label className="text-xs text-muted-foreground">Size</Label><div className="h-10 flex items-center text-xs text-muted-2">— solo —</div></div>}
+            <ClassSelect label="Age division" value={form.age_division} onChange={v => setForm({ ...form, age_division: v })} options={cfg?.age_divisions} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><Label className="text-xs text-muted-foreground">Season</Label><Input value={form.season} onChange={e => setForm({ ...form, season: e.target.value })} placeholder="2025-26" className="bg-secondary border-border" /></div>
+            <div><Label className="text-xs text-muted-foreground">Duration</Label><Input value={form.duration} onChange={e => setForm({ ...form, duration: e.target.value })} placeholder="e.g. 2:45" className="bg-secondary border-border" /></div>
+          </div>
           <div>
             <Label className="text-xs text-muted-foreground">Music mix</Label>
             <div className="flex items-center gap-2 mt-1">

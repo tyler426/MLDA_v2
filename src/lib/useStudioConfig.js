@@ -7,10 +7,13 @@ export function useStudioConfig() {
   return useQuery({
     queryKey: ['studioConfig'],
     queryFn: async () => {
-      const { data } = await supabase.from('app_settings').select('programs, levels').eq('id', 1).maybeSingle();
+      const { data } = await supabase.from('app_settings').select('programs, levels, genres, sizes, age_divisions').eq('id', 1).maybeSingle();
       return {
         programs: Array.isArray(data?.programs) ? data.programs : [],
         levels: Array.isArray(data?.levels) ? data.levels : [],
+        genres: Array.isArray(data?.genres) ? data.genres : [],
+        sizes: Array.isArray(data?.sizes) ? data.sizes : [],
+        age_divisions: Array.isArray(data?.age_divisions) ? data.age_divisions : [],
       };
     },
   });

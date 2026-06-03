@@ -30,8 +30,28 @@ export default function StudioLists() {
       </div>
       <div className="border-t border-border pt-4">
         <h3 className="font-body font-semibold text-sm text-foreground">Levels</h3>
-        <p className="text-[11px] text-muted-2 mb-2">Dancer levels available across the studio.</p>
+        <p className="text-[11px] text-muted-2 mb-2">Competitive levels, listed lowest to highest. Used on dancer profiles and pieces.</p>
         <ListEditor items={cfg?.levels || []} onSave={list => save.mutate({ field: 'levels', list })} addLabel="level" />
+      </div>
+
+      <div className="border-t border-border pt-4">
+        <h3 className="font-body font-semibold text-sm text-foreground">Competition classifications</h3>
+        <p className="text-[11px] text-muted-2 mb-3">Tags applied to routines. Order matters where noted — smallest/youngest first.</p>
+
+        <div className="space-y-4">
+          <div>
+            <h4 className="text-[12px] font-medium text-foreground mb-1">Genres</h4>
+            <ListEditor items={cfg?.genres || []} onSave={list => save.mutate({ field: 'genres', list })} addLabel="genre" />
+          </div>
+          <div>
+            <h4 className="text-[12px] font-medium text-foreground mb-1">Sizes <span className="text-[10px] text-muted-2 font-normal">— smallest to largest</span></h4>
+            <ListEditor items={cfg?.sizes || []} onSave={list => save.mutate({ field: 'sizes', list })} addLabel="size" />
+          </div>
+          <div>
+            <h4 className="text-[12px] font-medium text-foreground mb-1">Age divisions <span className="text-[10px] text-muted-2 font-normal">— youngest to oldest</span></h4>
+            <ListEditor items={cfg?.age_divisions || []} onSave={list => save.mutate({ field: 'age_divisions', list })} addLabel="age division" />
+          </div>
+        </div>
       </div>
     </div>
   );
