@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2, X } from 'lucide-react';
 import { formatTime, DAY_NAMES, DAY_NAMES_SHORT } from '@/lib/scheduleUtils';
+import { useStudioConfig } from '@/lib/useStudioConfig';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import StudioAvailability from '@/components/shared/StudioAvailability';
@@ -238,10 +239,11 @@ export default function AdminSchedule() {
   );
 }
 
-const LEVELS = ['Starburst', 'Superstar', 'Prostar', 'Premier', 'Junior', 'Intern', 'Teen', 'Senior', 'Pre-Pro'];
 const AGE_RANGES = ['5–7', '7–9', '8–10', '9–11', '10–12', '11–13', '12–14', '13–15', '14–16', '15–18', '16+', 'Adult', 'Mixed'];
 
 function ClassFormDialog({ open, onClose, classData, studios, teachers, selectedDay, onSave, onDelete }) {
+  const { data: cfg } = useStudioConfig();
+  const LEVELS = cfg?.levels || [];
   const [form, setForm] = useState({});
 
   useEffect(() => {

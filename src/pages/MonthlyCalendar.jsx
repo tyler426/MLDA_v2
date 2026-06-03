@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { supabase } from '@/lib/supabaseClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, startOfWeek, addDays, isSameMonth, isToday, parseISO } from 'date-fns';
-import { ChevronLeft, ChevronRight, X, Wand2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Wand2, Send } from 'lucide-react';
 import SectionLabel from '@/components/shared/SectionLabel';
 import { formatTime, weekStartStr, classRunsOnWeekType } from '@/lib/scheduleUtils';
 import { useSeasonWeeks } from '@/lib/useSeasonWeeks';
@@ -18,6 +18,8 @@ const EVENT_STYLES = {
   guest_artist: 'bg-terracotta/20 text-terracotta border-terracotta/30',
   competition: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
   one_time_class: 'bg-accent/20 text-accent border-accent/30',
+  tribe_vibe: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+  travel_approved: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
 };
 
 const VARIANT_BADGE = {
@@ -68,12 +70,13 @@ export default function MonthlyCalendar({ role = 'parent' }) {
   const { data: allClasses = [] } = useQuery({ queryKey: ['allClasses'], queryFn: () => base44.entities.DanceClass.list() });
   const { data: enrollments = [] } = useQuery({ queryKey: ['enrollments'], queryFn: () => base44.entities.ClassEnrollment.list() });
   const { data: competitions = [] } = useQuery({ queryKey: ['competitions'], queryFn: () => base44.entities.CompetitionWeekend.list() });
+  const { data: calendarMarks = [] } = useQuery({ queryKey: ['calendarMarks'], queryFn: () => base44.entities.CalendarMark.list() });
   const { data: studios = [] } = useQuery({ queryKey: ['studios'], queryFn: () => base44.entities.Studio.list() });
   const { data: teachers = [] } = useQuery({ queryKey: ['teachers'], queryFn: () => base44.entities.Teacher.list() });
   const { data: pieces = [] } = useQuery({ queryKey: ['pieces'], queryFn: () => base44.entities.Piece.list() });
   const { data: pieceCasts = [] } = useQuery({ queryKey: ['pieceCasts'], queryFn: () => base44.entities.PieceCast.list() });
   const { data: dancers = [] } = useQuery({ queryKey: ['allDancers'], queryFn: () => base44.entities.Dancer.filter({ archived: false }) });
-  const { data: households = [] } = useQuery({ queryKey: ['households'], queryFn: () => base44.entities.ParentHousehold.list(), enabled: role === 'parent' });
+  const { data: households = [] } = useQuery({ queryKey: ['households'], queryFn: () => base44.entities.ParentHousehold.list(), enabled: role === 'parent' || role === 'admin' });
 
   // Derive household dancers for parent view
   const householdDancers = (() => {
@@ -126,6 +129,58 @@ export default function MonthlyCalendar({ role = 'parent' }) {
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['seasonWeeks'] }); toast.success('Filled 52 weeks alternating'); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  // Calendar designations: Tribe Vibe weeks (mandatory studio presence) and
+  // Approved Travel weekends (no comp/Tribe Vibe → families free to travel).
+  // Find an existing designation of `kind` whose range intersects the Sun–Sat
+  // week of `dateStr` (so the toggle works no matter which weekday is selected).
+  const markForWeek = (kind, dateStr) => {
+    const sun = weekStartStr(dateStr);
+    const sat = format(addDays(parseISO(sun), 6), 'yyyy-MM-dd');
+    return calendarMarks.find(m => m.kind === kind && m.start_date <= sat && m.end_date >= sun);
+  };
+  const toggleMarkMutation = useMutation({
+    mutationFn: async ({ kind, dateStr }) => {
+      const existing = markForWeek(kind, dateStr);
+      if (existing) { await base44.entities.CalendarMark.delete(existing.id); return { removed: true }; }
+      const sun = weekStartStr(dateStr);
+      let start, end;
+      if (kind === 'tribe_vibe') {
+        start = sun;
+        end = format(addDays(parseISO(sun), 6), 'yyyy-MM-dd');       // the full Sun–Sat week
+      } else {
+        start = format(addDays(parseISO(sun), 6), 'yyyy-MM-dd');     // Saturday…
+        end = format(addDays(parseISO(sun), 7), 'yyyy-MM-dd');       // …through Sunday
+      }
+      await base44.entities.CalendarMark.create({ kind, start_date: start, end_date: end });
+      return { removed: false };
+    },
+    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ['calendarMarks'] }); toast.success(r.removed ? 'Designation removed' : 'Marked on calendar'); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  // Push a designation to families' and teachers' in-app inboxes.
+  const notifyMark = useMutation({
+    mutationFn: async (m) => {
+      const isTV = m.kind === 'tribe_vibe';
+      const title = isTV ? 'Tribe Vibe week' : 'Approved travel weekend';
+      const range = m.start_date === m.end_date ? m.start_date : `${m.start_date} – ${m.end_date}`;
+      const message = (isTV
+        ? `Tribe Vibe (${range}): dancers are expected at the studio for rehearsals this week.`
+        : `Approved travel weekend (${range}): no competition or Tribe Vibe — families are clear to travel.`)
+        + (m.label ? ` ${m.label}` : '');
+      let n = 0;
+      for (const h of households.filter(h => h.email)) {
+        await base44.entities.ScheduleNotification.create({ recipient_email: h.email, recipient_type: 'parent', type: 'announcement', title, message }); n++;
+      }
+      for (const t of teachers.filter(t => t.email)) {
+        await base44.entities.ScheduleNotification.create({ recipient_email: t.email, recipient_type: 'teacher', type: 'announcement', title, message }); n++;
+      }
+      return n;
+    },
+    onSuccess: (n) => { qc.invalidateQueries({ queryKey: ['notifications'] }); toast.success(`Pushed to ${n} inbox${n === 1 ? '' : 'es'}`); },
     onError: (e) => toast.error(e.message),
   });
 
@@ -203,6 +258,7 @@ export default function MonthlyCalendar({ role = 'parent' }) {
         events.push({ type: 'competition', label: comp.name, sub: comp.venue || '', id: comp.id, data: comp, style: EVENT_STYLES.competition });
       });
 
+      events.push(...marksForDate(dateStr));
       return events;
     }
 
@@ -252,7 +308,23 @@ export default function MonthlyCalendar({ role = 'parent' }) {
       events.push({ type: 'competition', label: comp.name, sub: comp.venue || '', id: comp.id, data: comp, style: EVENT_STYLES.competition });
     });
 
+    events.push(...marksForDate(dateStr));
     return events;
+  }
+
+  // Tribe Vibe / Approved Travel designations covering a date, as calendar events.
+  function marksForDate(dateStr) {
+    return calendarMarks
+      .filter(m => m.start_date <= dateStr && m.end_date >= dateStr)
+      .map(m => ({
+        type: m.kind,
+        label: m.kind === 'tribe_vibe' ? 'Tribe Vibe' : 'Travel OK',
+        sub: m.label || '',
+        id: m.id,
+        data: m,
+        style: EVENT_STYLES[m.kind],
+        canDelete: false,
+      }));
   }
 
   function getDayClasses(dateStr) {
@@ -346,6 +418,8 @@ export default function MonthlyCalendar({ role = 'parent' }) {
           { label: 'Private Lesson', style: EVENT_STYLES.space_private },
           { label: 'Guest Artist', style: EVENT_STYLES.guest_artist },
           { label: 'Competition', style: EVENT_STYLES.competition },
+          { label: 'Tribe Vibe', style: EVENT_STYLES.tribe_vibe },
+          { label: 'Travel OK', style: EVENT_STYLES.travel_approved },
         ].map(l => (
           <span key={l.label} className={`font-caps text-[11px] uppercase tracking-[0.1em] px-2 py-0.5 rounded border ${l.style}`}>{l.label}</span>
         ))}
@@ -475,6 +549,40 @@ export default function MonthlyCalendar({ role = 'parent' }) {
                 <X className="w-4 h-4" />
               </button>
             </div>
+
+            {/* Admin: Tribe Vibe / Approved Travel designations */}
+            {isAdmin && selectedDateStr && (
+              <div className="mb-4 bg-secondary/30 border border-border rounded-lg p-3">
+                <p className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-2">Studio designation</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { kind: 'tribe_vibe', on: 'Tribe Vibe week', off: 'Mark Tribe Vibe week' },
+                    { kind: 'travel_approved', on: 'Approved travel weekend', off: 'Mark travel weekend' },
+                  ].map(({ kind, on, off }) => {
+                    const active = markForWeek(kind, selectedDateStr);
+                    return (
+                      <button
+                        key={kind}
+                        onClick={() => toggleMarkMutation.mutate({ kind, dateStr: selectedDateStr })}
+                        disabled={toggleMarkMutation.isPending}
+                        className={`px-2.5 py-1 rounded font-caps text-[11px] uppercase tracking-[0.1em] border transition-colors ${active ? EVENT_STYLES[kind] : 'border-border text-muted-foreground hover:text-foreground'}`}
+                      >
+                        {active ? `✓ ${on}` : off}
+                      </button>
+                    );
+                  })}
+                </div>
+                {(markForWeek('tribe_vibe', selectedDateStr) || markForWeek('travel_approved', selectedDateStr)) && (
+                  <button
+                    onClick={() => notifyMark.mutate(markForWeek('tribe_vibe', selectedDateStr) || markForWeek('travel_approved', selectedDateStr))}
+                    disabled={notifyMark.isPending}
+                    className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] text-teal-bright hover:underline"
+                  >
+                    <Send className="w-3.5 h-3.5" /> {notifyMark.isPending ? 'Pushing…' : 'Notify families & teachers'}
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Special events */}
             {selectedEvents.length > 0 && (
