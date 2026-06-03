@@ -29,6 +29,7 @@ function timeAddMinutes(timeStr, mins) {
 export default function BookSpaceDialog({ open, onClose, studios, pieces, dancers, teacher }) {
   const queryClient = useQueryClient();
   const [type, setType] = useState('rehearsal');
+  const [pieceSearch, setPieceSearch] = useState('');
   const [form, setForm] = useState({
     date: '',
     start_time: '16:00',
@@ -176,16 +177,19 @@ export default function BookSpaceDialog({ open, onClose, studios, pieces, dancer
               <TabsContent value="rehearsal" className="m-0 p-0 space-y-4">
                 <div>
                   <Label className="text-xs text-muted-foreground mb-2 block flex items-center gap-1">
-                    <Music className="w-3 h-3" /> Pieces
+                    <Music className="w-3 h-3" /> Pieces {form.piece_ids.length > 0 && <span className="text-primary">· {form.piece_ids.length} selected</span>}
                   </Label>
-                  <div className="space-y-1.5 max-h-32 overflow-y-auto">
-                    {pieces.map(p => (
-                      <label key={p.id} className="flex items-center gap-2 cursor-pointer">
-                        <Checkbox checked={form.piece_ids.includes(p.id)} onCheckedChange={() => toggleId('piece_ids', p.id)} />
-                        <span className="text-sm text-foreground">{p.title}</span>
-                        {p.level && <span className="text-[10px] text-warm-gray">({p.level})</span>}
-                      </label>
-                    ))}
+                  <Input value={pieceSearch} onChange={e => setPieceSearch(e.target.value)} placeholder="Search routines…" className="bg-secondary border-border h-8 text-xs mb-1.5" />
+                  <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                    {pieces
+                      .filter(p => !pieceSearch || (p.title || '').toLowerCase().includes(pieceSearch.toLowerCase()))
+                      .map(p => (
+                        <label key={p.id} className="flex items-center gap-2 cursor-pointer">
+                          <Checkbox checked={form.piece_ids.includes(p.id)} onCheckedChange={() => toggleId('piece_ids', p.id)} />
+                          <span className="text-sm text-foreground">{p.title}</span>
+                          {p.level && <span className="text-[10px] text-warm-gray">({p.level})</span>}
+                        </label>
+                      ))}
                     {pieces.length === 0 && <p className="text-xs text-muted-foreground italic">No pieces yet</p>}
                   </div>
                 </div>

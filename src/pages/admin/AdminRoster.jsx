@@ -32,16 +32,9 @@ export default function AdminRoster() {
   const { data: dancers = [] } = useQuery({ queryKey: ['allDancers'], queryFn: () => base44.entities.Dancer.list() });
   const { data: parents = [] } = useQuery({ queryKey: ['allParents'], queryFn: () => base44.entities.ParentHousehold.list() });
   const { data: teachers = [] } = useQuery({ queryKey: ['teachers'], queryFn: () => base44.entities.Teacher.list() });
-  const { data: studios = [] } = useQuery({ queryKey: ['studios'], queryFn: () => base44.entities.Studio.list() });
 
   const activeDancers = dancers.filter(d => !d.archived);
   const activeTeachers = teachers.filter(t => !t.archived);
-
-  const deleteStudio = useMutation({
-    mutationFn: (id) => base44.entities.Studio.delete(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['studios'] }); toast.success('Room removed'); },
-    onError: (e) => toast.error(e.message),
-  });
 
   // Sort dancers by the studio's configured group/level order (not alphabetical).
   const programOrder = cfg?.programs || [];
@@ -70,11 +63,7 @@ export default function AdminRoster() {
   const filteredTeachers = activeTeachers.filter(t =>
     `${t.first_name} ${t.last_name}`.toLowerCase().includes(search.toLowerCase())
   );
-  const filteredStudios = studios.filter(s =>
-    s.name?.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const createType = tab === 'dancers' ? 'dancer' : tab === 'parents' ? 'parent' : tab === 'teachers' ? 'teacher' : 'studio';
+  const createType = tab === 'dancers' ? 'dancer' : tab === 'parents' ? 'parent' : 'teacher';
 
   return (
     <div className="max-w-5xl">
@@ -89,7 +78,6 @@ export default function AdminRoster() {
             <TabsTrigger value="dancers" className="font-caps text-[10px] uppercase tracking-[0.1em]">Dancers</TabsTrigger>
             <TabsTrigger value="parents" className="font-caps text-[10px] uppercase tracking-[0.1em]">Parents</TabsTrigger>
             <TabsTrigger value="teachers" className="font-caps text-[10px] uppercase tracking-[0.1em]">Teachers</TabsTrigger>
-            <TabsTrigger value="studios" className="font-caps text-[10px] uppercase tracking-[0.1em]">Rooms</TabsTrigger>
           </TabsList>
           <Button size="sm" onClick={() => setShowCreate(createType)} className="bg-primary hover:bg-primary/90 font-caps text-[10px] uppercase tracking-[0.12em] ml-auto">
             <Plus className="w-4 h-4 mr-1" /> Add
@@ -210,25 +198,6 @@ export default function AdminRoster() {
           </div>
         </TabsContent>
 
-        <TabsContent value="studios">
-          <p className="text-xs text-muted-foreground mb-3">Studios / rooms used across the schedule, conflicts, and availability.</p>
-          <div className="space-y-2">
-            {filteredStudios.length === 0 && (
-              <p className="text-sm text-warm-gray italic text-center py-6">No rooms yet — tap <span className="text-foreground">Add</span> to create your first studio.</p>
-            )}
-            {filteredStudios.map((s, i) => (
-              <motion.div key={s.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
-                className="bg-card border border-border rounded-lg p-3 flex items-center justify-between"
-              >
-                <p className="font-body text-sm font-medium text-foreground">Studio {s.name}</p>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => setEditItem({ type: 'studio', data: s })} className="p-1.5 text-muted-foreground hover:text-foreground"><Pencil className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => { if (confirm(`Remove Studio ${s.name}?`)) deleteStudio.mutate(s.id); }} className="p-1.5 text-muted-foreground hover:text-terracotta"><Archive className="w-3.5 h-3.5" /></button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </TabsContent>
       </Tabs>
 
       <RosterFormDialog

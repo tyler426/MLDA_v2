@@ -5,15 +5,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import StudioLists from '@/components/admin/StudioLists';
+import StudioRooms from '@/components/admin/StudioRooms';
 import SeasonManager from '@/components/admin/SeasonManager';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Settings, Key, AlertTriangle, Trash2, Archive, FileDown, Bell } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { COMMON_TIMEZONES } from '@/lib/dateUtils';
 import { format } from 'date-fns';
 
 export default function AdminSettings() {
   const [user, setUser] = useState(null);
   const [jackrabbitKey, setJackrabbitKey] = useState('');
+  const [studioName, setStudioName] = useState('');
+  const [studioLocation, setStudioLocation] = useState('');
+  const [studioTimezone, setStudioTimezone] = useState('America/Denver');
+  const [savingStudio, setSavingStudio] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [resetConfirm, setResetConfirm] = useState('');
@@ -24,9 +31,21 @@ export default function AdminSettings() {
     base44.auth.me().then(u => {
       setUser(u);
       setJackrabbitKey(u?.jackrabbit_api_key || '');
+      setStudioName(u?.studio_name || 'MLDA Collective');
+      setStudioLocation(u?.studio_location || '');
+      setStudioTimezone(u?.studio_timezone || 'America/Denver');
       setNotificationsEnabled(u?.global_notifications_enabled === true);
     });
   }, []);
+
+  const saveStudio = async () => {
+    setSavingStudio(true);
+    try {
+      await base44.auth.updateMe({ studio_name: studioName.trim(), studio_location: studioLocation.trim(), studio_timezone: studioTimezone });
+      toast.success('Studio details saved');
+    } catch (e) { toast.error(e.message); }
+    finally { setSavingStudio(false); }
+  };
 
   const toggleNotifications = async (val) => {
     setNotificationsEnabled(val);
@@ -183,16 +202,36 @@ export default function AdminSettings() {
       {/* Season archive / reload */}
       <div className="mb-6"><SeasonManager /></div>
 
-      {/* Studio info */}
+      {/* Studio info (editable) */}
       <div className="bg-card border border-border rounded-lg p-4 mb-6">
         <div className="flex items-center gap-2 mb-3">
           <Settings className="w-4 h-4 text-muted-foreground" />
           <h3 className="font-body font-semibold text-sm text-foreground">Studio</h3>
         </div>
-        <p className="text-sm text-foreground">MLDA Collective</p>
-        <p className="text-xs text-muted-foreground mt-0.5">Centennial, Colorado</p>
-        <p className="text-[10px] text-warm-gray mt-1">Timezone: America/Denver (MT)</p>
+        <div className="space-y-3">
+          <div>
+            <Label className="text-xs text-muted-foreground">Studio name</Label>
+            <Input value={studioName} onChange={e => setStudioName(e.target.value)} className="bg-secondary border-border" />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Location</Label>
+            <Input value={studioLocation} onChange={e => setStudioLocation(e.target.value)} placeholder="e.g. Centennial, Colorado" className="bg-secondary border-border" />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Home timezone</Label>
+            <Select value={studioTimezone} onValueChange={setStudioTimezone}>
+              <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+              <SelectContent>{COMMON_TIMEZONES.map(tz => <SelectItem key={tz.value} value={tz.value}>{tz.label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <Button onClick={saveStudio} disabled={savingStudio} className="bg-primary hover:bg-primary/90 font-caps text-[10px] uppercase tracking-[0.12em]">
+            {savingStudio ? 'Saving…' : 'Save'}
+          </Button>
+        </div>
       </div>
+
+      {/* Rooms / Studios (moved here from the Roster) */}
+      <div className="mb-6"><StudioRooms /></div>
 
       {/* Notifications Global Toggle */}
       <div className="bg-card border border-border rounded-lg p-4 mb-6">

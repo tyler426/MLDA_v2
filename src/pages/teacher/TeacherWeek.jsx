@@ -59,11 +59,12 @@ export default function TeacherWeek() {
   const weekDates = getWeekDates();
   const thisWeekType = weekTypeFor(weekDates[0]);
 
-  // Space bookings this week
-  const weekDateStrs = weekDates.map(d => format(d, 'yyyy-MM-dd'));
-  const myBookingsThisWeek = spaceBookings.filter(b =>
-    weekDateStrs.includes(b.date) && (b.teacher_id === teacher?.id || !b.teacher_id)
-  );
+  // My upcoming bookings (today onward) — so a new booking always shows here,
+  // even if it's for a future week.
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const myBookingsThisWeek = spaceBookings
+    .filter(b => b.date >= todayStr && (b.teacher_id === teacher?.id || !b.teacher_id))
+    .sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.start_time || '').localeCompare(b.start_time || ''));
 
   return (
     <div className="px-4 pt-2 pb-6 max-w-lg mx-auto">
@@ -202,14 +203,14 @@ export default function TeacherWeek() {
         {/* ── MY BOOKINGS TAB ── */}
         <TabsContent value="bookings">
           <div className="flex justify-between items-center mb-4">
-            <p className="text-xs text-muted-foreground">Your booked spaces this week</p>
+            <p className="text-xs text-muted-foreground">Your upcoming booked spaces</p>
             <Button size="sm" onClick={() => setShowBookSpace(true)} className="bg-primary hover:bg-primary/90 font-caps text-[10px] uppercase tracking-[0.12em]">
               <Plus className="w-3.5 h-3.5 mr-1" /> Book Space
             </Button>
           </div>
 
           {myBookingsThisWeek.length === 0 ? (
-            <EmptyState message="No spaces booked this week" sub="Use 'Book Space' to reserve a studio" />
+            <EmptyState message="No upcoming bookings" sub="Use 'Book Space' to reserve a studio" />
           ) : (
             <div className="space-y-3">
               {myBookingsThisWeek
