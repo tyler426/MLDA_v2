@@ -7,7 +7,8 @@ import ClassCard from '@/components/shared/ClassCard';
 import SectionLabel from '@/components/shared/SectionLabel';
 import EmptyState from '@/components/shared/EmptyState';
 import EventSheet from '@/components/shared/EventSheet';
-import { getTodayDow, getLatestEndTime, formatTime, todayDateStr, isDancerPulled } from '@/lib/scheduleUtils';
+import { getTodayDow, getLatestEndTime, formatTime, todayDateStr, isDancerPulled, classRunsOnWeekType } from '@/lib/scheduleUtils';
+import { useSeasonWeeks } from '@/lib/useSeasonWeeks';
 import { format } from 'date-fns';
 import { Music, ChevronRight } from 'lucide-react';
 
@@ -25,6 +26,7 @@ export default function DancerToday() {
   const { data: teachers = [] } = useQuery({ queryKey: ['teachers'], queryFn: () => base44.entities.Teacher.list() });
   const { data: rehearsals = [] } = useQuery({ queryKey: ['rehearsals'], queryFn: () => base44.entities.RehearsalBlock.list() });
   const { data: pieceCasts = [] } = useQuery({ queryKey: ['pieceCasts'], queryFn: () => base44.entities.PieceCast.list() });
+  const { weekTypeFor } = useSeasonWeeks();
 
   const todayDow = getTodayDow();
   const today = todayDateStr();
@@ -40,7 +42,7 @@ export default function DancerToday() {
   // Classes for this dancer on the active day.
   const myClassIds = enrollments.filter(e => e.dancer_id === dancer?.id).map(e => e.class_id);
   const dayClasses = allClasses
-    .filter(c => myClassIds.includes(c.id) && c.day_of_week === activeDow)
+    .filter(c => myClassIds.includes(c.id) && c.day_of_week === activeDow && classRunsOnWeekType(c, weekTypeFor(activeDateStr)))
     .map(c => ({
       ...c,
       studioName: studios.find(s => s.id === c.studio_id)?.name,

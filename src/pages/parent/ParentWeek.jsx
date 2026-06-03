@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useMyHousehold } from '@/lib/useMyHousehold';
 import ClassSheet from '@/components/parent/ClassSheet';
 import EventSheet from '@/components/shared/EventSheet';
-import { formatTime, getTodayDow, isDancerPulled } from '@/lib/scheduleUtils';
+import { formatTime, getTodayDow, isDancerPulled, classRunsOnWeekType } from '@/lib/scheduleUtils';
+import { useSeasonWeeks } from '@/lib/useSeasonWeeks';
 import { ChevronRight, Music } from 'lucide-react';
 import { format, startOfWeek, addDays } from 'date-fns';
 
@@ -32,14 +33,16 @@ export default function ParentWeek() {
   const { data: rehearsals = [] } = useQuery({ queryKey: ['rehearsals'], queryFn: () => base44.entities.RehearsalBlock.list() });
   const { data: pieceCasts = [] } = useQuery({ queryKey: ['pieceCasts'], queryFn: () => base44.entities.PieceCast.list() });
 
+  const { weekTypeFor } = useSeasonWeeks();
   const dancer = dancers.find(d => d.id === selId) || dancers[0];
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
   const activeDate = format(addDays(weekStart, dow), 'yyyy-MM-dd');
+  const activeWeekType = weekTypeFor(activeDate);
   const todayDow = getTodayDow();
 
   const myClassIds = dancer ? enrollments.filter(e => e.dancer_id === dancer.id).map(e => e.class_id) : [];
   const dayClasses = allClasses
-    .filter(c => myClassIds.includes(c.id) && c.day_of_week === dow)
+    .filter(c => myClassIds.includes(c.id) && c.day_of_week === dow && classRunsOnWeekType(c, activeWeekType))
     .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
   const dayRehearsals = rehearsals.filter(r => {
     if (r.date !== activeDate) return false;
@@ -54,7 +57,10 @@ export default function ParentWeek() {
     <div className="animate-[fade_.32s_ease] px-5">
       <div className="pt-1">
         <div className="text-[11px] tracking-[0.26em] uppercase text-teal-bright font-semibold">Schedule</div>
-        <h1 className="font-serif text-[25px] font-semibold mt-1">{dancer ? `${dancer.first_name}'s week` : 'Schedule'}</h1>
+        <div className="flex items-center gap-2 mt-1">
+          <h1 className="font-serif text-[25px] font-semibold">{dancer ? `${dancer.first_name}'s week` : 'Schedule'}</h1>
+          {activeWeekType && <span className={`text-[10px] font-caps uppercase tracking-[0.12em] px-2 py-0.5 rounded-full ${activeWeekType === 'Teal' ? 'bg-teal/20 text-teal' : 'bg-zinc-700 text-zinc-200'}`}>{activeWeekType} week</span>}
+        </div>
       </div>
 
       {/* dancer switcher */}
@@ -76,7 +82,7 @@ export default function ParentWeek() {
       <div className="flex gap-1.5 mt-4 overflow-x-auto pb-1">
         {LETTERS.map((letter, i) => {
           const on = i === dow; const date = addDays(weekStart, i);
-          const has = dancer && allClasses.some(c => myClassIds.includes(c.id) && c.day_of_week === i);
+          const has = dancer && allClasses.some(c => myClassIds.includes(c.id) && c.day_of_week === i && classRunsOnWeekType(c, activeWeekType));
           return (
             <button key={i} onClick={() => setDow(i)} className="flex-none min-w-[44px] rounded-2xl py-2.5 text-center"
               style={{ background: on ? '#2c9089' : 'var(--card)', color: on ? '#06110f' : has ? 'var(--foreground)' : 'var(--muted-2)' }}>

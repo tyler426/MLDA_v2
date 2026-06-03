@@ -6,7 +6,8 @@ import { useMyHousehold } from '@/lib/useMyHousehold';
 import { useSignedUrl } from '@/lib/useSignedUrl';
 import SignedImage from '@/components/shared/SignedImage';
 import EventSheet from '@/components/shared/EventSheet';
-import { formatTime, getTodayDow, todayDateStr, isDancerPulled } from '@/lib/scheduleUtils';
+import { formatTime, getTodayDow, todayDateStr, isDancerPulled, classRunsOnWeekType } from '@/lib/scheduleUtils';
+import { useSeasonWeeks } from '@/lib/useSeasonWeeks';
 import { Clock, ChevronRight, Bell, Music } from 'lucide-react';
 import { differenceInCalendarDays, parseISO } from 'date-fns';
 
@@ -45,11 +46,13 @@ export default function ParentToday() {
     enabled: !!household?.email,
   });
 
+  const { weekTypeFor } = useSeasonWeeks();
+  const thisWeekType = weekTypeFor(todayDateStr());
   const dancer = dancers.find(d => d.id === selId) || dancers[0];
   const dow = getTodayDow();
   const myClassIds = dancer ? enrollments.filter(e => e.dancer_id === dancer.id).map(e => e.class_id) : [];
   const todayClasses = allClasses
-    .filter(c => myClassIds.includes(c.id) && c.day_of_week === dow)
+    .filter(c => myClassIds.includes(c.id) && c.day_of_week === dow && classRunsOnWeekType(c, thisWeekType))
     .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
   const next = todayClasses.find(c => !isDancerPulled(dancer?.id, c.id, todayDateStr(), exceptions)) || todayClasses[0];
   const studioName = id => studios.find(s => s.id === id)?.name;
@@ -167,7 +170,7 @@ export default function ParentToday() {
         </div>
         <div className="flex gap-1.5">
           {DAY_LETTERS.map((letter, i) => {
-            const cls = dancer ? allClasses.filter(c => myClassIds.includes(c.id) && c.day_of_week === i) : [];
+            const cls = dancer ? allClasses.filter(c => myClassIds.includes(c.id) && c.day_of_week === i && classRunsOnWeekType(c, thisWeekType)) : [];
             const on = i === dow;
             return (
               <button key={i} onClick={() => navigate('/week')} className="flex-1 rounded-xl py-2 text-center" style={{ background: on ? '#2c9089' : 'var(--card, #16140f)', color: on ? '#06110f' : 'var(--muted-foreground)' }}>

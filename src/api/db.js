@@ -25,6 +25,7 @@ const TABLE = {
   SpaceBooking: 'space_bookings',
   CompetitionWeekend: 'competition_weekends',
   CompetitionShift: 'competition_shifts',
+  SeasonWeek: 'season_weeks',
   ScheduleException: 'schedule_exceptions',
   AttendanceRecord: 'attendance_records',
   AbsenceReport: 'absence_reports',

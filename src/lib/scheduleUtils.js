@@ -44,3 +44,24 @@ export function isClassCancelled(classId, date, exceptions) {
 export function todayDateStr() {
   return format(new Date(), 'yyyy-MM-dd');
 }
+
+// The Sunday that starts the week containing `dateInput` (Date or 'YYYY-MM-DD'),
+// as 'YYYY-MM-DD'. Used to key Black/Teal week allocation.
+export function weekStartStr(dateInput) {
+  let d;
+  if (dateInput instanceof Date) {
+    d = dateInput;
+  } else {
+    const [y, m, day] = String(dateInput).slice(0, 10).split('-').map(Number);
+    d = new Date(y, (m || 1) - 1, day || 1);
+  }
+  return format(startOfWeek(d, { weekStartsOn: 0 }), 'yyyy-MM-dd');
+}
+
+// Does a recurring class run on a week of the given type ('Black'|'Teal'|null)?
+// Classes with no week_variant run every week. Black/Teal-only classes run only
+// when the week matches; on an unallocated week (null) only every-week classes show.
+export function classRunsOnWeekType(c, weekType) {
+  if (!c.week_variant) return true;
+  return c.week_variant === weekType;
+}

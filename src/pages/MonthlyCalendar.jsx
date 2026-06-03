@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabaseClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfMonth, endOfMonth, startOfWeek, addDays, isSameMonth, isToday, parseISO } from 'date-fns';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Wand2 } from 'lucide-react';
 import SectionLabel from '@/components/shared/SectionLabel';
-import { formatTime } from '@/lib/scheduleUtils';
+import { formatTime, weekStartStr, classRunsOnWeekType } from '@/lib/scheduleUtils';
+import { useSeasonWeeks } from '@/lib/useSeasonWeeks';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -48,6 +50,13 @@ export default function MonthlyCalendar({ role = 'parent' }) {
   const [weekVariant, setWeekVariant] = useState('All');
   const [selectedDancerId, setSelectedDancerId] = useState(null);
   const qc = useQueryClient();
+  const isAdmin = role === 'admin';
+
+  // Black/Teal week allocation
+  const { weekTypeFor } = useSeasonWeeks();
+  // The week type that should drive class filtering for a given date:
+  // an explicit preview filter wins, otherwise the week's real allocation.
+  const effectiveType = (dateStr) => (weekVariant === 'All' ? weekTypeFor(dateStr) : weekVariant);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -83,6 +92,41 @@ export default function MonthlyCalendar({ role = 'parent' }) {
   const deleteBookingMutation = useMutation({
     mutationFn: (id) => base44.entities.SpaceBooking.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['spaceBookings'] }); toast.success('Booking cancelled'); },
+  });
+
+  // Set/clear a single week's Black/Teal allocation (admin paints weeks).
+  const setWeekTypeMutation = useMutation({
+    mutationFn: async ({ weekStart, type }) => {
+      if (!type) {
+        const { error } = await supabase.from('season_weeks').delete().eq('week_start', weekStart);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('season_weeks').upsert({ week_start: weekStart, week_type: type }, { onConflict: 'week_start' });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['seasonWeeks'] }),
+    onError: (e) => toast.error(e.message),
+  });
+  const cycleWeek = (weekStart, current) => {
+    const next = current === 'Black' ? 'Teal' : current === 'Teal' ? null : 'Black';
+    setWeekTypeMutation.mutate({ weekStart, type: next });
+  };
+
+  // Fill 52 weeks alternating, starting from the first week shown this month.
+  const fillYearMutation = useMutation({
+    mutationFn: async ({ startWeek, firstType }) => {
+      const [y, m, d] = startWeek.split('-').map(Number);
+      const base = new Date(y, m - 1, d);
+      const rows = Array.from({ length: 52 }, (_, i) => ({
+        week_start: format(addDays(base, i * 7), 'yyyy-MM-dd'),
+        week_type: i % 2 === 0 ? firstType : (firstType === 'Black' ? 'Teal' : 'Black'),
+      }));
+      const { error } = await supabase.from('season_weeks').upsert(rows, { onConflict: 'week_start' });
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['seasonWeeks'] }); toast.success('Filled 52 weeks alternating'); },
+    onError: (e) => toast.error(e.message),
   });
 
   const monthStart = format(new Date(year, month, 1), 'yyyy-MM-dd');
@@ -218,13 +262,6 @@ export default function MonthlyCalendar({ role = 'parent' }) {
       .sort((a, b) => a.start_time.localeCompare(b.start_time));
   }
 
-  function getWeekVariantForDate(dateStr) {
-    // Very simple: we use a known Black/Teal starting reference
-    // Teal weeks are even ISO week numbers by convention — studios track this separately
-    // We just show the filter selector
-    return null;
-  }
-
   const selectedDateStr = selectedDay ? format(selectedDay, 'yyyy-MM-dd') : null;
   const selectedEvents = selectedDateStr ? getEventsForDate(selectedDateStr, selectedDancerId) : [];
   const selectedClasses = selectedDateStr ? getDayClasses(selectedDateStr) : [];
@@ -268,8 +305,8 @@ export default function MonthlyCalendar({ role = 'parent' }) {
       )}
 
       {/* Week variant filter */}
-      <div className="flex items-center gap-2 mb-3">
-        <span className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground">Week:</span>
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
+        <span className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground">{isAdmin ? 'Preview:' : 'Week:'}</span>
         {['All', 'Black', 'Teal'].map(v => (
           <button
             key={v}
@@ -282,10 +319,25 @@ export default function MonthlyCalendar({ role = 'parent' }) {
                 : 'bg-transparent text-muted-foreground border-border hover:text-foreground'
             }`}
           >
-            {v === 'All' ? 'All' : `${v}`}
+            {v === 'All' ? (isAdmin ? 'As allocated' : 'All') : `${v}`}
           </button>
         ))}
+        {isAdmin && (
+          <button
+            onClick={() => fillYearMutation.mutate({ startWeek: weekStartStr(weeks[0][0]), firstType: weekTypeFor(weeks[0][0]) || 'Black' })}
+            disabled={fillYearMutation.isPending}
+            className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded font-caps text-[11px] uppercase tracking-[0.1em] border border-border text-muted-foreground hover:text-foreground hover:border-border/80 transition-colors"
+            title="Fill 52 weeks alternating, starting from the first week shown"
+          >
+            <Wand2 className="w-3.5 h-3.5" /> Auto-fill year
+          </button>
+        )}
       </div>
+      {isAdmin && (
+        <p className="text-[11px] text-muted-2 -mt-1 mb-3">
+          Tap the <span className="text-foreground">B/T label</span> at the start of each week to set it Black or Teal (tap again to cycle, third tap clears). Parents, teachers &amp; dancers then see only that week’s classes.
+        </p>
+      )}
 
       {/* Legend */}
       <div className="flex flex-wrap gap-2 mb-3">
@@ -299,88 +351,111 @@ export default function MonthlyCalendar({ role = 'parent' }) {
         ))}
       </div>
 
-      {/* Day-of-week headers */}
-      <div className="grid grid-cols-7 gap-px mb-1">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-          <div key={d} className="text-center font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground py-1">{d}</div>
-        ))}
+      {/* Day-of-week headers (with week-type gutter spacer) */}
+      <div className="flex mb-1">
+        <div className="w-9 flex-none" />
+        <div className="grid grid-cols-7 gap-px flex-1">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+            <div key={d} className="text-center font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground py-1">{d}</div>
+          ))}
+        </div>
       </div>
 
-      {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden border border-border">
-        {weeks.flatMap(week =>
-        week.map(day => {
-        const dateStr = format(day, 'yyyy-MM-dd');
-        const inMonth = isSameMonth(day, new Date(year, month, 1));
-        const today = isToday(day);
-        const events = inMonth ? getEventsForDate(dateStr, selectedDancerId) : [];
-        const isSelected = selectedDateStr === dateStr;
-        const dow = day.getDay();
-
-        // Filter classes for week variant
-        let dayRegularClasses = [];
-        if (!inMonth) {
-        dayRegularClasses = [];
-        } else if (role === 'parent' && selectedDancerId) {
-        // Parent view: only show classes for selected dancer
-        const dancerEnrollments = enrollments.filter(e => e.dancer_id === selectedDancerId && e.active);
-        dayRegularClasses = allClasses.filter(c => {
-        if (c.one_time_date === dateStr) return true;
-        if (c.day_of_week !== dow) return false;
-        return dancerEnrollments.some(e => e.class_id === c.id);
-        });
-        } else {
-        // Admin/teacher view: show all classes with variant filtering
-        dayRegularClasses = allClasses.filter(c => {
-        if (c.one_time_date) return c.one_time_date === dateStr;
-        if (c.day_of_week !== dow) return false;
-        if (weekVariant === 'All') return true;
-        if (weekVariant === 'Black') return !c.week_variant || c.week_variant === 'Black';
-        if (weekVariant === 'Teal') return !c.week_variant || c.week_variant === 'Teal';
-        return true;
-        });
-        }
-
-            return (
-              <button
-                key={dateStr}
-                onClick={() => inMonth ? setSelectedDay(isSelected ? null : day) : null}
-                className={`relative bg-card min-h-[72px] p-1.5 text-left transition-colors hover:bg-secondary/40 ${
-                  !inMonth ? 'opacity-25 pointer-events-none' : ''
-                } ${isSelected ? 'ring-1 ring-inset ring-primary' : ''}`}
-              >
-                {/* Date number */}
-                <div className={`w-5 h-5 flex items-center justify-center rounded-full mb-0.5 ${
-                  today ? 'bg-primary text-primary-foreground' : 'text-foreground'
-                } font-body text-[11px] font-medium`}>
-                  {day.getDate()}
+      {/* Calendar grid — one row per week with a Black/Teal gutter */}
+      <div className="flex flex-col gap-px bg-border rounded-lg overflow-hidden border border-border">
+        {weeks.map((week, wi) => {
+          const wStart = weekStartStr(week[0]);
+          const wType = weekTypeFor(week[0]);
+          const gutterTone = wType === 'Black' ? 'bg-zinc-700 text-zinc-200'
+            : wType === 'Teal' ? 'bg-teal/25 text-teal'
+            : 'bg-card text-muted-2';
+          return (
+            <div key={wi} className="flex gap-px bg-border">
+              {/* Week-type gutter */}
+              {isAdmin ? (
+                <button
+                  onClick={() => cycleWeek(wStart, wType)}
+                  title={wType ? `${wType} week — tap to change` : 'Set this week Black or Teal'}
+                  className={`w-9 flex-none flex flex-col items-center justify-center font-caps text-[11px] uppercase tracking-[0.06em] transition-colors hover:brightness-125 ${gutterTone}`}
+                >
+                  {wType ? wType[0] : '+'}
+                </button>
+              ) : (
+                <div className={`w-9 flex-none flex items-center justify-center font-caps text-[11px] uppercase tracking-[0.06em] ${gutterTone}`}>
+                  {wType ? wType[0] : ''}
                 </div>
+              )}
 
-                {/* Class count pill if classes exist */}
-                {dayRegularClasses.length > 0 && (
-                  <div className="text-[8px] font-caps uppercase tracking-[0.08em] text-muted-foreground mb-0.5">
-                    {dayRegularClasses.length} class{dayRegularClasses.length > 1 ? 'es' : ''}
-                    {weekVariant !== 'All' && dayRegularClasses.some(c => c.week_variant) && (
-                      <span className={`ml-1 px-1 rounded ${VARIANT_BADGE[weekVariant] || ''}`}>{weekVariant}</span>
-                    )}
-                  </div>
-                )}
+              {/* Seven days */}
+              <div className="grid grid-cols-7 gap-px flex-1 bg-border">
+                {week.map(day => {
+                  const dateStr = format(day, 'yyyy-MM-dd');
+                  const inMonth = isSameMonth(day, new Date(year, month, 1));
+                  const today = isToday(day);
+                  const events = inMonth ? getEventsForDate(dateStr, selectedDancerId) : [];
+                  const isSelected = selectedDateStr === dateStr;
+                  const dow = day.getDay();
 
-                {/* Special events */}
-                <div className="space-y-0.5">
-                  {events.slice(0, 3).map(ev => (
-                    <div key={ev.id} className={`text-[8px] font-caps uppercase tracking-[0.05em] px-1 py-0.5 rounded border truncate ${ev.style}`}>
-                      {ev.label}
-                    </div>
-                  ))}
-                  {events.length > 3 && (
-                    <div className="text-[8px] text-muted-foreground text-center">+{events.length - 3}</div>
-                  )}
-                </div>
-              </button>
-            );
-          })
-        )}
+                  // Classes for this day, filtered by the week's Black/Teal allocation
+                  let dayRegularClasses = [];
+                  if (!inMonth) {
+                    dayRegularClasses = [];
+                  } else if (role === 'parent' && selectedDancerId) {
+                    const dancerEnrollments = enrollments.filter(e => e.dancer_id === selectedDancerId && e.active);
+                    dayRegularClasses = allClasses.filter(c => {
+                      if (c.one_time_date === dateStr) return true;
+                      if (c.day_of_week !== dow) return false;
+                      if (!dancerEnrollments.some(e => e.class_id === c.id)) return false;
+                      return classRunsOnWeekType(c, effectiveType(dateStr));
+                    });
+                  } else {
+                    dayRegularClasses = allClasses.filter(c => {
+                      if (c.one_time_date) return c.one_time_date === dateStr;
+                      if (c.day_of_week !== dow) return false;
+                      return classRunsOnWeekType(c, effectiveType(dateStr));
+                    });
+                  }
+
+                  return (
+                    <button
+                      key={dateStr}
+                      onClick={() => inMonth ? setSelectedDay(isSelected ? null : day) : null}
+                      className={`relative bg-card min-h-[72px] p-1.5 text-left transition-colors hover:bg-secondary/40 ${
+                        !inMonth ? 'opacity-25 pointer-events-none' : ''
+                      } ${isSelected ? 'ring-1 ring-inset ring-primary' : ''}`}
+                    >
+                      {/* Date number */}
+                      <div className={`w-5 h-5 flex items-center justify-center rounded-full mb-0.5 ${
+                        today ? 'bg-primary text-primary-foreground' : 'text-foreground'
+                      } font-body text-[11px] font-medium`}>
+                        {day.getDate()}
+                      </div>
+
+                      {/* Class count pill if classes exist */}
+                      {dayRegularClasses.length > 0 && (
+                        <div className="text-[8px] font-caps uppercase tracking-[0.08em] text-muted-foreground mb-0.5">
+                          {dayRegularClasses.length} class{dayRegularClasses.length > 1 ? 'es' : ''}
+                        </div>
+                      )}
+
+                      {/* Special events */}
+                      <div className="space-y-0.5">
+                        {events.slice(0, 3).map(ev => (
+                          <div key={ev.id} className={`text-[8px] font-caps uppercase tracking-[0.05em] px-1 py-0.5 rounded border truncate ${ev.style}`}>
+                            {ev.label}
+                          </div>
+                        ))}
+                        {events.length > 3 && (
+                          <div className="text-[8px] text-muted-foreground text-center">+{events.length - 3}</div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Day detail panel */}
@@ -477,21 +552,21 @@ export default function MonthlyCalendar({ role = 'parent' }) {
               const dow = selectedDay.getDay();
               const dateStr = format(selectedDay, 'yyyy-MM-dd');
 
+              const selWt = effectiveType(dateStr);
               let regularClasses;
               if (role === 'parent' && selectedDancerId) {
                 const dancerEnrollments = enrollments.filter(e => e.dancer_id === selectedDancerId && e.active);
                 regularClasses = allClasses.filter(c => {
                   if (c.one_time_date) return false;
                   if (c.day_of_week !== dow) return false;
-                  return dancerEnrollments.some(e => e.class_id === c.id);
+                  if (!dancerEnrollments.some(e => e.class_id === c.id)) return false;
+                  return classRunsOnWeekType(c, selWt);
                 });
               } else {
                 regularClasses = allClasses.filter(c => {
                   if (c.one_time_date) return false;
                   if (c.day_of_week !== dow) return false;
-                  if (weekVariant === 'Black') return !c.week_variant || c.week_variant === 'Black';
-                  if (weekVariant === 'Teal') return !c.week_variant || c.week_variant === 'Teal';
-                  return true;
+                  return classRunsOnWeekType(c, selWt);
                 });
               }
 
@@ -518,7 +593,7 @@ export default function MonthlyCalendar({ role = 'parent' }) {
                 <div>
                   <p className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground mb-2">
                     Classes by Studio
-                    {weekVariant !== 'All' && <span className={`ml-2 px-1.5 py-0.5 rounded text-[8px] ${VARIANT_BADGE[weekVariant]}`}>{weekVariant} Week</span>}
+                    {selWt && <span className={`ml-2 px-1.5 py-0.5 rounded text-[8px] ${VARIANT_BADGE[selWt]}`}>{selWt} Week</span>}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {studioGroups.map(({ studio, classes }) => (

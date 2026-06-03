@@ -6,7 +6,8 @@ import ClassCard from '@/components/shared/ClassCard';
 import EventSheet from '@/components/shared/EventSheet';
 import SectionLabel from '@/components/shared/SectionLabel';
 import EmptyState from '@/components/shared/EmptyState';
-import { formatTime, DAY_NAMES, getWeekDates } from '@/lib/scheduleUtils';
+import { formatTime, DAY_NAMES, getWeekDates, classRunsOnWeekType, todayDateStr } from '@/lib/scheduleUtils';
+import { useSeasonWeeks } from '@/lib/useSeasonWeeks';
 import { format } from 'date-fns';
 import { Music, ChevronRight } from 'lucide-react';
 
@@ -21,8 +22,10 @@ export default function DancerWeek() {
   const { data: rehearsals = [] } = useQuery({ queryKey: ['rehearsals'], queryFn: () => base44.entities.RehearsalBlock.list() });
   const { data: pieceCasts = [] } = useQuery({ queryKey: ['pieceCasts'], queryFn: () => base44.entities.PieceCast.list() });
 
+  const { weekTypeFor } = useSeasonWeeks();
+  const thisWeekType = weekTypeFor(todayDateStr());
   const myClassIds = enrollments.filter(e => e.dancer_id === dancer?.id).map(e => e.class_id);
-  const myClasses = allClasses.filter(c => myClassIds.includes(c.id));
+  const myClasses = allClasses.filter(c => myClassIds.includes(c.id) && classRunsOnWeekType(c, thisWeekType));
   const studioName = id => studios.find(s => s.id === id)?.name;
   const teacherName = id => { const t = teachers.find(x => x.id === id); return t ? `${t.first_name} ${t.last_name?.[0] || ''}` : ''; };
 
@@ -45,7 +48,10 @@ export default function DancerWeek() {
 
   return (
     <div className="px-4 pt-2 pb-6 max-w-lg mx-auto">
-      <div className="pt-4 mb-4"><SectionLabel>My Week</SectionLabel></div>
+      <div className="pt-4 mb-4 flex items-center gap-2">
+        <SectionLabel>My Week</SectionLabel>
+        {thisWeekType && <span className={`text-[10px] font-caps uppercase tracking-[0.12em] px-2 py-0.5 rounded-full ${thisWeekType === 'Teal' ? 'bg-teal/20 text-teal' : 'bg-zinc-700 text-zinc-200'}`}>{thisWeekType} week</span>}
+      </div>
 
       {byDay.length === 0 ? (
         <EmptyState message="No classes scheduled this week." />

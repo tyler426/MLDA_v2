@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { getTodayDow, formatTime, todayDateStr, getWeekDates } from '@/lib/scheduleUtils';
+import { getTodayDow, formatTime, todayDateStr, getWeekDates, classRunsOnWeekType } from '@/lib/scheduleUtils';
+import { useSeasonWeeks } from '@/lib/useSeasonWeeks';
 import { format } from 'date-fns';
 import { Clock, MapPin, Check, Zap, ChevronRight } from 'lucide-react';
 import EventSheet from '@/components/shared/EventSheet';
@@ -34,6 +35,7 @@ export default function TeacherToday() {
   const { data: enrollments = [] } = useQuery({ queryKey: ['enrollments'], queryFn: () => base44.entities.ClassEnrollment.filter({ active: true }) });
   const { data: spaceBookings = [] } = useQuery({ queryKey: ['spaceBookings'], queryFn: () => base44.entities.SpaceBooking.list('-date', 100) });
   const { data: attendance = [] } = useQuery({ queryKey: ['attendanceToday', todayDateStr()], queryFn: () => base44.entities.AttendanceRecord.filter({ date: todayDateStr() }) });
+  const { weekTypeFor } = useSeasonWeeks();
 
   const todayDow = getTodayDow();
   const activeDow = selectedDow ?? todayDow;
@@ -41,7 +43,7 @@ export default function TeacherToday() {
   const activeDateStr = format(getWeekDates()[activeDow], 'yyyy-MM-dd');
 
   const myClasses = allClasses
-    .filter(c => c.teacher_id === teacher?.id && c.day_of_week === activeDow)
+    .filter(c => c.teacher_id === teacher?.id && c.day_of_week === activeDow && classRunsOnWeekType(c, weekTypeFor(activeDateStr)))
     .map(c => ({ ...c, studioName: studios.find(s => s.id === c.studio_id)?.name, count: enrollments.filter(e => e.class_id === c.id).length, taken: attendance.some(a => a.class_id === c.id) }))
     .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
   const dayBookings = spaceBookings.filter(b => b.date === activeDateStr && b.teacher_id === teacher?.id).sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));

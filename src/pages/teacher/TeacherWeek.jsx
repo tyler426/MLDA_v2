@@ -5,7 +5,8 @@ import { format, isToday } from 'date-fns';
 import EmptyState from '@/components/shared/EmptyState';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { getWeekDates, formatTime, DAY_NAMES } from '@/lib/scheduleUtils';
+import { getWeekDates, formatTime, DAY_NAMES, classRunsOnWeekType } from '@/lib/scheduleUtils';
+import { useSeasonWeeks } from '@/lib/useSeasonWeeks';
 import { Clock, MapPin, Plus, Music, User, X } from 'lucide-react';
 
 function computeEndTime(startTime, durationHours) {
@@ -54,7 +55,9 @@ export default function TeacherWeek() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['spaceBookings'] }); toast.success('Booking cancelled'); },
   });
 
+  const { weekTypeFor } = useSeasonWeeks();
   const weekDates = getWeekDates();
+  const thisWeekType = weekTypeFor(weekDates[0]);
 
   // Space bookings this week
   const weekDateStrs = weekDates.map(d => format(d, 'yyyy-MM-dd'));
@@ -64,7 +67,10 @@ export default function TeacherWeek() {
 
   return (
     <div className="px-4 pt-2 pb-6 max-w-lg mx-auto">
-      <h1 className="font-serif text-[25px] font-semibold mb-4 -tracking-[0.01em]">Teaching this week</h1>
+      <div className="flex items-center gap-2 mb-4">
+        <h1 className="font-serif text-[25px] font-semibold -tracking-[0.01em]">Teaching this week</h1>
+        {thisWeekType && <span className={`text-[10px] font-caps uppercase tracking-[0.12em] px-2 py-0.5 rounded-full ${thisWeekType === 'Teal' ? 'bg-teal/20 text-teal' : 'bg-zinc-700 text-zinc-200'}`}>{thisWeekType} week</span>}
+      </div>
 
       <Tabs defaultValue="schedule">
         <TabsList className="w-full mb-4">
@@ -78,7 +84,7 @@ export default function TeacherWeek() {
             const dow = date.getDay();
             const dateStr = format(date, 'yyyy-MM-dd');
             const dayClasses = allClasses
-              .filter(c => c.teacher_id === teacher?.id && c.day_of_week === dow)
+              .filter(c => c.teacher_id === teacher?.id && c.day_of_week === dow && classRunsOnWeekType(c, weekTypeFor(dateStr)))
               .sort((a, b) => a.start_time.localeCompare(b.start_time));
 
             // SpaceBookings this teacher has on this specific date
