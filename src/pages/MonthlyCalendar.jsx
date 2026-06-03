@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { formatTime, weekStartStr } from '@/lib/scheduleUtils';
 import { useSeasonWeeks } from '@/lib/useSeasonWeeks';
 import { useStudioConfig } from '@/lib/useStudioConfig';
+import { useMyDancer } from '@/lib/useMyDancer';
 import { COMMON_TIMEZONES } from '@/lib/dateUtils';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -101,16 +102,19 @@ export default function MonthlyCalendar({ role = 'parent' }) {
     }
   }, [householdDancers.length, role]);
 
-  // Program scope: parents auto-scope to their selected dancer's program; admin/
-  // teacher use the program filter. null = show every program (whole studio).
+  // Program scope: parents auto-scope to their selected dancer's program, dancers to
+  // their own; admin/teacher use the program filter. null = whole studio (everything).
+  const { data: myDancer } = useMyDancer();
   const activeProgram = role === 'parent'
     ? (householdDancers.find(d => d.id === selectedDancerId)?.program || null)
-    : (programFilter === 'all' ? null : programFilter);
+    : role === 'dancer'
+      ? (myDancer?.program || null)
+      : (programFilter === 'all' ? null : programFilter);
   // An item shows when it's studio-wide, or when its program matches the active scope.
   const matchesProgram = (item) => !item.program || item.program === 'all' || activeProgram === null || item.program === activeProgram;
-  // Parents also see only camps for their dancer's level (or all-level camps).
-  const activeLevel = role === 'parent' ? (householdDancers.find(d => d.id === selectedDancerId)?.level || null) : null;
-  const campMatches = (camp) => matchesProgram(camp) && (role !== 'parent' || !(camp.levels || []).length || (activeLevel && camp.levels.includes(activeLevel)));
+  // Camps are studio-wide info on the month — shown to everyone (level shown as a tag,
+  // not used to hide them); still respect the admin program filter.
+  const campMatches = (camp) => matchesProgram(camp);
 
   const deleteBookingMutation = useMutation({
     mutationFn: (id) => base44.entities.SpaceBooking.delete(id),
@@ -312,8 +316,8 @@ export default function MonthlyCalendar({ role = 'parent' }) {
         </div>
       )}
 
-      {/* Program filter (admin & teacher); parents are auto-scoped to their dancer) */}
-      {role !== 'parent' && (
+      {/* Program filter (admin & teacher); parents/dancers are auto-scoped */}
+      {(role === 'admin' || role === 'teacher') && (
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground">Program:</span>
           {['all', ...(cfg?.programs || [])].map(p => (

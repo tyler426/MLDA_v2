@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Users } from 'lucide-react';
+import { useStudioConfig } from '@/lib/useStudioConfig';
 import { toast } from 'sonner';
 
 export default function AdminBulkEnroll() {
@@ -14,6 +15,7 @@ export default function AdminBulkEnroll() {
   const [filterLevel, setFilterLevel] = useState('all');
   const [filterProgram, setFilterProgram] = useState('all');
   const queryClient = useQueryClient();
+  const { data: cfg } = useStudioConfig();
 
   const { data: classes = [] } = useQuery({ queryKey: ['allClasses'], queryFn: () => base44.entities.DanceClass.list() });
   const { data: dancers = [] } = useQuery({ queryKey: ['allDancers'], queryFn: () => base44.entities.Dancer.filter({ archived: false }) });
@@ -25,8 +27,10 @@ export default function AdminBulkEnroll() {
     return levelOk && programOk;
   });
 
-  const levels = [...new Set(dancers.map(d => d.level).filter(Boolean))].sort();
-  const programs = ['PrePro', 'Competitive', 'Educational'];
+  // Use the studio's configured group (program) + level names from Settings,
+  // falling back to whatever's present on dancers if config is empty.
+  const programs = (cfg?.programs?.length ? cfg.programs : [...new Set(dancers.map(d => d.program).filter(Boolean))].sort());
+  const levels = (cfg?.levels?.length ? cfg.levels : [...new Set(dancers.map(d => d.level).filter(Boolean))].sort());
 
   const toggleDancer = (id) => {
     setSelectedDancers(prev => prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]);

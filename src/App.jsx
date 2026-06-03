@@ -109,6 +109,7 @@ const AuthenticatedApp = () => {
         <Route path="/dancer/today" element={<DancerToday />} />
         <Route path="/dancer/week" element={<DancerWeek />} />
         <Route path="/dancer/pieces" element={<DancerPieces />} />
+        <Route path="/dancer/month" element={<MonthlyCalendar role="dancer" />} />
         <Route path="/dancer/settings" element={<DancerSettings />} />
       </Route>
 

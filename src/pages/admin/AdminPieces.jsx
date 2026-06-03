@@ -18,6 +18,7 @@ export default function AdminPieces() {
   const [showCreate, setShowCreate] = useState(false);
   const [editPiece, setEditPiece] = useState(null);
   const [manageCast, setManageCast] = useState(null);
+  const [kindFilter, setKindFilter] = useState('all'); // 'all' | 'group' | 'solo'
   const queryClient = useQueryClient();
 
   const { data: cfg } = useStudioConfig();
@@ -54,11 +55,30 @@ export default function AdminPieces() {
         </Button>
       </div>
 
+      {/* Group / Solo filter with counts */}
+      {pieces.length > 0 && (
+        <div className="flex items-center gap-2 mb-4">
+          {[
+            ['all', 'All', pieces.length],
+            ['group', 'Group dances', pieces.filter(p => p.kind !== 'solo').length],
+            ['solo', 'Solos', pieces.filter(p => p.kind === 'solo').length],
+          ].map(([k, label, n]) => (
+            <button key={k} onClick={() => setKindFilter(k)}
+              className={`px-3 py-1.5 rounded-md font-caps text-[10px] uppercase tracking-[0.12em] border transition-colors ${kindFilter === k ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary text-muted-foreground border-border hover:text-foreground'}`}>
+              {label} <span className="opacity-70">({n})</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {pieces.length === 0 ? (
         <EmptyState message="No pieces yet" sub="Create pieces and assign dancers to them" />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
-          {pieces.map((p, i) => {
+          {pieces
+            .filter(p => kindFilter === 'all' || (kindFilter === 'solo' ? p.kind === 'solo' : p.kind !== 'solo'))
+            .sort((a, b) => (a.title || '').localeCompare(b.title || ''))
+            .map((p, i) => {
             const castCount = pieceCasts.filter(pc => pc.piece_id === p.id).length;
             return (
               <motion.div

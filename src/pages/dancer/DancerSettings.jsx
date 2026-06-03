@@ -1,6 +1,8 @@
 import { useMyDancer } from '@/lib/useMyDancer';
+import { Link } from 'react-router-dom';
 import SectionLabel from '@/components/shared/SectionLabel';
 import NotificationToggle from '@/components/shared/NotificationToggle';
+import { CalendarDays, ChevronRight } from 'lucide-react';
 
 export default function DancerSettings() {
   const { data: dancer } = useMyDancer();
@@ -14,6 +16,13 @@ export default function DancerSettings() {
         <Row label="Program" value={dancer?.program || '—'} />
         <Row label="Level" value={dancer?.level || '—'} />
       </div>
+
+      {/* Month calendar (Tribe Vibe, competitions, camps — no classes) */}
+      <Link to="/dancer/month" className="mt-4 flex items-center gap-3 bg-card border border-border rounded-2xl px-4 py-3.5 hover:bg-secondary/40">
+        <CalendarDays className="w-[18px] h-[18px] text-teal-bright" />
+        <span className="flex-1 text-[14px]">Month calendar</span>
+        <ChevronRight className="w-4 h-4 text-muted-2" />
+      </Link>
 
       <div className="mt-4"><NotificationToggle /></div>
 
