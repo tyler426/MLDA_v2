@@ -149,7 +149,7 @@ function PieceCard({ piece, index, castCount, onEdit, onCast, onDelete }) {
             <div className="flex flex-wrap gap-1.5 mt-1.5">
               {piece.level && <Badge tone="teal">{piece.level}</Badge>}
               {piece.genre && <Badge>{piece.genre}</Badge>}
-              {piece.kind !== 'solo' && piece.size && <Badge>{piece.size}</Badge>}
+              {piece.size && <Badge>{piece.size}</Badge>}
               {piece.age_division && <Badge>{piece.age_division}</Badge>}
             </div>
             <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
@@ -210,7 +210,6 @@ function PieceFormDialog({ open, onClose, piece, cfg, defaultChoreographer, teac
     const payload = { ...form };
     if (!piece) payload.teacher_id = teacherId || null;
     if (!payload.choreographer) payload.choreographer = defaultChoreographer || '';
-    if (payload.kind === 'solo') payload.size = ''; // size is meaningless for solos
     onSave(payload);
     reset();
   };
@@ -248,9 +247,7 @@ function PieceFormDialog({ open, onClose, piece, cfg, defaultChoreographer, teac
             <Field label="Genre" value={form.genre} onChange={v => setForm({ ...form, genre: v })} options={cfg?.genres} />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {form.kind !== 'solo'
-              ? <Field label="Size" value={form.size} onChange={v => setForm({ ...form, size: v })} options={cfg?.sizes} />
-              : <div><Label className="text-xs text-muted-foreground">Size</Label><div className="h-10 flex items-center text-xs text-muted-2">— solo —</div></div>}
+            <Field label="Size" value={form.size} onChange={v => setForm({ ...form, size: v })} options={cfg?.sizes} />
             <Field label="Age division" value={form.age_division} onChange={v => setForm({ ...form, age_division: v })} options={cfg?.age_divisions} />
           </div>
 

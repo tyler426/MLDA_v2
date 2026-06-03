@@ -79,7 +79,7 @@ export default function AdminPieces() {
                       {p.kind === 'solo' && <span className="font-caps text-[9.5px] uppercase tracking-[0.1em] px-1.5 py-0.5 rounded bg-gold/12 text-gold">Solo</span>}
                       {p.level && <span className="font-caps text-[10px] uppercase tracking-[0.1em] text-warm-gray">{p.level}</span>}
                       {p.genre && <span className="text-[10px] text-muted-foreground">{p.genre}</span>}
-                      {p.kind !== 'solo' && p.size && <span className="text-[10px] text-muted-foreground">{p.size}</span>}
+                      {p.size && <span className="text-[10px] text-muted-foreground">{p.size}</span>}
                       {p.age_division && <span className="text-[10px] text-muted-foreground">{p.age_division}</span>}
                       {p.season && <span className="text-[10px] text-muted-foreground">{p.season}</span>}
                     </div>
@@ -169,7 +169,7 @@ function PieceFormDialog({ open, onClose, piece, cfg, onSave }) {
     <Dialog open={open} onOpenChange={(v) => { if (!v) { onClose(); setForm(EMPTY_PIECE); setLoadedId(null); } }}>
       <DialogContent className="bg-card border-border max-w-sm max-h-[88vh] overflow-y-auto">
         <DialogHeader><DialogTitle className="font-serif text-foreground">{piece ? 'Edit piece' : 'New piece'}</DialogTitle></DialogHeader>
-        <form onSubmit={(e) => { e.preventDefault(); const payload = { ...form }; if (payload.kind === 'solo') payload.size = ''; onSave(payload); setForm(EMPTY_PIECE); setLoadedId(null); }} className="space-y-3">
+        <form onSubmit={(e) => { e.preventDefault(); onSave(form); setForm(EMPTY_PIECE); setLoadedId(null); }} className="space-y-3">
           <div><Label className="text-xs text-muted-foreground">Title</Label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required className="bg-secondary border-border" /></div>
           <div>
             <Label className="text-xs text-muted-foreground">Type</Label>
@@ -186,9 +186,7 @@ function PieceFormDialog({ open, onClose, piece, cfg, onSave }) {
             <ClassSelect label="Genre" value={form.genre} onChange={v => setForm({ ...form, genre: v })} options={cfg?.genres} />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {form.kind !== 'solo'
-              ? <ClassSelect label="Size" value={form.size} onChange={v => setForm({ ...form, size: v })} options={cfg?.sizes} />
-              : <div><Label className="text-xs text-muted-foreground">Size</Label><div className="h-10 flex items-center text-xs text-muted-2">— solo —</div></div>}
+            <ClassSelect label="Size" value={form.size} onChange={v => setForm({ ...form, size: v })} options={cfg?.sizes} />
             <ClassSelect label="Age division" value={form.age_division} onChange={v => setForm({ ...form, age_division: v })} options={cfg?.age_divisions} />
           </div>
           <div className="grid grid-cols-2 gap-3">
