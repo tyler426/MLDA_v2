@@ -142,7 +142,7 @@ const auth = {
     if (profile?.role === 'admin') {
       const { data: settings } = await supabase
         .from('app_settings')
-        .select('global_notifications_enabled, jackrabbit_api_key, studio_name, studio_location, studio_timezone')
+        .select('global_notifications_enabled, jackrabbit_api_key, studio_name, studio_location, studio_timezone, color_teal, color_gold')
         .eq('id', 1)
         .single();
       Object.assign(merged, settings || {});
@@ -154,7 +154,7 @@ const auth = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const settingsKeys = ['global_notifications_enabled', 'jackrabbit_api_key', 'studio_name', 'studio_location', 'studio_timezone'];
+    const settingsKeys = ['global_notifications_enabled', 'jackrabbit_api_key', 'studio_name', 'studio_location', 'studio_timezone', 'color_teal', 'color_gold'];
     const settingsPatch = {};
     const profilePatch = {};
     for (const [k, v] of Object.entries(values)) {

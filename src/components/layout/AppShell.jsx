@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
+import { useStudioConfig } from '@/lib/useStudioConfig';
 import { CalendarDays, Clock, Settings, Music, Trophy, Home, Mail, User, LogOut, Users } from 'lucide-react';
 
 // Spotlight mobile shell — phone-centered column + bottom tab bar.
@@ -31,13 +32,14 @@ const teacherNav = [
 export default function AppShell({ role }) {
   const location = useLocation();
   const { logout } = useAuth();
+  const { data: cfg } = useStudioConfig();
   const nav = role === 'teacher' ? teacherNav : role === 'dancer' ? dancerNav : parentNav;
 
   return (
     <div className="mx-auto w-full max-w-[440px] min-h-screen flex flex-col relative shadow-[0_0_80px_-20px_rgba(0,0,0,0.8)]">
       {/* Slim brand bar */}
       <header className="flex-none flex items-center justify-between px-5 py-3">
-        <span className="font-serif text-[18px] font-semibold text-gold">MLDA</span>
+        <span className="font-serif text-[18px] font-semibold text-gold truncate max-w-[60%]">{cfg?.studio_name || 'MLDA Collective'}</span>
         <button onClick={() => logout()} className="flex items-center gap-1.5 text-muted-2 hover:text-foreground transition-colors">
           <span className="font-caps text-[11px] uppercase tracking-[0.2em]">Sign out</span>
           <LogOut className="w-[15px] h-[15px]" />

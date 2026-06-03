@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
+import { useStudioConfig } from '@/lib/useStudioConfig';
 import {
   LayoutGrid, CalendarDays, AlertTriangle, Music, FileText, Users, Trophy,
   ClipboardList, GraduationCap, DollarSign, Megaphone, Settings, Search, Bell, Calendar, Tent,
@@ -48,6 +49,7 @@ function NavItem({ item, active }) {
 export default function AdminShell() {
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { data: cfg } = useStudioConfig();
   const isActive = (p) => location.pathname === p || (p !== '/admin/dashboard' && location.pathname.startsWith(p));
 
   return (
@@ -58,8 +60,8 @@ export default function AdminShell() {
           <div className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center font-serif font-bold text-[20px] text-[#1a1408]"
             style={{ background: 'linear-gradient(150deg,#c8a464,#9c7a3c)' }}>M</div>
           <div>
-            <div className="font-serif text-[17px] font-semibold leading-none">MLDA</div>
-            <div className="text-[11px] tracking-[0.24em] uppercase text-muted-2 mt-[3px]">Collective · Admin</div>
+            <div className="font-serif text-[17px] font-semibold leading-none truncate max-w-[150px]">{cfg?.studio_name || 'MLDA Collective'}</div>
+            <div className="text-[11px] tracking-[0.24em] uppercase text-muted-2 mt-[3px]">Admin Console</div>
           </div>
         </div>
 

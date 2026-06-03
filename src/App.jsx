@@ -57,6 +57,7 @@ import AdminDashboard from '@/pages/admin/AdminDashboard';
 import AdminBilling from '@/pages/admin/AdminBilling';
 import AdminComms from '@/pages/admin/AdminComms';
 import MonthlyCalendar from '@/pages/MonthlyCalendar';
+import ThemeApplier from '@/lib/ThemeApplier';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } = useAuth();
@@ -87,6 +88,8 @@ const AuthenticatedApp = () => {
   }
 
   return (
+    <>
+    <ThemeApplier />
     <Routes>
       <Route path="/login" element={<RoleRedirect />} />
       {/* Role redirect */}
@@ -149,6 +152,7 @@ const AuthenticatedApp = () => {
 
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </>
   );
 };
 

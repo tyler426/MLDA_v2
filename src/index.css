@@ -17,6 +17,10 @@
     --font-serif: 'Bodoni Moda', serif;
     --font-script: 'Bodoni Moda', serif;
 
+    /* Brand colors as RGB channels so tailwind teal/gold + opacity variants are themeable at runtime */
+    --brand-teal: 44 144 137;        /* #2c9089 */
+    --brand-teal-bright: 58 168 159; /* #3aa89f */
+    --brand-gold: 200 164 100;       /* #c8a464 */
     --background: 30 9% 4%;          /* #0a0908 warm near-black */
     --foreground: 37 33% 91%;        /* #efe9df bone */
     --card: 30 6% 7%;                /* #121110 panel */

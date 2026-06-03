@@ -19,10 +19,10 @@ module.exports = {
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
-        gold: '#c8a464',
+        gold: 'rgb(var(--brand-gold) / <alpha-value>)',
         'gold-soft': 'rgba(200,164,100,.13)',
-        teal: '#2c9089',
-        'teal-bright': '#3aa89f',
+        teal: 'rgb(var(--brand-teal) / <alpha-value>)',
+        'teal-bright': 'rgb(var(--brand-teal-bright) / <alpha-value>)',
         'teal-deep': '#1f7570',
         coral: '#d97a5e',
         'warm-white': '#efe9df',

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +22,11 @@ export default function AdminSettings() {
   const [studioLocation, setStudioLocation] = useState('');
   const [studioTimezone, setStudioTimezone] = useState('America/Denver');
   const [savingStudio, setSavingStudio] = useState(false);
+  const [colorTeal, setColorTeal] = useState('#2c9089');
+  const [colorGold, setColorGold] = useState('#c8a464');
+  const [savingBrand, setSavingBrand] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const qc = useQueryClient();
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [resetConfirm, setResetConfirm] = useState('');
   const [resetting, setResetting] = useState(false);
@@ -34,14 +39,27 @@ export default function AdminSettings() {
       setStudioName(u?.studio_name || 'MLDA Collective');
       setStudioLocation(u?.studio_location || '');
       setStudioTimezone(u?.studio_timezone || 'America/Denver');
+      setColorTeal(u?.color_teal || '#2c9089');
+      setColorGold(u?.color_gold || '#c8a464');
       setNotificationsEnabled(u?.global_notifications_enabled === true);
     });
   }, []);
+
+  const saveBrand = async () => {
+    setSavingBrand(true);
+    try {
+      await base44.auth.updateMe({ color_teal: colorTeal, color_gold: colorGold });
+      qc.invalidateQueries({ queryKey: ['studioConfig'] }); // re-applies the theme + headers
+      toast.success('Brand colors saved');
+    } catch (e) { toast.error(e.message); }
+    finally { setSavingBrand(false); }
+  };
 
   const saveStudio = async () => {
     setSavingStudio(true);
     try {
       await base44.auth.updateMe({ studio_name: studioName.trim(), studio_location: studioLocation.trim(), studio_timezone: studioTimezone });
+      qc.invalidateQueries({ queryKey: ['studioConfig'] }); // refresh headers
       toast.success('Studio details saved');
     } catch (e) { toast.error(e.message); }
     finally { setSavingStudio(false); }
@@ -277,22 +295,32 @@ export default function AdminSettings() {
         </div>
       </div>
 
-      {/* Branding */}
+      {/* Branding — editable accent colors */}
       <div className="bg-card border border-border rounded-lg p-4 mb-6">
-        <h3 className="font-body font-semibold text-sm text-foreground mb-3">Brand</h3>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-teal" />
-            <span className="text-xs text-muted-foreground">Teal #1f7570</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-gold" />
-            <span className="text-xs text-muted-foreground">Gold #c8a464</span>
-          </div>
+        <h3 className="font-body font-semibold text-sm text-foreground mb-1">Brand colors</h3>
+        <p className="text-[11px] text-muted-2 mb-3">The two accent colors used across the app. Changes apply everywhere after saving.</p>
+        <div className="flex items-center gap-5">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="color" value={colorTeal} onChange={e => setColorTeal(e.target.value)} className="w-9 h-9 rounded-md bg-transparent border border-border cursor-pointer" />
+            <div>
+              <div className="text-xs text-foreground">Primary (teal)</div>
+              <div className="text-[10px] text-muted-2">{colorTeal}</div>
+            </div>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="color" value={colorGold} onChange={e => setColorGold(e.target.value)} className="w-9 h-9 rounded-md bg-transparent border border-border cursor-pointer" />
+            <div>
+              <div className="text-xs text-foreground">Accent (gold)</div>
+              <div className="text-[10px] text-muted-2">{colorGold}</div>
+            </div>
+          </label>
         </div>
-        <p className="mt-3 font-caps text-[10px] uppercase tracking-[0.2em] text-warm-gray">
-          Lead · Support · Uplift · Inspire
-        </p>
+        <div className="flex items-center gap-2 mt-4">
+          <Button onClick={saveBrand} disabled={savingBrand} className="bg-primary hover:bg-primary/90 font-caps text-[10px] uppercase tracking-[0.12em]">
+            {savingBrand ? 'Saving…' : 'Save colors'}
+          </Button>
+          <button onClick={() => { setColorTeal('#2c9089'); setColorGold('#c8a464'); }} className="text-[11px] text-muted-2 hover:text-foreground">Reset to default</button>
+        </div>
       </div>
 
       {/* Season Archive */}
