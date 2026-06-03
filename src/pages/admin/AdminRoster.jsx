@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,12 @@ export default function AdminRoster() {
   const [showCreate, setShowCreate] = useState(null); // 'dancer' | 'parent' | 'teacher'
   const [editItem, setEditItem] = useState(null);
   const [expandedParent, setExpandedParent] = useState(null);
+  const [sortBy, setSortBy] = useState('name'); // 'name' | 'group' | 'level'
+  const [filterProgram, setFilterProgram] = useState('');
+  const [filterLevel, setFilterLevel] = useState('');
   const queryClient = useQueryClient();
+
+  const { data: cfg } = useStudioConfig();
 
   const { data: dancers = [] } = useQuery({ queryKey: ['allDancers'], queryFn: () => base44.entities.Dancer.list() });
   const { data: parents = [] } = useQuery({ queryKey: ['allParents'], queryFn: () => base44.entities.ParentHousehold.list() });
@@ -38,9 +43,27 @@ export default function AdminRoster() {
     onError: (e) => toast.error(e.message),
   });
 
-  const filteredDancers = activeDancers.filter(d =>
-    `${d.first_name} ${d.last_name}`.toLowerCase().includes(search.toLowerCase())
-  );
+  // Sort dancers by the studio's configured group/level order (not alphabetical).
+  const programOrder = cfg?.programs || [];
+  const levelOrder = cfg?.levels || [];
+  const rankIn = (list, v) => { const i = list.indexOf(v); return i === -1 ? 999 : i; };
+  const nameOf = d => `${d.first_name} ${d.last_name}`;
+
+  const filteredDancers = activeDancers
+    .filter(d => nameOf(d).toLowerCase().includes(search.toLowerCase()))
+    .filter(d => !filterProgram || d.program === filterProgram)
+    .filter(d => !filterLevel || d.level === filterLevel)
+    .sort((a, b) => {
+      if (sortBy === 'group') {
+        const r = rankIn(programOrder, a.program) - rankIn(programOrder, b.program);
+        if (r) return r;
+      } else if (sortBy === 'level') {
+        const r = rankIn(levelOrder, a.level) - rankIn(levelOrder, b.level);
+        if (r) return r;
+      }
+      return nameOf(a).localeCompare(nameOf(b));
+    });
+  const dancerGroupKey = d => sortBy === 'group' ? (d.program || 'No group') : sortBy === 'level' ? (d.level || 'No level') : null;
   const filteredParents = parents.filter(p =>
     p.primary_contact_name?.toLowerCase().includes(search.toLowerCase()) || p.email?.toLowerCase().includes(search.toLowerCase())
   );
@@ -80,11 +103,44 @@ export default function AdminRoster() {
         </div>
 
         <TabsContent value="dancers">
+          {/* Sort + filter by group / level */}
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <span className="font-caps text-[11px] uppercase tracking-[0.15em] text-muted-foreground">Sort</span>
+            {[['name', 'Name'], ['group', 'Group'], ['level', 'Level']].map(([k, l]) => (
+              <button key={k} onClick={() => setSortBy(k)}
+                className={`px-2.5 py-1 rounded font-caps text-[11px] uppercase tracking-[0.1em] border transition-colors ${sortBy === k ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}>
+                {l}
+              </button>
+            ))}
+            <span className="w-px h-5 bg-border mx-1" />
+            <Select value={filterProgram || 'all'} onValueChange={v => setFilterProgram(v === 'all' ? '' : v)}>
+              <SelectTrigger className="bg-secondary border-border h-8 w-[150px] text-xs"><SelectValue placeholder="All groups" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All groups</SelectItem>
+                {(cfg?.programs || []).map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterLevel || 'all'} onValueChange={v => setFilterLevel(v === 'all' ? '' : v)}>
+              <SelectTrigger className="bg-secondary border-border h-8 w-[160px] text-xs"><SelectValue placeholder="All levels" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All levels</SelectItem>
+                {(cfg?.levels || []).map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <span className="text-[11px] text-muted-2 ml-auto">{filteredDancers.length} dancer{filteredDancers.length === 1 ? '' : 's'}</span>
+          </div>
+
           <div className="space-y-2">
             {filteredDancers.map((d, i) => {
               const parent = parents.find(p => p.id === d.parent_household_id);
+              const groupKey = dancerGroupKey(d);
+              const showHeader = groupKey !== null && (i === 0 || groupKey !== dancerGroupKey(filteredDancers[i - 1]));
               return (
-                <motion.div key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
+                <Fragment key={d.id}>
+                {showHeader && (
+                  <div className="font-caps text-[11px] uppercase tracking-[0.15em] text-warm-gray pt-3 pb-1 first:pt-0">{groupKey}</div>
+                )}
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: Math.min(i, 12) * 0.02 }}
                   className="bg-card border border-border rounded-lg p-3 flex items-center justify-between"
                 >
                   <div>
@@ -99,8 +155,12 @@ export default function AdminRoster() {
                   </div>
                   <button onClick={() => setEditItem({ type: 'dancer', data: d })} className="p-1.5 text-muted-foreground hover:text-foreground"><Pencil className="w-3.5 h-3.5" /></button>
                 </motion.div>
+                </Fragment>
               );
             })}
+            {filteredDancers.length === 0 && (
+              <p className="text-xs text-muted-foreground text-center py-8 italic">No dancers match these filters.</p>
+            )}
           </div>
         </TabsContent>
 
