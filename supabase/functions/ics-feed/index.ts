@@ -68,7 +68,10 @@ Deno.serve(async (req) => {
       }
     }
   } else {
-    const { data: teacher } = await admin.from('teachers').select('*').eq('ics_token', token).single();
+    // Teacher feed token now lives in the scoped teacher_secrets table.
+    const { data: ts } = await admin.from('teacher_secrets').select('teacher_id').eq('ics_token', token).single();
+    if (!ts) return new Response('Not found', { status: 404 });
+    const { data: teacher } = await admin.from('teachers').select('*').eq('id', ts.teacher_id).single();
     if (!teacher) return new Response('Not found', { status: 404 });
     for (const c of classes.filter((c: any) => c.teacher_id === teacher.id)) {
       const dates = c.one_time_date ? [c.one_time_date] : upcomingDatesForDow(c.day_of_week);

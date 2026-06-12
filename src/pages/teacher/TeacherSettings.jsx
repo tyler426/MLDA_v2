@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabaseClient';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,17 @@ export default function TeacherSettings() {
     select: d => d[0],
   });
 
-  const icsToken = teacher?.ics_token;
+  // Token now lives in the scoped teacher_secrets table; read own via RPC
+  // (fallback to the legacy column for the pre-migration window).
+  const { data: rpcToken } = useQuery({
+    queryKey: ['myIcsToken', userEmail],
+    enabled: !!userEmail,
+    queryFn: async () => {
+      const { data } = await supabase.rpc('my_ics_token');
+      return data || null;
+    },
+  });
+  const icsToken = rpcToken || teacher?.ics_token;
   const fnBase = import.meta.env.VITE_SUPABASE_URL?.replace('.supabase.co', '.functions.supabase.co');
   const icsUrl = icsToken ? `${fnBase}/ics-feed?type=teacher&token=${icsToken}` : null;
 
