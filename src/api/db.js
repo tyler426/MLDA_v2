@@ -142,10 +142,13 @@ const auth = {
     if (profile?.role === 'admin') {
       const { data: settings } = await supabase
         .from('app_settings')
-        .select('global_notifications_enabled, jackrabbit_api_key, studio_name, studio_location, studio_timezone, color_teal, color_gold')
+        .select('global_notifications_enabled, studio_name, studio_location, studio_timezone, color_teal, color_gold')
         .eq('id', 1)
         .single();
       Object.assign(merged, settings || {});
+      // Secret lives in an admin-only table (not the world-readable settings row).
+      const { data: secret } = await supabase.from('app_secrets').select('jackrabbit_api_key').eq('id', 1).maybeSingle();
+      if (secret) Object.assign(merged, secret);
     }
     return merged;
   },
@@ -154,15 +157,21 @@ const auth = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const settingsKeys = ['global_notifications_enabled', 'jackrabbit_api_key', 'studio_name', 'studio_location', 'studio_timezone', 'color_teal', 'color_gold'];
+    const settingsKeys = ['global_notifications_enabled', 'studio_name', 'studio_location', 'studio_timezone', 'color_teal', 'color_gold'];
     const settingsPatch = {};
     const profilePatch = {};
+    let secretPatch = null;
     for (const [k, v] of Object.entries(values)) {
-      if (settingsKeys.includes(k)) settingsPatch[k] = v;
+      if (k === 'jackrabbit_api_key') { secretPatch = { ...(secretPatch || {}), jackrabbit_api_key: v }; }
+      else if (settingsKeys.includes(k)) settingsPatch[k] = v;
       else profilePatch[k] = v;
     }
     if (Object.keys(settingsPatch).length) {
       await supabase.from('app_settings').update(settingsPatch).eq('id', 1);
+    }
+    if (secretPatch) {
+      // admin-only table; RLS blocks non-admins
+      await supabase.from('app_secrets').upsert({ id: 1, ...secretPatch });
     }
     if (Object.keys(profilePatch).length) {
       await supabase.from('profiles').update(profilePatch).eq('id', user.id);
@@ -193,7 +202,12 @@ const integrations = {
       return data;
     },
     async UploadFile({ file }) {
-      const path = `absence-docs/${Date.now()}-${file.name}`;
+      const ext = (file.name?.split('.').pop() || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const OK = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'heic', 'heif', 'doc', 'docx'];
+      if (!OK.includes(ext)) throw new Error('Unsupported file type (PDF, image, or Word only)');
+      if (file.size > 15 * 1024 * 1024) throw new Error('File too large (max 15 MB)');
+      const safe = (file.name || 'file').replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80);
+      const path = `absence-docs/${Date.now()}-${crypto.randomUUID()}-${safe}`;
       const { error } = await supabase.storage.from('uploads').upload(path, file);
       if (error) throw error;
       // Private bucket — store the path; opened later via a short-lived signed URL.

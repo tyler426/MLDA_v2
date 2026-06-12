@@ -12,9 +12,12 @@ export default function PhotoUpload({ value, onChange, label = 'Photo' }) {
   const handle = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const ext = (file.name.split('.').pop() || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const OK = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
+    if (!file.type.startsWith('image/') || !OK.includes(ext)) { toast.error('Use a JPG, PNG, or WebP image'); return; }
+    if (file.size > 6 * 1024 * 1024) { toast.error('Image too large (max 6 MB)'); return; }
     setBusy(true);
     try {
-      const ext = file.name.split('.').pop();
       const path = `dancers/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage.from('photos').upload(path, file, { upsert: true });
       if (error) throw error;
